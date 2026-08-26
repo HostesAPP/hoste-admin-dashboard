@@ -20,7 +20,7 @@ export default function DashboardLayout({
         </nav>
       </aside>
       {/* Main content area */}
-      <main className="flex-1 p-6 overflow-y-auto min-w-5xl">
+      <main className="flex-1 overflow-y-auto">
         {children}
       </main>
     </div>
