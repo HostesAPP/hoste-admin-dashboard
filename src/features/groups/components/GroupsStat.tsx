@@ -1,4 +1,4 @@
-import { GroupsStatCard } from "./GroupsStatCard";
+import { GroupsStatCard } from "@/features/groups";
 
 interface GroupsStatProps {
   StatData: {
@@ -14,7 +14,7 @@ export const GroupsStat = ({
 }: GroupsStatProps) => {
   
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-4 gap-6">
       {StatData?.map((data) => (
         <GroupsStatCard
           key={data.title}

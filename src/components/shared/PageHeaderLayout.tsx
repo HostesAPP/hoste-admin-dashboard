@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 interface PageHeaderLayoutProps {
   title: string;
   description: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export const PageHeaderLayout = ({ title, description, children }: PageHeaderLayoutProps) => {
@@ -14,7 +14,7 @@ export const PageHeaderLayout = ({ title, description, children }: PageHeaderLay
       {/* Header  */}
       <div>
         <h1 className="text-2xl font-bold">{title}</h1>
-        <p className="text-sm font- text-muted-foreground">{description}</p>
+        <p className="text-sm">{description}</p>
       </div>
 
       {/* Actions (search, filters, buttons) */}
@@ -34,7 +34,6 @@ export const PageHeaderLayout = ({ title, description, children }: PageHeaderLay
             <AvatarImage src="user.png" />
             <AvatarFallback>U</AvatarFallback>
           </Avatar>
-
           <div className="w-full h-full flex flex-col items-start justify-center">
             <h3 className="font-medium text-sm">John Doe</h3>
             <span className="text-xs text-muted-foreground">Admin</span>

@@ -14,14 +14,14 @@ export const GroupsStatCard = ({
   rate,
 }: GroupStatCardProps) => {
   return (
-    <Card className="shadow-sm gap-2 hover:shadow-md transition-shadow duration-200 rounded-sm">
+    <Card className="shadow-sm gap-2 hover:shadow-md py-4 transition-shadow duration-200 rounded-md">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle className="text-sm font-medium text-muted-foreground truncate">
           {title}
         </CardTitle>
         {
           rate && rate > 0 ? (
-            <span className={`text-sm font-bold px-2 py-1 rounded-sm text-secondary-green bg-secondary-green/10`}>
+            <span className={`text-xs truncate font-bold px-2 py-1 rounded-sm text-secondary-green bg-secondary-green/10`}>
               +{rate} this month
             </span>
           ) : null
