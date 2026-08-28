@@ -9,6 +9,7 @@ export type Group = {
   status: GroupStatus;
   createdAt: string;
   updatedAt: string;
+  color: string;
 };
 
 // group member types

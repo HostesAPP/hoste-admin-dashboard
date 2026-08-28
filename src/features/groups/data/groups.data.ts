@@ -10,6 +10,7 @@ export const GROUPS: Group[] = [
     status: "Active",
     createdAt: "2026-08-10T09:30:00.000Z",
     updatedAt: "2026-08-20T14:15:00.000Z",
+    color: "#F97316",
   },
   {
     id: "GRP-002",
@@ -19,6 +20,7 @@ export const GROUPS: Group[] = [
     status: "Active",
     createdAt: "2026-08-01T10:00:00.000Z",
     updatedAt: "2026-08-24T16:00:00.000Z",
+    color: "#EC4899",
   },
   {
     id: "GRP-003",
@@ -28,6 +30,7 @@ export const GROUPS: Group[] = [
     status: "Active",
     createdAt: "2026-07-22T11:00:00.000Z",
     updatedAt: "2026-08-18T16:45:00.000Z",
+    color: "#0284C7",
   },
   {
     id: "GRP-004",
@@ -37,6 +40,7 @@ export const GROUPS: Group[] = [
     status: "Active",
     createdAt: "2026-07-05T07:15:00.000Z",
     updatedAt: "2026-08-22T08:30:00.000Z",
+    color: "#D97706",
   },
   {
     id: "GRP-005",
@@ -46,6 +50,7 @@ export const GROUPS: Group[] = [
     status: "Paused",
     createdAt: "2026-06-15T08:20:00.000Z",
     updatedAt: "2026-08-12T10:30:00.000Z",
+    color: "#64748B",
   },
   {
     id: "GRP-006",
@@ -55,6 +60,7 @@ export const GROUPS: Group[] = [
     status: "Active",
     createdAt: "2026-06-01T16:45:00.000Z",
     updatedAt: "2026-08-23T19:00:00.000Z",
+    color: "#06B6D4",
   },
   {
     id: "GRP-007",
@@ -64,6 +70,7 @@ export const GROUPS: Group[] = [
     status: "Inactive",
     createdAt: "2026-05-03T13:10:00.000Z",
     updatedAt: "2026-07-30T09:00:00.000Z",
+    color: "#94A3B8",
   },
   {
     id: "GRP-008",
@@ -73,6 +80,7 @@ export const GROUPS: Group[] = [
     status: "Active",
     createdAt: "2026-04-18T12:00:00.000Z",
     updatedAt: "2026-08-25T11:20:00.000Z",
+    color: "#F59E0B",
   },
   {
     id: "GRP-009",
@@ -82,6 +90,7 @@ export const GROUPS: Group[] = [
     status: "Paused",
     createdAt: "2026-03-29T14:30:00.000Z",
     updatedAt: "2026-08-15T15:00:00.000Z",
+    color: "#64748B",
   },
   {
     id: "GRP-010",
@@ -91,6 +100,7 @@ export const GROUPS: Group[] = [
     status: "Active",
     createdAt: "2026-03-12T09:00:00.000Z",
     updatedAt: "2026-08-21T18:10:00.000Z",
+    color: "#94A3B8",
   },
 ];
 

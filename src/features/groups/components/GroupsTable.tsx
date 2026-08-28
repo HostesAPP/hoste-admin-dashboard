@@ -49,8 +49,17 @@ export const GroupsTable: React.FC = () => {
             return (
               <TableRow key={group?.id}>
                 <TableCell className="py-5 flex items-center gap-3">
-                  <div className="bg-primary/15 w-10 h-10 rounded-sm flex items-center justify-center">
-                    <div className="bg-primary w-6 h-6 rounded-full" />
+                  <div
+                    style={{
+                      backgroundColor: `${group?.color}20`
+                    }}
+                    className="w-10 h-10 rounded-sm flex items-center justify-center">
+                    <div
+                      style={{
+                        backgroundColor: group?.color
+
+                      }}
+                      className="w-6 h-6 rounded-full" />
                   </div>
                   {/* group name & id */}
                   <div className="">
@@ -65,7 +74,7 @@ export const GroupsTable: React.FC = () => {
                         src={''}
                         alt={groupLeader?.displayName}
                       />
-                      <AvatarFallback>{groupLeader?.displayName?.charAt(0).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback>{groupLeader?.displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     {groupLeader?.displayName}
                   </div>
