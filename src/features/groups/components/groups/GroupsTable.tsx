@@ -25,6 +25,7 @@ import { PROFILES } from "@/features/profiles";
 import { cn, formatDate } from "@/lib/utils";
 import { ArrowRight, Ellipsis } from "lucide-react";
 import Link from "next/link";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 
 export const GroupsTable: React.FC = () => {
 
@@ -49,15 +50,16 @@ export const GroupsTable: React.FC = () => {
             return (
               <TableRow key={group?.id}>
                 <TableCell className="py-5 flex items-center gap-3">
+
+                  {/* group icon / logo */}
                   <div
                     style={{
-                      backgroundColor: `${group?.color}20`
+                      backgroundColor: `${group?.color}15`
                     }}
                     className="w-10 h-10 rounded-sm flex items-center justify-center">
                     <div
                       style={{
                         backgroundColor: group?.color
-
                       }}
                       className="w-6 h-6 rounded-full" />
                   </div>
@@ -84,9 +86,10 @@ export const GroupsTable: React.FC = () => {
                 <TableCell>{group?.category}</TableCell>
                 <TableCell><span className="text-muted-foreground">{formatDate(group?.createdAt)}</span></TableCell>
                 <TableCell>
-                  <span className={cn("py-1 px-3 rounded-full", group.status === "Active" && "bg-success/15 text-success", group.status === "Inactive" && "bg-destructive/15 text-destructive", group.status === "Paused" && "bg-warning/15 text-warning")}>
-                    {group?.status}
-                  </span>
+
+                  {/* status badge */}
+                  <StatusBadge status={group?.status} />
+
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
