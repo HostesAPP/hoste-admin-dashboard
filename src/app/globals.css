@@ -11,6 +11,8 @@
   --color-dark-foreground: var(--dark-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -65,7 +67,9 @@
   --dark: #1A1A1A;
   --dark-foreground: #FAFAFA;
   --success: #006837;
-  --success-foreground: #FFFFFF;
+  --success-foreground: #FAFAFA;
+  --warning: #92400E;
+  --warning-foreground: #FAFAFA;
 
   /* Surfaces & Semantic Colors */
   --background: #FAFAFA;
@@ -170,7 +174,11 @@
   }
 
   html {
-    @apply font-sans;
+    @apply font-sans font-light tracking-wide;
+  }
+
+  button {
+    @apply cursor-pointer
   }
 }
 
@@ -180,6 +188,7 @@
     opacity: 0;
     transform: translateY(6px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -190,14 +199,46 @@
   animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.stagger-fade-in > *:nth-child(1) { animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.03s both; }
-.stagger-fade-in > *:nth-child(2) { animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both; }
-.stagger-fade-in > *:nth-child(3) { animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.09s both; }
-.stagger-fade-in > *:nth-child(4) { animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both; }
-.stagger-fade-in > *:nth-child(5) { animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both; }
-.stagger-fade-in > *:nth-child(6) { animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both; }
-.stagger-fade-in > *:nth-child(7) { animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.21s both; }
-.stagger-fade-in > *:nth-child(8) { animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both; }
-.stagger-fade-in > *:nth-child(9) { animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.27s both; }
-.stagger-fade-in > *:nth-child(10) { animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.30s both; }
-.stagger-fade-in > *:nth-child(n+11) { animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.33s both; }
+.stagger-fade-in>*:nth-child(1) {
+  animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.03s both;
+}
+
+.stagger-fade-in>*:nth-child(2) {
+  animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
+}
+
+.stagger-fade-in>*:nth-child(3) {
+  animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.09s both;
+}
+
+.stagger-fade-in>*:nth-child(4) {
+  animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+.stagger-fade-in>*:nth-child(5) {
+  animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+.stagger-fade-in>*:nth-child(6) {
+  animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+
+.stagger-fade-in>*:nth-child(7) {
+  animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.21s both;
+}
+
+.stagger-fade-in>*:nth-child(8) {
+  animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both;
+}
+
+.stagger-fade-in>*:nth-child(9) {
+  animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.27s both;
+}
+
+.stagger-fade-in>*:nth-child(10) {
+  animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.30s both;
+}
+
+.stagger-fade-in>*:nth-child(n+11) {
+  animation: fadeInItem 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.33s both;
+}
