@@ -1,15 +1,23 @@
 "use client";
 
+import { useState } from "react";
 import { GoBackLink, StatusBadge } from "@/components/shared";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { GROUPS } from "@/features/groups";
+import { Button } from "@/components/ui/button";
+import { getCurrentGroup, SuspendGroupDialog } from "@/features/groups";
 import { useParams } from "next/navigation";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { EllipsisVertical } from "lucide-react";
+import Link from "next/link";
+import type { Group } from "@/features/groups";
+import { cn } from "@/lib/utils";
 
 export default function GroupDetailPage() {
-
-  const params = useParams()
-  const groupId = params?.id
-  const currentGroup = GROUPS.find(group => group.id === groupId)
+  const [suspendOpen, setSuspendOpen] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const params = useParams();
+  const groupId = params?.id;
+  const currentGroup = getCurrentGroup(groupId);
 
   return (
     <div>
@@ -55,12 +63,78 @@ export default function GroupDetailPage() {
           </div>
 
           {/* actions */}
-          <div>
-            
+          <div className="space-x-2 flex items-center">
+
+            {/* suspend group button */}
+            <Button
+              variant='destructive'
+              onClick={() => setSuspendOpen(true)}
+            >
+              Suspend Group
+            </Button>
+
+            {/* menu button */}
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <button className="border rounded-sm p-2 hover:bg-muted-foreground/15 transition-colors">
+                  <EllipsisVertical size={22} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48" sideOffset={15}>
+                <DropdownMenuGroup>
+                  {[
+                    { text: "View Leader Profile", href: `/profiles/${currentGroup?.leaderProfileId}` },
+                    { text: "View All Members", href: `/groups/${currentGroup?.id}/members` },
+                    { text: "View Activity Logs", href: `/groups/${currentGroup?.id}/activity` },
+                  ]
+                    .map((item) => (
+                      <DropdownMenuItem key={item.text} className="p-0 hover:bg-muted-foreground/15 transition-colors duration-200">
+                        <Link href={item.href} className={cn('w-full px-3 py-1.5', item.text === "Suspend Group" && "text-destructive", item.text === "Restore Group" && "text-success")}>
+                          {item.text}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))
+                  }
+
+                  {/* copy group id */}
+                  <DropdownMenuItem
+                    className="cursor-pointer hover:bg-muted-foreground/15 transition-colors px-3 py-1.5"
+                    onClick={() => {
+                      navigator.clipboard.writeText(currentGroup?.id || "");
+                      alert("Group ID copied to clipboard");
+                    }}
+                  >
+                    Copy Group ID
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer text-destructive focus:bg-destructive/15 px-3 py-1.5"
+                    onClick={() => {
+                      setSelectedGroup(selectedGroup);
+                      setSuspendOpen(true);
+                    }}
+                  >
+                    Suspend Group
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
           </div>
         </section>
 
       </div>
+
+      {/* Suspend Group Dialog */}
+      {currentGroup && (
+        <SuspendGroupDialog
+          group={currentGroup}
+          open={suspendOpen}
+          onOpenChange={setSuspendOpen}
+        />
+      )}
+
+
+
     </div>
-  )
+  );
 }

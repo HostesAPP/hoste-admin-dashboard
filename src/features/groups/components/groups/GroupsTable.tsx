@@ -1,3 +1,5 @@
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -20,14 +22,19 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 
-import { GROUPS, GROUP_MEMBERS } from "@/features/groups";
-import { PROFILES } from "@/features/profiles";
+import { GROUPS, getGroupEngagements, getGroupMembers, getGroupLeader, Group, SuspendGroupDialog } from "@/features/groups";
 import { cn, formatDate } from "@/lib/utils";
 import { ArrowRight, Ellipsis } from "lucide-react";
 import Link from "next/link";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { useState } from "react";
 
 export const GroupsTable: React.FC = () => {
+
+
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [suspendOpen, setSuspendOpen] = useState(false);
+
 
   return (
     <section className="p-4 border border-border rounded-lg">
@@ -44,8 +51,9 @@ export const GroupsTable: React.FC = () => {
         <TableBody>
 
           {GROUPS?.map((group) => {
-            const groupLeader = PROFILES?.find((profile) => profile.userId === group.leaderProfileId);
-            const totalMembers = GROUP_MEMBERS?.filter((member) => member.groupId === group.id).length;
+            const groupLeader = getGroupLeader(group.leaderProfileId);
+            const totalMembers = getGroupMembers(group.id).length;
+            const engagements = getGroupEngagements(group.id).length
 
             return (
               <TableRow key={group?.id}>
@@ -82,7 +90,7 @@ export const GroupsTable: React.FC = () => {
                   </div>
                 </TableCell>
                 <TableCell>{totalMembers}</TableCell>
-                <TableCell>25</TableCell>
+                <TableCell>{engagements}</TableCell>
                 <TableCell>{group?.category}</TableCell>
                 <TableCell><span className="text-muted-foreground">{formatDate(group?.createdAt)}</span></TableCell>
                 <TableCell>
@@ -102,15 +110,18 @@ export const GroupsTable: React.FC = () => {
 
                     {/* more option button */}
                     <DropdownMenu>
-                      <DropdownMenuTrigger render={<button className="text-muted-foreground"><Ellipsis size={22} /></button>} />
-                      <DropdownMenuContent className="w-40">
+                      <DropdownMenuTrigger>
+                        <button className="rounded-sm p-2 text-muted-foreground hover:bg-muted-foreground/15 transition-colors">
+                          <Ellipsis size={22} />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-40" sideOffset={15}>
                         <DropdownMenuGroup>
                           {[
                             { text: "View Group", href: `/groups/${group?.id}` },
                             { text: "View Leader", href: `/profiles/${group?.leaderProfileId}` },
                             { text: "View Members", href: `/groups/${group?.id}/members` },
-                            { text: "Suspend Group", href: `` },
-                            { text: "Restore Group", href: `` }]
+                          ]
                             .map((item) => (
                               <DropdownMenuItem key={item.text} className="p-0 hover:bg-muted-foreground/15 transition-colors duration-200">
                                 <Link href={item.href} className={cn('w-full px-3 py-1.5', item.text === "Suspend Group" && "text-destructive", item.text === "Restore Group" && "text-success")}>
@@ -119,6 +130,20 @@ export const GroupsTable: React.FC = () => {
                               </DropdownMenuItem>
                             ))
                           }
+                          <DropdownMenuItem
+                            className="cursor-pointer text-destructive focus:bg-destructive/15 px-3 py-1.5"
+                            onClick={() => {
+                              setSelectedGroup(group);
+                              setSuspendOpen(true);
+                            }}
+                          >
+                            Suspend Group
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="cursor-pointer text-success focus:bg-success/15 px-3 py-1.5"
+                          >
+                            Restore Group
+                          </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -130,6 +155,15 @@ export const GroupsTable: React.FC = () => {
 
         </TableBody>
       </Table>
+
+      {/* Suspend Group Dialog */}
+      {selectedGroup && (
+        <SuspendGroupDialog
+          group={selectedGroup}
+          open={suspendOpen}
+          onOpenChange={setSuspendOpen}
+        />
+      )}
 
       {/* pagination */}
 

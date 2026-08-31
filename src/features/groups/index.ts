@@ -6,3 +6,5 @@ export { GroupsPageHeader } from "./components/groups/GroupsPageHeader";
 export { GroupsStat } from "./components/groups/GroupsStat";
 export { GroupsStatCard } from "./components/groups/GroupsStatCard";
 export { GroupsTable } from "./components/groups/GroupsTable";
+export { SuspendGroupDialog } from "./components/groups/SuspendGroupDialog";
+export { getGroupMembers, getGroupLeader, getGroupEngagements, getCurrentGroup } from "./lib/groups.utils"
