@@ -10,10 +10,11 @@ export type Group = {
   createdAt: string;
   updatedAt: string;
   color: string;
+  description: string;
 };
 
 // group member types
-export type GroupMemberStatus = "Removed" | "Active";
+export type GroupMemberStatus = "Removed" | "Active" | "Pending";
 
 export type GroupMember = {
   id: string;

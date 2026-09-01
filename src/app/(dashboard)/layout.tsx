@@ -15,9 +15,6 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside className="w-64 border-r border-border bg-card p-4 hidden lg:block">
         <div className="font-bold text-lg mb-6">Hosté Admin</div>
-        <nav className="space-y-1 text-sm text-muted-foreground">
-          {/* Navbar */}
-        </nav>
       </aside>
       {/* Main content area */}
       <main className="flex-1 overflow-y-auto">

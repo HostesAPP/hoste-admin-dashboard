@@ -5,6 +5,7 @@ export const GROUPS: Group[] = [
   {
     id: "GRP-001",
     name: "Lagos Creatives",
+    description: "A community of creative professionals and visual artists in Lagos.",
     leaderProfileId: "10000000-0000-4000-8000-000000000001",
     category: "Creative",
     status: "Active",
@@ -15,6 +16,7 @@ export const GROUPS: Group[] = [
   {
     id: "GRP-002",
     name: "Lekki Foodies Club",
+    description: "Food lovers exploring culinary spots and dining across Lekki.",
     leaderProfileId: "10000000-0000-4000-8000-000000000004",
     category: "Creative",
     status: "Active",
@@ -25,6 +27,7 @@ export const GROUPS: Group[] = [
   {
     id: "GRP-003",
     name: "Tech Innovators",
+    description: "Developers and tech founders sharing ideas and collaborating on products.",
     leaderProfileId: "10000000-0000-4000-8000-000000000002",
     category: "Technology",
     status: "Active",
@@ -35,6 +38,7 @@ export const GROUPS: Group[] = [
   {
     id: "GRP-004",
     name: "Lagos Fitness Collective",
+    description: "Fitness enthusiasts organizing group workouts and wellness events.",
     leaderProfileId: "10000000-0000-4000-8000-000000000005",
     category: "Events",
     status: "Active",
@@ -45,6 +49,7 @@ export const GROUPS: Group[] = [
   {
     id: "GRP-005",
     name: "Abuja Entrepreneurs",
+    description: "Network of startup founders and small business owners in Abuja.",
     leaderProfileId: "10000000-0000-4000-8000-000000000001",
     category: "Business",
     status: "Paused",
@@ -55,6 +60,7 @@ export const GROUPS: Group[] = [
   {
     id: "GRP-006",
     name: "Acoustic Nights Experience",
+    description: "Live acoustic music lovers hosting intimate jam sessions and gigs.",
     leaderProfileId: "10000000-0000-4000-8000-000000000006",
     category: "Events",
     status: "Active",
@@ -65,6 +71,7 @@ export const GROUPS: Group[] = [
   {
     id: "GRP-007",
     name: "Event Planners Network",
+    description: "Professional event organizers collaborating on vendors and venues.",
     leaderProfileId: "10000000-0000-4000-8000-000000000003",
     category: "Events",
     status: "Inactive",
@@ -75,6 +82,7 @@ export const GROUPS: Group[] = [
   {
     id: "GRP-008",
     name: "Founder Circle Yaba",
+    description: "Peer mentorship and networking for Yaba-based startup founders.",
     leaderProfileId: "10000000-0000-4000-8000-000000000007",
     category: "Business",
     status: "Active",
@@ -85,6 +93,7 @@ export const GROUPS: Group[] = [
   {
     id: "GRP-009",
     name: "Northern Shutterbugs",
+    description: "Photography group documenting northern cultures, architecture, and landscapes.",
     leaderProfileId: "10000000-0000-4000-8000-000000000008",
     category: "Creative",
     status: "Paused",
@@ -95,6 +104,7 @@ export const GROUPS: Group[] = [
   {
     id: "GRP-010",
     name: "Product Design Hub",
+    description: "UI/UX designers sharing critiques, design systems, and best practices.",
     leaderProfileId: "10000000-0000-4000-8000-000000000002",
     category: "Technology",
     status: "Active",
@@ -123,7 +133,7 @@ export const GROUP_MEMBERS: GroupMember[] = [
     id: "mem-003",
     groupId: "GRP-001",
     profileId: "20000000-0000-4000-8000-000000000004",
-    status: "Active",
+    status: "Pending",
   },
   {
     id: "mem-004",
@@ -169,7 +179,7 @@ export const GROUP_MEMBERS: GroupMember[] = [
     id: "mem-010",
     groupId: "GRP-003",
     profileId: "20000000-0000-4000-8000-000000000007",
-    status: "Active",
+    status: "Pending",
   },
   {
     id: "mem-011",
@@ -203,7 +213,7 @@ export const GROUP_MEMBERS: GroupMember[] = [
     id: "mem-015",
     groupId: "GRP-005",
     profileId: "20000000-0000-4000-8000-000000000001",
-    status: "Active",
+    status: "Pending",
   },
   {
     id: "mem-016",
@@ -303,6 +313,6 @@ export const GROUP_MEMBERS: GroupMember[] = [
     id: "mem-030",
     groupId: "GRP-010",
     profileId: "20000000-0000-4000-8000-000000000007",
-    status: "Active",
+    status: "Pending",
   },
 ];
