@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
 import { staffAuthMiddleware, requireRoles } from "./middleware/auth";
+import { idempotencyMiddleware } from "./middleware/idempotency";
 import profilesRouter from "./routes/admin/profiles";
 
 dotenv.config();
@@ -31,6 +32,9 @@ app.use((req, _res, next) => {
 
 // simple staff auth for testing
 app.use(staffAuthMiddleware);
+
+// Idempotency middleware applied before admin routes. It will only act when an Idempotency-Key header is present.
+app.use(idempotencyMiddleware);
 
 app.use("/admin/profiles", requireRoles(["SUPER_ADMIN","VERIFICATION_OFFICER","MODERATOR"]), profilesRouter);
 
