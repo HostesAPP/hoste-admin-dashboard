@@ -36,7 +36,11 @@ app.use("/admin/profiles", requireRoles(["SUPER_ADMIN","VERIFICATION_OFFICER","M
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
-const port = process.env.PORT || 4000;
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  const port = process.env.PORT || 4000;
+  app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+  });
+}
+
+export default app;
