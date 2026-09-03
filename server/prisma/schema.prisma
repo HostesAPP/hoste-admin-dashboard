@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProfileStatus {
+  Pending
+  Active
+  Rejected
+  Suspended
+  Deleted
+}
+
+enum StaffRole {
+  SUPER_ADMIN
+  VERIFICATION_OFFICER
+  MODERATOR
+  CUSTOMER_SUPPORT
+  OPERATIONS
+  FINANCE
+}
+
+model StaffProfile {
+  id        String   @id @default(uuid())
+  userId    String?
+  role      StaffRole @map("staffRole")
+  createdAt DateTime @default(now())
+  // additional fields as needed
+}
+
+model Profile {
+  id             String       @id @default(uuid())
+  name           String?
+  email          String?      @unique
+  phone          String?
+  profileType    String?
+  attributes     Json?        // marketplace attributes (non-sensitive)
+  activationData Json?        // sensitive ActivationData (NIN, CAC, ID docs)
+  status         ProfileStatus @default(Pending)
+  suspendedUntil DateTime?
+  approvedBy     String?      // FK to StaffProfile.id
+  rejectedReason String?
+  deletedAt      DateTime?
+  createdAt      DateTime    @default(now())
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  timestamp      DateTime @default(now())
+  staffUserId    String?
+  staffProfileId String?
+  action         String
+  entityType     String
+  entityId       String?
+  description    String?
+  ip             String?
+}
+
+model IdempotencyKey {
+  key         String   @id
+  createdAt   DateTime @default(now())
+  response    Json?
+}
