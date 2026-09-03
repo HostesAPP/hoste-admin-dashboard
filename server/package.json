@@ -1,0 +1,27 @@
+{
+  "name": "hoste-admin-server",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev"
+  },
+  "dependencies": {
+    "@prisma/client": "^4.20.0",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "prisma": "^4.20.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.2.2",
+    "@types/express": "^4.17.17",
+    "@types/node": "^20.6.1"
+  }
+}
