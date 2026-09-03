@@ -9,14 +9,17 @@
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "test": "jest --passWithNoTests"
+    "test": "jest --passWithNoTests",
+    "worker": "ts-node-dev --respawn --transpile-only src/workers/suspensionWorker.ts"
   },
   "dependencies": {
     "@prisma/client": "^4.20.0",
     "body-parser": "^1.20.2",
+    "bullmq": "^1.74.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "ioredis": "^5.3.2"
   },
   "devDependencies": {
     "prisma": "^4.20.0",
