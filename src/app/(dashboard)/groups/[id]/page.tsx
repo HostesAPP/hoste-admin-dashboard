@@ -162,7 +162,7 @@ export default function GroupDetailPage() {
       </main>
 
       {/* group info and leader info */}
-      <GroupInformation group={currentGroup as Group} />
+      {/* <GroupInformation group={currentGroup as Group} /> */}
     </div>
   );
 }
