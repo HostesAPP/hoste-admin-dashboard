@@ -4,6 +4,7 @@ export function StatusBadge({ status }: { status: string }) {
   const statusStyles = {
     Active: "bg-success/15 text-success",
     Completed: "bg-success/15 text-success",
+    Confirmed: "bg-success/15 text-success",
     Approved: "bg-success/15 text-success",
 
     Paused: "bg-warning/15 text-warning",
@@ -17,7 +18,7 @@ export function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "inline-flex w-fit items-center rounded-full px-2 py-1 text-sm font-medium",
+        "inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-medium",
         statusStyles[status as keyof typeof statusStyles] ??
         "bg-muted text-muted-foreground"
       )}
