@@ -8,7 +8,7 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator
+  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,8 +16,14 @@ import {
   GroupDetailsBio,
   GroupDetailsStat,
   GroupInformation,
+  GroupLeaderCard,
+  GroupDetailsMembers,
+  GroupPerformanceCard,
+  GroupActivityCard,
+  RecentGroupBookings,
+  GroupManagementControls,
   SuspendGroupDialog,
-  type Group
+  type Group,
 } from "@/features/groups";
 import { useParams } from "next/navigation";
 import {
@@ -25,7 +31,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EllipsisVertical } from "lucide-react";
 import Link from "next/link";
@@ -33,136 +39,181 @@ import { cn } from "@/lib/utils";
 
 export default function GroupDetailPage() {
   const [suspendOpen, setSuspendOpen] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const params = useParams();
-  const groupId = params?.id;
-  const currentGroup = getCurrentGroup(groupId as string);
+  const rawGroupId = params?.id as string;
+  const groupId = rawGroupId || "GRP-001";
+
+  const currentGroup: Group = getCurrentGroup(groupId) || {
+    id: groupId,
+    name: "Accra Social Club",
+    description:
+      "A professional event hospitality team providing trained staff for corporate events, private functions and nightlife experiences.",
+    leaderProfileId: "10000000-0000-4000-8000-000000000001",
+    category: "Event Hospitality",
+    status: "Active" as const,
+    createdAt: "2026-08-10T09:30:00.000Z",
+    updatedAt: "2026-08-20T14:15:00.000Z",
+    color: "#EF5A22",
+  };
 
   return (
-    <div className="space-y-6">
-
-      {/* page header */}
-      <div className="p-6 border-b">
-
-        {/* breadcrumb */}
+    <div className="space-y-6 pb-12">
+      {/* Page Header */}
+      <div className="p-6 border-b border-border bg-card">
+        {/* Breadcrumb */}
         <Breadcrumb>
-          <BreadcrumbList>
+          <BreadcrumbList className="text-xs text-muted-foreground">
             <BreadcrumbItem>
-              <BreadcrumbLink href="/">Dashboard</BreadcrumbLink>
+              <BreadcrumbLink href="/" className="hover:text-foreground">
+                Dashboard
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/groups">Groups</BreadcrumbLink>
+              <BreadcrumbLink href="/groups" className="hover:text-foreground">
+                Groups
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{currentGroup?.name}</BreadcrumbPage>
+              <BreadcrumbPage className="font-semibold text-foreground">
+                {currentGroup.name}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
-        {/* back to groups link*/}
+        {/* Back to Groups Link */}
         <span className="block mt-4">
           <GoBackLink href="/groups" text="Back to Groups" />
         </span>
 
-
-        {/* header an actions */}
-        <section className="flex items-center justify-between mt-6">
-
-          {/* group name, id and status */}
-          <div className="flex items-baseline gap-3">
-            <h1 className="font-bold text-[28px]">{currentGroup?.name}</h1>
-
-            {/* group id */}
-            <span className="text-muted-foreground mr-8">{currentGroup?.id}</span>
-
-            {/* group status badge */}
-            <StatusBadge status={currentGroup?.status || ""} />
+        {/* Title and Top Actions */}
+        <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-6">
+          {/* Group Name, ID and Status */}
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <h1 className="font-bold text-2xl sm:text-3xl text-foreground">
+              {currentGroup.name}
+            </h1>
+            <span className="text-sm font-medium text-muted-foreground mr-2">
+              {currentGroup.id}
+            </span>
+            <StatusBadge status={currentGroup.status || "Active"} />
           </div>
 
-          {/* actions */}
-          <div className="space-x-2 flex items-center">
-
-            {/* suspend group button */}
+          {/* Top Actions */}
+          <div className="flex items-center gap-2.5">
+            {/* Suspend Group Outline Button */}
             <Button
-              variant='destructive'
+              variant="outline"
               onClick={() => setSuspendOpen(true)}
+              className="border-destructive/30 text-destructive hover:bg-destructive/10 text-xs sm:text-sm font-semibold h-9 px-4 cursor-pointer"
             >
               Suspend Group
             </Button>
 
-            {/* menu button */}
+            {/* Menu Dropdown */}
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <button className="border rounded-sm p-2 hover:bg-muted-foreground/15 transition-colors">
-                  <EllipsisVertical size={22} />
-                </button>
+              <DropdownMenuTrigger className="border border-border rounded-lg p-2 text-muted-foreground hover:bg-muted/70 hover:text-foreground transition-colors cursor-pointer inline-flex items-center justify-center">
+                <EllipsisVertical size={18} />
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48" sideOffset={15}>
+              <DropdownMenuContent className="w-52" align="end" sideOffset={8}>
                 <DropdownMenuGroup>
                   {[
-                    { text: "View Leader Profile", href: `/profiles/${currentGroup?.leaderProfileId}` },
-                    { text: "View All Members", href: `/groups/${currentGroup?.id}/members` },
-                    { text: "View Activity Logs", href: `/groups/${currentGroup?.id}/activity` },
-                  ]
-                    .map((item) => (
-                      <DropdownMenuItem key={item.text} className="p-0 hover:bg-muted-foreground/15 transition-colors duration-200">
-                        <Link href={item.href} className={cn('w-full px-3 py-1.5', item.text === "Suspend Group" && "text-destructive", item.text === "Restore Group" && "text-success")}>
-                          {item.text}
-                        </Link>
-                      </DropdownMenuItem>
-                    ))
-                  }
+                    {
+                      text: "View Leader Profile",
+                      href: `/profiles/${currentGroup.leaderProfileId}`,
+                    },
+                    {
+                      text: "View All Members",
+                      href: `/groups/${currentGroup.id}/members`,
+                    },
+                    {
+                      text: "View Activity Log",
+                      href: `/groups/${currentGroup.id}/activity`,
+                    },
+                  ].map((item) => (
+                    <DropdownMenuItem
+                      key={item.text}
+                      className="p-0 hover:bg-muted/60 transition-colors text-xs"
+                    >
+                      <Link
+                        href={item.href}
+                        className="w-full px-3 py-2 text-foreground"
+                      >
+                        {item.text}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
 
-                  {/* copy group id */}
+                  {/* Copy Group ID */}
                   <DropdownMenuItem
-                    className="cursor-pointer hover:bg-muted-foreground/15 transition-colors px-3 py-1.5"
+                    className="cursor-pointer hover:bg-muted/60 text-xs px-3 py-2"
                     onClick={() => {
-                      navigator.clipboard.writeText(currentGroup?.id || "");
+                      navigator.clipboard.writeText(currentGroup.id);
                       alert("Group ID copied to clipboard");
                     }}
                   >
                     Copy Group ID
                   </DropdownMenuItem>
+
+                  {/* Suspend Group item */}
                   <DropdownMenuItem
-                    className="cursor-pointer text-destructive focus:bg-destructive/15 px-3 py-1.5"
-                    onClick={() => {
-                      setSelectedGroup(selectedGroup);
-                      setSuspendOpen(true);
-                    }}
+                    className="cursor-pointer text-destructive focus:bg-destructive/10 text-xs px-3 py-2"
+                    onClick={() => setSuspendOpen(true)}
                   >
                     Suspend Group
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-
           </div>
         </section>
-
       </div>
 
       {/* Suspend Group Dialog */}
-      {currentGroup && (
-        <SuspendGroupDialog
+      <SuspendGroupDialog
+        group={currentGroup}
+        open={suspendOpen}
+        onOpenChange={setSuspendOpen}
+      />
+
+      {/* Main Content Area */}
+      <main className="px-4 sm:px-6 lg:px-8 space-y-6 max-w-7xl mx-auto">
+        {/* 1. Group Bio & Hero Card */}
+        <GroupDetailsBio group={currentGroup} />
+
+        {/* 2. Group Stat Cards (4 metrics) */}
+        <GroupDetailsStat group={currentGroup} />
+
+        {/* 3. Group Information & Group Leader (2-Columns) */}
+        <div className="grid grid-cols-3 gap-6">
+          <GroupInformation group={currentGroup} />
+          <GroupLeaderCard group={currentGroup} />
+        </div>
+
+        {/* 4. Group Members Table */}
+        <GroupDetailsMembers group={currentGroup} />
+
+        {/* 5. Group Performance & Group Activity (2-Columns) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <GroupPerformanceCard group={currentGroup} />
+          <GroupActivityCard group={currentGroup} />
+        </div>
+
+        {/* 6. Recent Group Bookings */}
+        <RecentGroupBookings group={currentGroup} />
+
+        {/* 7. Group Management & Controls (Danger Zone) */}
+        <GroupManagementControls
           group={currentGroup}
-          open={suspendOpen}
-          onOpenChange={setSuspendOpen}
+          onOpenSuspend={() => setSuspendOpen(true)}
         />
-      )}
-
-      <main className="px-6 space-y-6">
-
-        {/* group bio */}
-        {currentGroup && <GroupDetailsBio group={currentGroup} />}
-
-        {/* group stat */}
-        <GroupDetailsStat group={currentGroup as Group} />
       </main>
 
+
       {/* group info and leader info */}
-      {/* <GroupInformation group={currentGroup as Group} /> */}
+      <GroupInformation group={currentGroup as Group} />
     </div>
   );
 }

@@ -14,11 +14,21 @@ export type Group = {
 };
 
 // group member types
-export type GroupMemberStatus = "Removed" | "Active" | "Pending";
+export type GroupMemberStatus = "Active" | "Pending" | "Suspended" | "Removed";
+export type GroupMemberRole = "Group Leader" | "Member" | "Co-Leader";
 
 export type GroupMember = {
   id: string;
   groupId: string;
-  profileId: string;
+  profileId?: string;
+  userId: string;
+  name: string;
+  email: string;
+  avatarColor?: string;
+  avatarUrl?: string;
+  role: GroupMemberRole;
   status: GroupMemberStatus;
-};
+  dateJoined: string;
+  lastActivity: string;
+  isLeader?: boolean;
+};
