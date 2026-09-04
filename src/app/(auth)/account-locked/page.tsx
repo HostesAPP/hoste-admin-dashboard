@@ -6,6 +6,6 @@ export const metadata: Metadata = {
   description: "Staff account temporarily locked due to failed login attempts.",
 };
 
-export default function AccountBlockedPage() {
+export default function AccountLockedPage() {
   return <AccountLocked />;
 }
