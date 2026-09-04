@@ -8,3 +8,6 @@ export { GroupsStatCard } from "./components/groups/GroupsStatCard";
 export { GroupsTable } from "./components/groups/GroupsTable";
 export { SuspendGroupDialog } from "./components/groups/SuspendGroupDialog";
 export { getGroupMembers, getGroupLeader, getGroupEngagements, getCurrentGroup } from "./lib/groups.utils"
+export { GroupDetailsBio } from "./components/group-details/GroupBio"
+export { GroupDetailsStat } from "./components/group-details/GroupDetailsStat"
+export { GroupInformation } from "./components/group-details/GroupInformation"

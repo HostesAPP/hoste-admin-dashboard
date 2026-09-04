@@ -2,14 +2,33 @@
 
 import { useState } from "react";
 import { GoBackLink, StatusBadge } from "@/components/shared";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { getCurrentGroup, SuspendGroupDialog } from "@/features/groups";
+import {
+  getCurrentGroup,
+  GroupDetailsBio,
+  GroupDetailsStat,
+  GroupInformation,
+  SuspendGroupDialog,
+  type Group
+} from "@/features/groups";
 import { useParams } from "next/navigation";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import { EllipsisVertical } from "lucide-react";
 import Link from "next/link";
-import type { Group } from "@/features/groups";
 import { cn } from "@/lib/utils";
 
 export default function GroupDetailPage() {
@@ -17,13 +36,13 @@ export default function GroupDetailPage() {
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const params = useParams();
   const groupId = params?.id;
-  const currentGroup = getCurrentGroup(groupId);
+  const currentGroup = getCurrentGroup(groupId as string);
 
   return (
-    <div>
+    <div className="space-y-6">
 
       {/* page header */}
-      <div className="p-6">
+      <div className="p-6 border-b">
 
         {/* breadcrumb */}
         <Breadcrumb>
@@ -52,8 +71,8 @@ export default function GroupDetailPage() {
         <section className="flex items-center justify-between mt-6">
 
           {/* group name, id and status */}
-          <div className="flex items-center gap-3">
-            <h1 className="font-bold text-2xl">{currentGroup?.name}</h1>
+          <div className="flex items-baseline gap-3">
+            <h1 className="font-bold text-[28px]">{currentGroup?.name}</h1>
 
             {/* group id */}
             <span className="text-muted-foreground mr-8">{currentGroup?.id}</span>
@@ -133,8 +152,17 @@ export default function GroupDetailPage() {
         />
       )}
 
+      <main className="px-6 space-y-6">
 
+        {/* group bio */}
+        {currentGroup && <GroupDetailsBio group={currentGroup} />}
 
+        {/* group stat */}
+        <GroupDetailsStat group={currentGroup as Group} />
+      </main>
+
+      {/* group info and leader info */}
+      <GroupInformation group={currentGroup as Group} />
     </div>
   );
 }

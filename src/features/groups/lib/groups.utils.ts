@@ -19,8 +19,6 @@ export const getGroupLeader = (groupLeaderId: string) => {
 }
 
 // get current group
-export const getCurrentGroup = (groupId?: string | string[]) => {
-  if (!groupId) return undefined;
-  const id = Array.isArray(groupId) ? groupId[0] : groupId;
-  return GROUPS.find((group) => group.id === id);
+export const getCurrentGroup = (groupId: string) => {
+  return GROUPS.find(group => group.id === groupId)
 }
