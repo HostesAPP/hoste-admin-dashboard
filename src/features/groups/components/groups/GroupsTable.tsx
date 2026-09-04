@@ -110,10 +110,8 @@ export const GroupsTable: React.FC = () => {
 
                     {/* more option button */}
                     <DropdownMenu>
-                      <DropdownMenuTrigger>
-                        <button className="rounded-sm p-2 text-muted-foreground hover:bg-muted-foreground/15 transition-colors">
-                          <Ellipsis size={22} />
-                        </button>
+                      <DropdownMenuTrigger className="rounded-sm p-2 text-muted-foreground hover:bg-muted-foreground/15 transition-colors cursor-pointer inline-flex items-center justify-center">
+                        <Ellipsis size={22} />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-40" sideOffset={15}>
                         <DropdownMenuGroup>
