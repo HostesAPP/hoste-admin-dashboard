@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 
 export default function GroupDetailPage() {
   const [suspendOpen, setSuspendOpen] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const params = useParams();
   const rawGroupId = params?.id as string;
   const groupId = rawGroupId || "GRP-001";
@@ -106,7 +107,10 @@ export default function GroupDetailPage() {
             {/* Suspend Group Outline Button */}
             <Button
               variant="outline"
-              onClick={() => setSuspendOpen(true)}
+              onClick={() => {
+                setSelectedGroup(currentGroup);
+                setSuspendOpen(true);
+              }}
               className="border-destructive/30 text-destructive hover:bg-destructive/10 text-xs sm:text-sm font-semibold h-9 px-4 cursor-pointer"
             >
               Suspend Group
@@ -114,7 +118,7 @@ export default function GroupDetailPage() {
 
             {/* Menu Dropdown */}
             <DropdownMenu>
-              <DropdownMenuTrigger className="border border-border rounded-lg p-2 text-muted-foreground hover:bg-muted/70 hover:text-foreground transition-colors cursor-pointer inline-flex items-center justify-center">
+              <DropdownMenuTrigger className="border border-border rounded-lg p-2 text-muted-foreground hover:bg-muted/70 hover:text-foreground transition-colors cursor-pointer inline-flex items-center">
                 <EllipsisVertical size={18} />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-52" align="end" sideOffset={8}>
@@ -137,10 +141,7 @@ export default function GroupDetailPage() {
                       key={item.text}
                       className="p-0 hover:bg-muted/60 transition-colors text-xs"
                     >
-                      <Link
-                        href={item.href}
-                        className="w-full px-3 py-2 text-foreground"
-                      >
+                      <Link href={item.href} className="w-full px-3 py-2 text-foreground">
                         {item.text}
                       </Link>
                     </DropdownMenuItem>
@@ -160,7 +161,10 @@ export default function GroupDetailPage() {
                   {/* Suspend Group item */}
                   <DropdownMenuItem
                     className="cursor-pointer text-destructive focus:bg-destructive/10 text-xs px-3 py-2"
-                    onClick={() => setSuspendOpen(true)}
+                    onClick={() => {
+                      setSelectedGroup(currentGroup);
+                      setSuspendOpen(true);
+                    }}
                   >
                     Suspend Group
                   </DropdownMenuItem>
@@ -173,9 +177,12 @@ export default function GroupDetailPage() {
 
       {/* Suspend Group Dialog */}
       <SuspendGroupDialog
-        group={currentGroup}
+        group={selectedGroup || currentGroup}
         open={suspendOpen}
-        onOpenChange={setSuspendOpen}
+        onOpenChange={(open) => {
+          if (!open) setSelectedGroup(null);
+          setSuspendOpen(open);
+        }}
       />
 
       {/* Main Content Area */}
@@ -207,7 +214,10 @@ export default function GroupDetailPage() {
         {/* 7. Group Management & Controls (Danger Zone) */}
         <GroupManagementControls
           group={currentGroup}
-          onOpenSuspend={() => setSuspendOpen(true)}
+          onOpenSuspend={() => {
+            setSelectedGroup(currentGroup);
+            setSuspendOpen(true);
+          }}
         />
       </main>
 
