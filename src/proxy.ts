@@ -36,7 +36,7 @@ const isPublicRoute = (pathname: string): boolean => {
   return PUBLIC_ROUTES.some(route => pathname.startsWith(route));
 };
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip middleware for non-API routes
