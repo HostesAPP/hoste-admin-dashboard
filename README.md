@@ -1,5 +1,4 @@
 # Hoste Admin Dashboard
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Hoste's web-based admin dashboard for platform management and administration.
