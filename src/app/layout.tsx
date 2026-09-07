@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { MobileRestrictionPage } from "@/components/shared";
+import { QueryProvider } from "@/components/providers/query-provider";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -33,7 +34,9 @@ export default function RootLayout({ children }: LayoutProps) {
     >
       <body>
         <MobileRestrictionPage>
-          {children}
+          <QueryProvider>
+            {children}
+          </QueryProvider>
         </MobileRestrictionPage>
       </body>
     </html>
