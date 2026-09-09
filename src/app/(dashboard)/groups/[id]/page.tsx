@@ -35,7 +35,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EllipsisVertical } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 export default function GroupDetailPage() {
   const [suspendOpen, setSuspendOpen] = useState(false);
