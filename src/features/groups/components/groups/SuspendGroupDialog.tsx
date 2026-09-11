@@ -62,8 +62,11 @@ export const SuspendGroupDialog: React.FC<SuspendGroupDialogProps> = ({
 
   // Reset form when dialog closes or opened group changes
   useEffect(() => {
-    if (!open) {
+    function resetForm() {
       reset();
+    }
+    if (!open) {
+      resetForm();
     }
   }, [open, reset]);
 

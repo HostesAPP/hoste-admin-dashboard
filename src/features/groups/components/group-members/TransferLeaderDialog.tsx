@@ -39,9 +39,20 @@ export const TransferLeaderDialog: React.FC<TransferLeaderDialogProps> = ({
   );
 
   useEffect(() => {
-    if (open && eligibleMembers.length > 0 && !selectedMemberId) {
-      setSelectedMemberId(eligibleMembers[0].id);
+    function reset() {
+      setSelectedMemberId("");
     }
+    if (!open) {
+      reset();
+    }
+  }, [open]);
+
+  useEffect(() => {
+    (() => {
+      if (open && eligibleMembers.length > 0 && !selectedMemberId) {
+        setSelectedMemberId(eligibleMembers[0].id);
+      }
+    })()
   }, [open, eligibleMembers, selectedMemberId]);
 
   const handleConfirm = () => {
@@ -81,7 +92,7 @@ export const TransferLeaderDialog: React.FC<TransferLeaderDialogProps> = ({
             <span className="font-semibold text-foreground flex items-center gap-2">
               <span
                 className="w-2.5 h-2.5 rounded-full"
-                style={{ backgroundColor: currentLeader.avatarColor || "#EF5A22" }}
+                style={{ backgroundColor: currentLeader.avatarColor || "var(--primary)" }}
               />
               {currentLeader.name} ({currentLeader.userId})
             </span>
@@ -97,18 +108,17 @@ export const TransferLeaderDialog: React.FC<TransferLeaderDialogProps> = ({
                 <div
                   key={member.id}
                   onClick={() => setSelectedMemberId(member.id)}
-                  className={`flex items-center justify-between p-2.5 rounded-md cursor-pointer transition-colors ${
-                    isSelected
-                      ? "bg-primary/10 border border-primary/30"
-                      : "hover:bg-muted/50 border border-transparent"
-                  }`}
+                  className={`flex items-center justify-between p-2.5 rounded-md cursor-pointer transition-colors ${isSelected
+                    ? "bg-primary/10 border border-primary/30"
+                    : "hover:bg-muted/50 border border-transparent"
+                    }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <Avatar className="w-8 h-8">
                       <AvatarFallback
                         style={{
-                          backgroundColor: `${member.avatarColor || "#0284C7"}20`,
-                          color: member.avatarColor || "#0284C7",
+                          backgroundColor: member.avatarColor ? `${member.avatarColor}20` : "color-mix(in srgb, var(--primary) 15%, transparent)",
+                          color: member.avatarColor || "var(--primary)",
                         }}
                         className="text-xs font-semibold"
                       >

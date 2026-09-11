@@ -1,6 +1,49 @@
 "use client";
 
 import type { Group } from "@/features/groups";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
+
+interface PerformanceDataPoint {
+  month: string;
+  bookings: number;
+}
+
+const DEFAULT_PERFORMANCE_DATA: PerformanceDataPoint[] = [
+  { month: "Mar", bookings: 12 },
+  { month: "Apr", bookings: 18 },
+  { month: "May", bookings: 26 },
+  { month: "Jun", bookings: 22 },
+  { month: "Jul", bookings: 38 },
+  { month: "Aug", bookings: 54 },
+];
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ value: number | string }>;
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-lg border border-border bg-popover px-2.5 py-1.5 text-xs shadow-md">
+        <p className="font-semibold text-foreground">{label}</p>
+        <p className="text-muted-foreground">
+          <span className="font-semibold text-primary">{payload[0].value}</span> bookings
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export const GroupPerformanceCard = ({ group }: { group?: Group }) => {
   return (
@@ -19,68 +62,50 @@ export const GroupPerformanceCard = ({ group }: { group?: Group }) => {
           Bookings Over Last 6 Months
         </span>
 
-        {/* SVG Area Chart */}
-        <div className="relative w-full h-36 pt-2">
-          <svg
-            className="w-full h-full overflow-visible"
-            viewBox="0 0 400 120"
-            preserveAspectRatio="none"
-          >
-            <defs>
-              <linearGradient id="performanceGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#EF5A22" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#EF5A22" stopOpacity="0.0" />
-              </linearGradient>
-            </defs>
-
-            {/* Grid lines */}
-            <line
-              x1="0"
-              y1="100"
-              x2="400"
-              y2="100"
-              stroke="currentColor"
-              className="text-border"
-              strokeDasharray="3 3"
-            />
-            <line
-              x1="0"
-              y1="60"
-              x2="400"
-              y2="60"
-              stroke="currentColor"
-              className="text-border"
-              strokeDasharray="3 3"
-            />
-
-            {/* Area fill */}
-            <path
-              d="M 0,90 Q 60,85 100,70 T 200,80 T 300,55 T 400,20 L 400,100 L 0,100 Z"
-              fill="url(#performanceGradient)"
-            />
-
-            {/* Orange line curve */}
-            <path
-              d="M 0,90 Q 60,85 100,70 T 200,80 T 300,55 T 400,20"
-              fill="none"
-              stroke="#EF5A22"
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-
-            {/* Final point marker */}
-            <circle cx="400" cy="20" r="4" fill="#EF5A22" className="ring-4 ring-primary/20" />
-          </svg>
-
-          {/* Month labels */}
-          <div className="flex justify-between text-[11px] text-muted-foreground pt-2">
-            <span>Mar</span>
-            <span>Apr</span>
-            <span>May</span>
-            <span>Jun</span>
-            <span>Jul</span>
-            <span className="font-bold text-foreground">Aug</span>
-          </div>
+        {/* Recharts Area Chart */}
+        <div className="w-full h-36 pt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={DEFAULT_PERFORMANCE_DATA}
+              margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="performanceGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="var(--border)"
+              />
+              <XAxis
+                dataKey="month"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                dy={4}
+              />
+              <YAxis hide domain={["dataMin - 10", "dataMax + 10"]} />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: "var(--border)", strokeDasharray: "3 3" }} />
+              <Area
+                type="monotone"
+                dataKey="bookings"
+                stroke="var(--primary)"
+                strokeWidth={2.5}
+                fillOpacity={1}
+                fill="url(#performanceGradient)"
+                dot={false}
+                activeDot={{
+                  r: 5,
+                  fill: "var(--primary)",
+                  stroke: "var(--card)",
+                  strokeWidth: 2,
+                }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
 

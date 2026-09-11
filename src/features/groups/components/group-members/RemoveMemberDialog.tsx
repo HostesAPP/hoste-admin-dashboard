@@ -32,8 +32,12 @@ export const RemoveMemberDialog: React.FC<RemoveMemberDialogProps> = ({
   const [understood, setUnderstood] = useState(false);
 
   useEffect(() => {
-    if (!open) {
+
+    function reset() {
       setUnderstood(false);
+    }
+    if (!open) {
+      reset();
     }
   }, [open]);
 
@@ -73,8 +77,8 @@ export const RemoveMemberDialog: React.FC<RemoveMemberDialogProps> = ({
               <Avatar className="w-9 h-9">
                 <AvatarFallback
                   style={{
-                    backgroundColor: `${member.avatarColor || "#0284C7"}20`,
-                    color: member.avatarColor || "#0284C7",
+                    backgroundColor: member.avatarColor ? `${member.avatarColor}20` : "color-mix(in srgb, var(--primary) 15%, transparent)",
+                    color: member.avatarColor || "var(--primary)",
                   }}
                   className="font-bold text-xs"
                 >

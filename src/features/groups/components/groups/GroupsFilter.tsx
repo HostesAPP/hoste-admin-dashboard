@@ -83,8 +83,8 @@ export const GroupsFilter = () => {
                     key={status}
                     type="button"
                     onClick={() => setSelectedStatus(status)}
-                    className={`px-3 py-1.5 text-xs rounded-sm transition-colors cursor-pointer ${isSelected
-                      ? "bg-dark text-primary-foreground"
+                    className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors cursor-pointer ${isSelected
+                      ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       }`}
                   >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +29,15 @@ export function SuspendUserModal({
   onConfirm,
 }: SuspendUserModalProps) {
   const [reason, setReason] = useState("");
+
+  useEffect(() => {
+    function reset() {
+      setReason("");
+    }
+    if (!open) {
+      reset();
+    }
+  }, [open]);
 
   if (!user) return null;
 

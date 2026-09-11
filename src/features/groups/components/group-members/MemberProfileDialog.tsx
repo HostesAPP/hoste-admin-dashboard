@@ -41,8 +41,8 @@ export const MemberProfileDialog: React.FC<MemberProfileDialogProps> = ({
             <Avatar className="w-14 h-14 border-2 border-primary/20">
               <AvatarFallback
                 style={{
-                  backgroundColor: `${member.avatarColor || "#EF5A22"}20`,
-                  color: member.avatarColor || "#EF5A22",
+                  backgroundColor: member.avatarColor ? `${member.avatarColor}20` : "color-mix(in srgb, var(--primary) 15%, transparent)",
+                  color: member.avatarColor || "var(--primary)",
                 }}
                 className="text-base font-bold"
               >

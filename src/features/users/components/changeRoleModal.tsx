@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -55,7 +56,7 @@ export function ChangeRoleModal({
   onOpenChange,
   onConfirm,
 }: ChangeRoleModalProps) {
-  const { control, handleSubmit, setValue, watch } = useForm<ChangeRoleFormValues>({
+  const { control, handleSubmit, setValue, watch, reset } = useForm<ChangeRoleFormValues>({
     resolver: zodResolver(changeRoleSchema),
     defaultValues: {
       role: user?.type || "Admin",
@@ -63,9 +64,20 @@ export function ChangeRoleModal({
     },
   });
 
+  useEffect(() => {
+    function resetForm() {
+      reset({
+        role: user?.type || "Admin",
+        roleSubtitle: user?.roleSubtitle || "Super Admin",
+      });
+    }
+    if (!open) {
+      resetForm();
+    }
+  }, [open, user, reset]);
+
   if (!user) return null;
 
-  const currentRole = watch("role");
   const currentSubtitle = watch("roleSubtitle");
 
   const onSubmit = (data: ChangeRoleFormValues) => {
@@ -103,7 +115,7 @@ export function ChangeRoleModal({
                       </span>
                       <ChevronDown className="w-3.5 h-3.5 opacity-60" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-[360px] text-xs max-h-60 overflow-y-auto">
+                    <DropdownMenuContent align="start" className="w-90 text-xs max-h-60 overflow-y-auto">
                       {roleOptions.map((opt) => (
                         <DropdownMenuItem
                           key={`${opt.role}-${opt.subtitle}`}

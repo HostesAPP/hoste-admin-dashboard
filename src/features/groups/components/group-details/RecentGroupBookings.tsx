@@ -12,9 +12,10 @@ import {
 } from "@/components/ui/table";
 import { ArrowRight } from "lucide-react";
 import { StatusBadge } from "@/components/shared";
-import type { Group } from "@/features/groups";
+import { formatDate } from "@/lib/utils";
+import { getGroupEngagements, type Group } from "@/features/groups";
 
-const SAMPLE_BOOKINGS = [
+const DEFAULT_BOOKINGS = [
   {
     id: "BK-10482",
     customer: "Accra Events Ltd",
@@ -32,6 +33,16 @@ const SAMPLE_BOOKINGS = [
 ];
 
 export const RecentGroupBookings = ({ group }: { group?: Group }) => {
+  const engagements = group?.id ? getGroupEngagements(group.id) : [];
+  const bookings = engagements && engagements.length > 0
+    ? engagements.map((eng) => ({
+        id: eng.referenceId || eng.id,
+        customer: eng.title || "Event Booking",
+        date: eng.startDate ? formatDate(eng.startDate) : "Aug 28, 2026",
+        amount: eng.totalAmount ? eng.totalAmount.toLocaleString() : "250,000",
+        status: eng.status || "Confirmed",
+      }))
+    : DEFAULT_BOOKINGS;
   return (
     <section className="rounded-xl border border-border bg-card shadow-xs overflow-hidden">
       {/* Header */}
@@ -72,7 +83,7 @@ export const RecentGroupBookings = ({ group }: { group?: Group }) => {
           </TableHeader>
 
           <TableBody>
-            {SAMPLE_BOOKINGS.map((booking) => (
+            {bookings.map((booking) => (
               <TableRow key={booking.id} className="hover:bg-muted/30 border-b border-border/70">
                 <TableCell className="py-3.5 px-5 font-bold text-xs text-primary">
                   {booking.id}

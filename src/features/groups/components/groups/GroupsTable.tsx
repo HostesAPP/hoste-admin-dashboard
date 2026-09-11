@@ -62,12 +62,12 @@ export const GroupsTable: React.FC = () => {
                   {/* group icon / logo */}
                   <div
                     style={{
-                      backgroundColor: `${group?.color}15`
+                      backgroundColor: group?.color ? `${group.color}15` : "color-mix(in srgb, var(--primary) 15%, transparent)"
                     }}
                     className="w-10 h-10 rounded-sm flex items-center justify-center">
                     <div
                       style={{
-                        backgroundColor: group?.color
+                        backgroundColor: group?.color || "var(--primary)"
                       }}
                       className="w-6 h-6 rounded-full" />
                   </div>
