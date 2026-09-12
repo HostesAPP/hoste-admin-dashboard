@@ -33,9 +33,12 @@ export const SuspendMemberDialog: React.FC<SuspendMemberDialogProps> = ({
   const [duration, setDuration] = useState("7_days");
 
   useEffect(() => {
-    if (!open) {
+    function reset() {
       setReason("");
       setDuration("7_days");
+    }
+    if (!open) {
+      reset();
     }
   }, [open]);
 
@@ -77,8 +80,8 @@ export const SuspendMemberDialog: React.FC<SuspendMemberDialogProps> = ({
               <Avatar className="w-9 h-9">
                 <AvatarFallback
                   style={{
-                    backgroundColor: `${member.avatarColor || "#EF5A22"}20`,
-                    color: member.avatarColor || "#EF5A22",
+                    backgroundColor: member.avatarColor ? `${member.avatarColor}20` : "color-mix(in srgb, var(--primary) 15%, transparent)",
+                    color: member.avatarColor || "var(--primary)",
                   }}
                   className="font-bold text-xs"
                 >

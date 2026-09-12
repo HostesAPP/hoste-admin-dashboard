@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -112,6 +112,23 @@ export function InviteAdminModal({
     },
   });
 
+  useEffect(() => {
+    function resetForm() {
+      reset({
+        fullName: "",
+        email: "admin@email.com",
+        phoneNumber: "",
+        role: "Operations Admin",
+        permissions: defaultPermissionsByRole["Operations Admin"],
+        message: "",
+      });
+      setSelectedRole("Operations Admin");
+    }
+    if (!open) {
+      resetForm();
+    }
+  }, [open, reset]);
+
   const currentPermissions = watch("permissions") || [];
 
   const handleRoleChange = (role: string) => {
@@ -211,7 +228,7 @@ export function InviteAdminModal({
                     <span>{field.value || selectedRole}</span>
                     <ChevronDown className="w-3.5 h-3.5 opacity-60" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-[490px] text-xs">
+                  <DropdownMenuContent align="start" className="w-122.5 text-xs">
                     {Object.keys(roleDescriptions).map((role) => (
                       <DropdownMenuItem
                         key={role}
@@ -265,7 +282,7 @@ export function InviteAdminModal({
                   >
                     <div className="pt-0.5">
                       {isChecked ? (
-                        <CheckSquare className="w-3.5 h-3.5 text-primary fill-primary text-primary-foreground" />
+                        <CheckSquare className="w-3.5 h-3.5 text-primary fill-primary" />
                       ) : (
                         <Square className="w-3.5 h-3.5 text-muted-foreground/50" />
                       )}

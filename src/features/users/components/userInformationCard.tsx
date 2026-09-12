@@ -27,7 +27,7 @@ export function UserInformationCard({ user }: UserInformationCardProps) {
 
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Email</span>
-            <span className="font-semibold text-foreground truncate max-w-[170px]">
+            <span className="font-semibold text-foreground truncate max-w-42.5">
               {user.email}
             </span>
           </div>

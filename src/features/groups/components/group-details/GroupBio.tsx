@@ -11,15 +11,15 @@ export const GroupDetailsBio = ({ group }: { group: Group }) => {
       {/* Group Logo / Avatar */}
       <div
         style={{
-          backgroundColor: `${group?.color || "#EF5A22"}15`,
+          backgroundColor: group?.color ? `${group.color}15` : "color-mix(in srgb, var(--primary) 12%, transparent)",
         }}
-        className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center shrink-0 border border-border/50 shadow-inner"
+        className="w-24 h-24 rounded-2xl flex items-center justify-center shrink-0 border border-border/50 shadow-inner"
       >
         <div
           style={{
-            backgroundColor: group?.color || "#EF5A22",
+            backgroundColor: group?.color || "var(--primary)",
           }}
-          className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-white shadow-sm"
+          className="w-12 h-12 rounded-xl flex items-center justify-center text-primary-foreground shadow-sm"
         >
           <Users className="w-6 h-6 stroke-[2.5]" />
         </div>

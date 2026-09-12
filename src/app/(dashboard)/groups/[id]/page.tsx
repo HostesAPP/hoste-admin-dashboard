@@ -195,7 +195,7 @@ export default function GroupDetailPage() {
         <GroupDetailsMembers group={currentGroup} />
 
         {/* 5. Group Performance & Group Activity (2-Columns) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-6">
           <GroupPerformanceCard group={currentGroup} />
           <GroupActivityCard group={currentGroup} />
         </div>
@@ -209,10 +209,6 @@ export default function GroupDetailPage() {
           onOpenSuspend={() => setSuspendOpen(true)}
         />
       </main>
-
-
-      {/* group info and leader info */}
-      <GroupInformation group={currentGroup as Group} />
     </div>
   );
 }

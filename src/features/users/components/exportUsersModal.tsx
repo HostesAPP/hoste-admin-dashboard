@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +46,16 @@ export function ExportUsersModal({
 }: ExportUsersModalProps) {
   const [scope, setScope] = useState<ExportScope>("all");
   const [format, setFormat] = useState<ExportFormat>("csv");
+
+  useEffect(() => {
+    function reset() {
+      setScope("all");
+      setFormat("csv");
+    }
+    if (!open) {
+      reset();
+    }
+  }, [open]);
 
   const selectedCount = scope === "all" ? totalUsersCount : filteredUsersCount;
   const fileName = `users_export.${formatLabels[format].ext}`;
@@ -155,7 +165,7 @@ export function ExportUsersModal({
               </div>
               <ChevronDown className="w-3.5 h-3.5 opacity-60" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-[380px] text-xs">
+            <DropdownMenuContent align="start" className="w-95 text-xs">
               {(Object.keys(formatLabels) as ExportFormat[]).map((fmt) => (
                 <DropdownMenuItem
                   key={fmt}

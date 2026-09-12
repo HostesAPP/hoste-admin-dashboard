@@ -10,7 +10,7 @@ export function UsersStats({ stats }: UsersStatsProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
       {/* Total Users */}
-      <div className="bg-card rounded-md border border-border/80 p-5 shadow-xs flex flex-col justify-between h-[100px] transition-shadow hover:shadow-sm">
+      <div className="bg-card rounded-md border border-border/80 p-5 shadow-xs flex flex-col justify-between h-25 transition-shadow hover:shadow-sm">
         <span className="text-xs font-normal text-muted-foreground">
           Total Users
         </span>
@@ -25,7 +25,7 @@ export function UsersStats({ stats }: UsersStatsProps) {
       </div>
 
       {/* Hostés */}
-      <div className="bg-card rounded-xl border border-border/80 p-5 shadow-xs flex flex-col justify-between h-[100px] transition-shadow hover:shadow-sm">
+      <div className="bg-card rounded-md border border-border/80 p-5 shadow-xs flex flex-col justify-between h-25 transition-shadow hover:shadow-sm">
         <span className="text-xs font-normal text-muted-foreground">
           Hostés
         </span>
@@ -40,7 +40,7 @@ export function UsersStats({ stats }: UsersStatsProps) {
       </div>
 
       {/* Customers */}
-      <div className="bg-card rounded-xl border border-border/80 p-5 shadow-xs flex flex-col justify-between h-[100px] transition-shadow hover:shadow-sm">
+      <div className="bg-card rounded-md border border-border/80 p-5 shadow-xs flex flex-col justify-between h-25 transition-shadow hover:shadow-sm">
         <span className="text-xs font-normal text-muted-foreground">
           Customers
         </span>
@@ -55,7 +55,7 @@ export function UsersStats({ stats }: UsersStatsProps) {
       </div>
 
       {/* Admins & Staff */}
-      <div className="bg-card rounded-xl border border-border/80 p-5 shadow-xs flex flex-col justify-between h-[100px] transition-shadow hover:shadow-sm">
+      <div className="bg-card rounded-md border border-border/80 p-5 shadow-xs flex flex-col justify-between h-25 transition-shadow hover:shadow-sm">
         <span className="text-xs font-normal text-muted-foreground">
           Admins & Staff
         </span>

@@ -32,7 +32,7 @@ export default function GroupsPage() {
     },
     {
       title: "04 — Suspended / Inactive",
-      value: GROUP_MEMBERS.filter(group => group.status !== "Active").length,
+      value: GROUPS.filter(group => group.status !== "Active").length,
       footerText: "Groups requiring attention",
       rate: 0
     },
