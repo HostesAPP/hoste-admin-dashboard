@@ -7,7 +7,7 @@ router.get('/', async (req, res) => {
   try {
     const result = await pool.query('SELECT id, email, name, role, created_at FROM users ORDER BY created_at DESC');
     res.json({ ok: true, data: result.rows });
-  } catch (error) {
+ } catch (error: any) {
     res.status(500).json({ ok: false, error: error.message });
   }
 });
@@ -20,9 +20,11 @@ router.post('/', async (req, res) => {
       [email, name, role || 'user']
     );
     res.status(201).json({ ok: true, data: result.rows[0] });
-  } catch (error) {
-    res.status(500).json({ ok: false, error: error.message });
-  }
+  
+} catch (error: any) {
+  res.status(500).json({ ok: false, error: error.message });
+}
+    
 });
 
 export default router;
