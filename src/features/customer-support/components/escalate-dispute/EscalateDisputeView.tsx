@@ -45,10 +45,10 @@ export function EscalateDisputeView({ conversationId }: EscalateDisputeViewProps
 
   if (isLoading && !conversation) {
     return (
-      <div className="flex flex-col min-h-screen p-6 sm:p-8 max-w-7xl mx-auto space-y-6">
+      <div className="flex flex-col min-h-screen p-6 mx-auto space-y-6">
         <div className="h-8 w-28 bg-muted animate-pulse rounded-lg" />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-8 h-[650px] bg-muted animate-pulse rounded-2xl" />
+          <div className="lg:col-span-8 h-162.5 bg-muted animate-pulse rounded-2xl" />
           <div className="lg:col-span-4 space-y-6">
             <div className="h-56 bg-muted animate-pulse rounded-2xl" />
             <div className="h-44 bg-muted animate-pulse rounded-2xl" />
@@ -60,7 +60,7 @@ export function EscalateDisputeView({ conversationId }: EscalateDisputeViewProps
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <main className="flex-1 p-6 sm:p-8 space-y-6 max-w-7xl mx-auto w-full">
+      <main className="flex-1 p-6 sm:p-8 space-y-6 mx-auto w-full">
         {/* Top Header / Breadcrumb Bar */}
         <div className="relative flex items-center justify-between pb-1">
           {/* Back to chat Link */}

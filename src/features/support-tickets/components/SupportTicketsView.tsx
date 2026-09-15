@@ -53,7 +53,7 @@ export function SupportTicketsView() {
       />
 
       {/* Main Page Content */}
-      <main className="flex-1 p-8 space-y-6 max-w-7xl mx-auto w-full">
+      <main className="flex-1 p-6 space-y-6 mx-auto w-full">
         {/* KPI Stats Overview */}
         <section>
           <SupportTicketsStats stats={stats} isLoading={isStatsLoading} />
