@@ -5,3 +5,4 @@ export * from "./components/ForgotPasswordForm";
 export * from "./components/ResetPasswordForm";
 export * from "./components/AccountLocked";
 export * from "./schemas/auth.schema";
+export * from "./types/auth.types";
