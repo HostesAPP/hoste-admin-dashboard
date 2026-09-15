@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { signInSchema, type SignInFormValues } from "../schemas/auth.schema";
+import { useLogin } from "../hooks/auth.hooks";
+
 
 export function SignInForm() {
   const router = useRouter();
@@ -19,7 +21,7 @@ export function SignInForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -29,17 +31,24 @@ export function SignInForm() {
     mode: "onBlur",
   });
 
-  const onSubmit = async (values: SignInFormValues) => {
-    setServerError("");
+  const loginMutation = useLogin();
+  const isLoading = loginMutation.isPending;
 
-    try {
-      // Simulate authentication request
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      console.log("Logged in with:", values.email);
-      router.push("/");
-    } catch {
-      setServerError("Invalid email or password. Please try again.");
-    }
+  const onSubmit = (values: SignInFormValues) => {
+    setServerError("");
+    loginMutation.mutate(values, {
+      onSuccess: (data) => {
+        console.log("Logged in successfully:", data);
+        router.push("/");
+      },
+      onError: (error) => {
+        setServerError(
+          error instanceof Error
+            ? error.message
+            : "Invalid email or password. Please try again."
+        );
+      },
+    });
   };
 
   return (
@@ -77,7 +86,7 @@ export function SignInForm() {
             type="email"
             autoComplete="email"
             placeholder="admin@hoste.ng"
-            disabled={isSubmitting}
+            disabled={isLoading}
             aria-invalid={!!errors.email}
             {...register("email")}
             className="h-11 rounded-lg border-input bg-background text-sm placeholder:text-muted-foreground/60 focus-visible:ring-primary"
@@ -103,7 +112,7 @@ export function SignInForm() {
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               placeholder="••••••••••••"
-              disabled={isSubmitting}
+              disabled={isLoading}
               aria-invalid={!!errors.password}
               {...register("password")}
               className="h-11 rounded-lg border-input bg-background text-sm placeholder:text-muted-foreground/60 pr-10 focus-visible:ring-primary"
@@ -142,10 +151,10 @@ export function SignInForm() {
         {/* Submit Button */}
         <Button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isLoading}
           className="w-full h-11 sm:h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg text-sm sm:text-base shadow-sm transition-all cursor-pointer mt-2"
         >
-          {isSubmitting ? (
+          {isLoading ? (
             <span className="inline-flex items-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
               Signing in...
@@ -165,3 +174,4 @@ export function SignInForm() {
     </div>
   );
 }
+
