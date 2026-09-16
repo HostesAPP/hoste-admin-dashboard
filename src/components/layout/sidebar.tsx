@@ -17,6 +17,7 @@ import {
   Image as ImageIcon,
   Settings,
   ChevronRight,
+  Share2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { label: "Profiles", href: "/profiles", icon: Sparkles },
   { label: "Bookings", href: "/bookings", icon: Calendar },
   { label: "Payments & Payouts", href: "/payments", icon: CreditCard, hasSubmenu: true },
+  { label: "Referrals", href: "/referrals", icon: Share2 },
   { label: "Groups", href: "/groups", icon: Users2 },
   { label: "Users", href: "/users", icon: Users },
   { label: "Reports", href: "/reports", icon: FileBarChart2 },
@@ -43,6 +45,7 @@ const navItems: NavItem[] = [
   { label: "Banners", href: "/banners", icon: ImageIcon, hasSubmenu: true },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
+
 
 export function Sidebar() {
   const pathname = usePathname();
