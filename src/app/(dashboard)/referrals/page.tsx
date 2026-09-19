@@ -26,6 +26,7 @@ import {
 import { MOCK_REFERRALS, MOCK_REFERRAL_STATS } from "@/features/referrals/data/referrals.data";
 import { Referral, ReferralStatus } from "@/features/referrals/referrals.types";
 
+// TODO: pending product confirmation — see UI/UX patch §4/§5 regarding Referral Rewards & Approvals workflow, threshold progress ("refer 5 unlock X"), and Final Referral RBAC
 export default function ReferralsPage() {
   const [referrals, setReferrals] = useState<Referral[]>(MOCK_REFERRALS);
   const [search, setSearch] = useState("");
