@@ -65,16 +65,15 @@ export function TransactionActionButtons({
       </Button>
 
       {/* 3. View Booking */}
-      <Button
-        type="button"
-        variant="outline"
-        asChild
-        className="h-10 px-5 rounded-xl border-border/80 bg-card hover:bg-muted/50 text-foreground text-xs font-semibold transition-colors cursor-pointer"
-      >
-        <Link href={`/bookings/${bookingId}`}>
+      <Link href={`/bookings/${bookingId}`}>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-10 px-5 rounded-xl border-border/80 bg-card hover:bg-muted/50 text-foreground text-xs font-semibold transition-colors cursor-pointer"
+        >
           View Booking
-        </Link>
-      </Button>
+        </Button>
+      </Link>
 
       {/* 4. Issue Refund */}
       <Button

@@ -44,15 +44,13 @@ export function DashboardHeader({
       <div className="flex items-center gap-3">
         {/* Date Filter Dropdown */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl border border-border/80 bg-card hover:bg-muted/50 text-xs font-semibold text-foreground transition-colors shadow-2xs cursor-pointer"
-            >
-              <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-              <span>{selectedRange}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
-            </button>
+          <DropdownMenuTrigger
+            type="button"
+            className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl border border-border/80 bg-card hover:bg-muted/50 text-xs font-semibold text-foreground transition-colors shadow-2xs cursor-pointer"
+          >
+            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+            <span>{selectedRange}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="rounded-xl border-border">
             <DropdownMenuItem onClick={() => handleSelect("Today")}>
