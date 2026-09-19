@@ -26,7 +26,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MOCK_BANNERS } from "@/features/banners/data/banners.data";
 import { Banner, BannerPlacement } from "@/features/banners/banners.types";
 
-// TODO: pending product confirmation — see UI/UX patch §4/§5 regarding /banners backend/data model and backend entity confirmation
 export default function BannersPage() {
   const [banners, setBanners] = useState<Banner[]>(MOCK_BANNERS);
   const [search, setSearch] = useState("");
