@@ -3,6 +3,8 @@
 import {
   CustomerConversation,
   CustomerSupportStatsData,
+  DisputeBookingDetails,
+  DisputeRelatedTicket,
 } from "../customer-support.types";
 
 export const MOCK_CUSTOMER_STATS: CustomerSupportStatsData = {
