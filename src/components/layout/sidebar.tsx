@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Sparkles,
+  Calendar,
   CreditCard,
   Users2,
-  Share2,
   Users,
   FileBarChart2,
   Bell,
@@ -15,10 +15,9 @@ import {
   Headphones,
   Newspaper,
   Image as ImageIcon,
-  ShieldAlert,
   Settings,
-  History,
   ChevronRight,
+  Share2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,23 +29,21 @@ interface NavItem {
   hasSubmenu?: boolean;
 }
 
-// Sidebar order updated per UI/UX Alignment Patch v2.3 §2
 const navItems: NavItem[] = [
   { label: "Overview", href: "/", icon: LayoutDashboard },
-  { label: "Profiles", href: "/profiles", icon: Sparkles }, // TODO: pending product confirmation — see UI/UX patch §4/§5 regarding Verification & Engagements nesting vs standalone
+  { label: "Profiles", href: "/profiles", icon: Sparkles },
+  { label: "Bookings", href: "/bookings", icon: Calendar },
   { label: "Payments & Payouts", href: "/payments", icon: CreditCard, hasSubmenu: true },
-  { label: "Groups", href: "/groups", icon: Users2 },
   { label: "Referrals", href: "/referrals", icon: Share2 },
+  { label: "Groups", href: "/groups", icon: Users2 },
   { label: "Users", href: "/users", icon: Users },
   { label: "Reports", href: "/reports", icon: FileBarChart2 },
   { label: "Notifications", href: "/notifications", icon: Bell },
-  { label: "Support Tickets", href: "/support-tickets", icon: LifeBuoy }, // TODO: pending product confirmation — see UI/UX patch §4/§5 regarding Support & Disputes split
+  { label: "Support Tickets", href: "/support-tickets", icon: LifeBuoy },
   { label: "Customer Support", href: "/customer-support", icon: Headphones },
   { label: "Blog", href: "/blog", icon: Newspaper },
   { label: "Banners", href: "/banners", icon: ImageIcon, hasSubmenu: true },
-  { label: "Moderation", href: "/moderation", icon: ShieldAlert },
   { label: "Settings", href: "/settings", icon: Settings },
-  { label: "Audit Log", href: "/settings?tab=audit-log", icon: History }, // TODO: pending product confirmation — see UI/UX patch §4/§5 regarding Audit Log standalone sidebar vs nested under Settings -> System Settings
 ];
 
 

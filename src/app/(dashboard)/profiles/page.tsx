@@ -5,7 +5,6 @@ export const metadata: Metadata = {
   description: "Manage host, brand, and event planner profiles and pending activations.",
 };
 
-// TODO: pending product confirmation — see UI/UX patch §4/§5 regarding whether Verification and Engagements are nested tabs inside Profiles or standalone routes
 export default function ProfilesPage() {
   return (
     <div className="space-y-6">
