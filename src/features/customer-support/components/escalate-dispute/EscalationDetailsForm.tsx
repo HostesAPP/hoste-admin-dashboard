@@ -173,7 +173,7 @@ export function EscalationDetailsForm({
           </label>
           <Select
             value={issueCategory}
-            onValueChange={(val) => setIssueCategory(val as DisputeIssueCategory)}
+            onValueChange={(val) => val && setIssueCategory(val as DisputeIssueCategory)}
           >
             <SelectTrigger className="w-full h-10 rounded-xl border-border/80 bg-background text-xs font-medium focus:ring-primary/20">
               <SelectValue placeholder="Select Category" />
@@ -197,7 +197,7 @@ export function EscalationDetailsForm({
           </label>
           <Select
             value={priorityLevel}
-            onValueChange={(val) => setPriorityLevel(val as DisputePriorityLevel)}
+            onValueChange={(val) => val && setPriorityLevel(val as DisputePriorityLevel)}
           >
             <SelectTrigger className="w-full h-10 rounded-xl border-border/80 bg-background text-xs font-medium focus:ring-primary/20">
               <SelectValue placeholder="Select Priority" />
@@ -366,7 +366,7 @@ export function EscalationDetailsForm({
           <span>Assign to Dispute Team</span>
           <span className="text-destructive">*</span>
         </label>
-        <Select value={assignedTeam} onValueChange={setAssignedTeam}>
+        <Select value={assignedTeam} onValueChange={(val) => val && setAssignedTeam(val)}>
           <SelectTrigger className="w-full h-10 rounded-xl border-border/80 bg-background text-xs font-medium focus:ring-primary/20">
             <SelectValue placeholder="Assign Dispute Team" />
           </SelectTrigger>

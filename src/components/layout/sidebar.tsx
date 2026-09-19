@@ -125,6 +125,11 @@ export function Sidebar() {
 
         <button
           type="button"
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              window.location.href = "/sign-in";
+            }
+          }}
           className="text-xs text-primary font-medium hover:underline flex items-center gap-1 cursor-pointer"
         >
           <span>Log Out</span>
