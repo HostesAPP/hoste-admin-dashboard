@@ -1,0 +1,48 @@
+import { AuditLogItem } from "../types/auditLog.types";
+
+export const MOCK_AUDIT_LOGS: AuditLogItem[] = [
+  {
+    id: "LOG-1001",
+    timestamp: "2026-09-18T14:32:00Z",
+    staffUserId: "usr-staff-001",
+    staffProfileId: "sprof-superadmin-01",
+    action: "UPDATE_CONFIG",
+    entityType: "PlatformConfig",
+    entityId: "cfg-commission-rates",
+    description: "Updated Full-Time engagement commission rate from 30% to 35%. Invalidated Redis key 'config:commission'.",
+    ip: "102.89.23.44",
+  },
+  {
+    id: "LOG-1002",
+    timestamp: "2026-09-18T11:15:22Z",
+    staffUserId: "usr-staff-002",
+    staffProfileId: "sprof-vo-01",
+    action: "APPROVE_VERIFICATION",
+    entityType: "Verification",
+    entityId: "VER-2026-002",
+    description: "Approved Circle Verification application for profile 'Luxe Haven Lagos'. Status set to Approved_Awaiting_Payment.",
+    ip: "197.210.8.12",
+  },
+  {
+    id: "LOG-1003",
+    timestamp: "2026-09-17T16:05:10Z",
+    staffUserId: "usr-staff-003",
+    staffProfileId: "sprof-finance-01",
+    action: "TRIGGER_MANUAL_REFUND",
+    entityType: "Refund",
+    entityId: "REF-260917-009",
+    description: "Triggered manual refund of ₦45,000 for Engagement ENG-260910-101 via Paystack Original Payment Method. Reason: Client cancelled >48h.",
+    ip: "102.89.44.101",
+  },
+  {
+    id: "LOG-1004",
+    timestamp: "2026-09-16T09:20:00Z",
+    staffUserId: "usr-staff-001",
+    staffProfileId: "sprof-superadmin-01",
+    action: "SUSPEND_PROFILE",
+    entityType: "Profile",
+    entityId: "prof-008",
+    description: "Suspended profile 'Samson Sound Systems' until 2026-10-10. Reason: 3 cancellation strikes.",
+    ip: "102.89.23.44",
+  },
+];
