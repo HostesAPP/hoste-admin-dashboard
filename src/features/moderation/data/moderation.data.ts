@@ -1,0 +1,43 @@
+import { ProfileModerationEvent } from "../types/moderation.types";
+
+export const MOCK_MODERATION_EVENTS: ProfileModerationEvent[] = [
+  {
+    id: "MOD-2026-001",
+    profileId: "prof-005",
+    profileName: "Kemi Luxe Events",
+    email: "kemi@luxeevents.ng",
+    action: "WARNING",
+    trigger: "LOW_RATING",
+    rating: 3.8,
+    reason: "Rating dropped below 4.0 threshold after 3 consecutive negative client reviews.",
+    issuedByStaffId: "staff-mod-01",
+    issuedAt: "2026-09-14T11:20:00Z",
+    active: true,
+  },
+  {
+    id: "MOD-2026-002",
+    profileId: "prof-008",
+    profileName: "Samson Sound Systems",
+    email: "samson@soundsystems.ng",
+    action: "SUSPENSION",
+    trigger: "CANCELLATION_STRIKE",
+    cancellationStrikeCount: 3,
+    reason: "Exceeded 3 no-show cancellations within 30 days.",
+    issuedByStaffId: "staff-mod-02",
+    issuedAt: "2026-09-10T16:45:00Z",
+    suspendedUntil: "2026-10-10T16:45:00Z",
+    active: true,
+  },
+  {
+    id: "MOD-2026-003",
+    profileId: "prof-012",
+    profileName: "Bad Actor Venues",
+    email: "contact@badactorvenues.ng",
+    action: "REMOVAL",
+    trigger: "POLICY_VIOLATION",
+    reason: "Fraudulent media uploads and severe policy violations.",
+    issuedByStaffId: "staff-super-01",
+    issuedAt: "2026-09-01T08:00:00Z",
+    active: false,
+  },
+];
