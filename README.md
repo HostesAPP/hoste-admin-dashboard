@@ -5,55 +5,99 @@ Hoste's web-based admin dashboard for platform management and administration.
 
 ## Overview
 
-The Hoste Admin Dashboard is a comprehensive TypeScript-based web application (built with Next.js) designed to provide administrators with powerful tools to manage and oversee the Hoste platform. This dashboard offers an intuitive interface for handling platform administration, user management, and operational oversight.
+The Hoste Admin Dashboard is a comprehensive TypeScript-based web application (built with Next.js 16 and React 19) designed to provide administrators with powerful tools to manage and oversee the Hoste platform. This dashboard offers an intuitive interface for handling platform administration, user management, bookings, financial operations, content management, and operational oversight.
 
 ## Features
 
-- 🔐 Secure admin authentication and authorization
-- 📊 Real-time platform monitoring and analytics
-- 👥 User and account management
-- ⚙️ Platform configuration and settings
-- 📈 Performance metrics and reporting
-- 🛠️ Administrative tools and utilities
-- 📋 Audit logging for all admin actions
+- 🔐 Secure admin authentication and session management
+- 📊 Real-time platform monitoring, KPIs, and revenue analytics
+- 📅 **Bookings & Engagements:** Full booking lifecycle tracking, status management, date range filters, and detail lookup (`/bookings`)
+- 🤝 **Referrals & Rewards:** Referral code tracking, invite conversion status, reward payments, and CSV export (`/referrals`)
+- 🔔 **Notifications & Dispatches:** System/user alert feeds, retry mechanisms, and administrative broadcast creation (`/notifications`)
+- 📝 **Blog Management:** Article creation, status workflows (Draft, Scheduled, Published), cover image uploads, and post management (`/blog`)
+- 🖼️ **Promotional Banners:** Web and mobile hero slides, placement targeting, priority ordering, and active toggles (`/banners`)
+- 🛡️ **Content & Account Moderation:** Review queue for reported listings, profile infractions, and active suspensions (`/moderation`)
+- ⚙️ **Settings & Administration:** Multi-tab platform configuration IA covering General, User & Access (Create/Invite Admin flow), Hosté Management, Bookings & Groups, Payments & Finance, Notifications, Content, Security, and System Settings with Audit Logs (`/settings`)
+- 👥 User, Group, and Account Management (`/users`, `/groups`)
+- 🎫 Support Ticket Escalation and Customer Support Live Chat (`/support-tickets`, `/customer-support`)
 
 ## Tech Stack
 
 - **Language:** TypeScript
-- **Frontend Framework:** [Next.js](https://nextjs.org)
-- **Backend:** Express.js + TypeScript (server folder)
-- **Database:** PostgreSQL (with Prisma ORM)
-- **Cache:** Redis
-- **Package Manager:** pnpm/npm/yarn
+- **Frontend Framework:** Next.js 16 (App Router) + React 19
+- **UI & Styling:** Tailwind CSS v4, Lucide React icons, shadcn/ui, @base-ui/react primitives
+- **Backend API:** Express.js + TypeScript (`server/` directory)
+- **Database:** PostgreSQL (with Prisma ORM and native `pg` access)
+- **Package Manager:** pnpm
 - **License:** MIT
 
 ## Project Structure
 
 ```
 hoste-admin-dashboard/
-├── app/                # Next.js app directory
-├── components/         # Reusable UI components
-├── server/             # Express backend API
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── middleware/
-│   │   ├── routes/
-│   │   └── prisma/
-│   └── README.md
-├── public/             # Static assets
-├── package.json        # Project dependencies
-└── README.md          # This file
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── (auth)/             # Authentication routes (sign-in, forgot-password, etc.)
+│   │   └── (dashboard)/        # Dashboard layout & protected admin routes
+│   │       ├── page.tsx        # Overview dashboard
+│   │       ├── banners/        # Promotional banners management
+│   │       ├── blog/           # Blog posts management
+│   │       ├── bookings/       # Bookings list & detail pages
+│   │       ├── customer-support/ # Live customer conversations
+│   │       ├── groups/         # Hosté groups & member delegation
+│   │       ├── moderation/     # Content & infraction review queue
+│   │       ├── notifications/  # Notifications & admin broadcast dispatch
+│   │       ├── payments/       # Payments & payouts lifecycle
+│   │       ├── profiles/       # Profiles & activation queue
+│   │       ├── referrals/      # Referral links & reward payouts
+│   │       ├── reports/        # Analytics & business reports
+│   │       ├── revenue/        # Platform revenue aggregation
+│   │       ├── settings/       # Multi-tab platform settings & Admin creation
+│   │       ├── support-tickets/ # Support ticket escalations
+│   │       └── users/          # Users & RBAC role administration
+│   ├── components/             # Shared UI & layout components
+│   │   ├── layout/             # Sidebar, Header, Global Layout
+│   │   └── ui/                 # Reusable UI primitives
+│   ├── features/               # Feature-based domain modules
+│   │   ├── banners/            # Banners types, hooks, mock data
+│   │   ├── blog/               # Blog types & data handlers
+│   │   ├── bookings/           # Bookings types, hooks, views
+│   │   ├── notifications/      # Notifications types & dispatches
+│   │   ├── referrals/          # Referrals types & stats
+│   │   ├── settings/           # Platform settings types & defaults
+│   │   └── ...                 # Other domain modules
+│   └── lib/                    # Shared utility functions
+├── server/                     # Express backend API & Prisma models
+└── README.md                   # Project documentation
 ```
+
+## Dashboard Navigation Structure
+
+The sidebar navigation follows the canonical ordering specified in UI/UX Alignment Patch v2.3:
+
+1. **Overview** (`/`)
+2. **Profiles** (`/profiles`)
+3. **Payments & Payouts** (`/payments`)
+4. **Groups** (`/groups`)
+5. **Referrals** (`/referrals`)
+6. **Users** (`/users`)
+7. **Reports** (`/reports`)
+8. **Notifications** (`/notifications`)
+9. **Support Tickets** (`/support-tickets`)
+10. **Customer Support** (`/customer-support`)
+11. **Blog** (`/blog`)
+12. **Banners** (`/banners`)
+13. **Moderation** (`/moderation`)
+14. **Settings** (`/settings`)
+15. **Audit Log** (`/settings?tab=system-settings`)
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
-- pnpm, npm, or yarn
-- Docker & Docker Compose (for local database setup)
-- PostgreSQL (via Docker or local installation)
-- Redis (via Docker or local installation)
+- Node.js (v20 or higher)
+- pnpm (v10 or higher)
+- Docker & Docker Compose (for local database & Redis)
 
 ### Installation
 
@@ -66,222 +110,65 @@ cd hoste-admin-dashboard
 2. **Install dependencies:**
 ```bash
 pnpm install
-# or
-npm install
 ```
 
 3. **Set up environment variables:**
 ```bash
 cp .env.example .env.local
-# Edit .env.local with your configuration
 ```
 
-4. **Start services with Docker Compose** (if using Docker):
-```bash
-docker-compose up -d
-```
-
-5. **Set up the database:**
-```bash
-cd server
-pnpm prisma generate
-pnpm prisma migrate dev --name init
-cd ..
-```
-
-6. **Start the development server:**
+4. **Start the local development server:**
 ```bash
 pnpm dev
 # Frontend runs on http://localhost:3000
-# Backend API runs on http://localhost:5000
 ```
 
-## Development
-
-### Available Commands
+## Development Commands
 
 ```bash
-# Development server
+# Start Next.js development server
 pnpm dev
 
-# Build for production
+# Build for production (TypeScript check + Static route generation)
 pnpm build
 
 # Start production server
 pnpm start
 
-# Run tests
-pnpm test
-
-# Linting and formatting
-pnpm lint
-pnpm format
-
-# Database migrations (in server directory)
-cd server
-pnpm prisma migrate dev
-pnpm prisma studio  # Open Prisma Studio
+# Lint codebase (ESLint 9)
+pnpm eslint src
 ```
 
-## Configuration
+## Settings Information Architecture
 
-### Environment Variables
+The `/settings` route features a nested sub-section architecture:
 
-Create a `.env.local` file in the root directory:
-
-```env
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:5000
-NEXT_PUBLIC_APP_NAME=Hoste Admin Dashboard
-
-# Database (for server)
-DATABASE_URL=postgresql://user:password@localhost:5432/hoste_admin_dev
-REDIS_URL=redis://localhost:6379
-
-# Authentication
-JWT_SECRET=your_jwt_secret_here
-ADMIN_API_KEY=your_admin_api_key
-
-# Optional: External services
-SENTRY_DSN=
-```
-
-## API Endpoints
-
-### Profile Management
-- `GET /admin/profiles/activation-queue` - Get pending profile activations
-- `POST /admin/profiles/:id/approve` - Approve a profile
-- `POST /admin/profiles/:id/reject` - Reject a profile
-- `POST /admin/profiles/:id/suspend` - Suspend a profile
-- `POST /admin/profiles/:id/remove` - Remove a profile
-
-### Authentication
-- Staff authentication via header-based role verification
-- Required headers: `X-Staff-Id` and `X-Staff-Role`
-
-### Audit Logging
-All profile mutations are automatically logged in the AuditLog table for compliance and tracking.
-
-## Docker Deployment
-
-### Build the image:
-```bash
-docker build -t hoste-admin-dashboard .
-```
-
-### Run the container:
-```bash
-docker run -p 3000:3000 -p 5000:5000 \
-  -e DATABASE_URL="postgresql://..." \
-  -e REDIS_URL="redis://..." \
-  hoste-admin-dashboard
-```
-
-### Using Docker Compose:
-```bash
-docker-compose up
-```
-
-## Database
-
-### Migrations
-
-Run database migrations:
-```bash
-cd server
-pnpm prisma migrate dev --name your_migration_name
-```
-
-### Prisma Studio
-
-View and manage database records visually:
-```bash
-cd server
-pnpm prisma studio
-```
+- **General:** Currency (NGN/USD/GBP), Timezone, Support contact.
+- **User & Access:** Create/Invite Admin flow, Staff Role assignment (`SUPER_ADMIN`, `ADMIN`, `FINANCE`, `SUPPORT`, `MODERATOR`), and Active Admin directory.
+- **Hosté Management:** Onboarding & NIN/CAC identity verification requirements.
+- **Bookings & Groups:** Member limits and grace period configs.
+- **Payments & Finance:** Platform service fee percentage, referral reward amounts, escrow lock days.
+- **Notifications:** Delivery channel toggles (Email, Push, SMS).
+- **Platform Content:** Banner hero rules & blog default author configs.
+- **Security:** Mandatory 2FA enforcement for administrators.
+- **System Settings:** System maintenance mode and embedded Audit Logs feed.
 
 ## Contributing
 
 We welcome contributions! Please follow these steps:
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes and commit (`git commit -m 'Add amazing feature'`)
-4. Push to your branch (`git push origin feature/amazing-feature`)
+2. Create a feature branch (`git checkout -b feat/your-feature`)
+3. Make your changes and commit using clean commit messages
+4. Ensure `pnpm build` and `pnpm eslint src` pass without errors
 5. Open a Pull Request
-
-### Coding Standards
-
-- Use TypeScript for all new code
-- Follow the existing code style
-- Write tests for new features
-- Ensure all tests pass before submitting PR
-- Update documentation as needed
-
-## Testing
-
-```bash
-# Run all tests
-pnpm test
-
-# Run tests in watch mode
-pnpm test:watch
-
-# Run tests with coverage
-pnpm test:coverage
-```
-
-## Performance & Monitoring
-
-The dashboard includes:
-- Request logging and monitoring
-- Error tracking via Sentry (if configured)
-- Audit logging for all administrative actions
-- Redis caching for frequently accessed data
-
-## Security
-
-- All API endpoints require admin authentication
-- Requests must include valid X-Staff-Id and X-Staff-Role headers
-- All database operations are logged
-- Use environment variables for sensitive data
-- Never commit `.env.local` to version control
-
-## Troubleshooting
-
-### Database Connection Issues
-- Ensure PostgreSQL is running: `docker ps`
-- Verify DATABASE_URL is correct in `.env.local`
-- Check database credentials and permissions
-
-### Redis Connection Issues
-- Ensure Redis is running: `docker ps`
-- Verify REDIS_URL is correct in `.env.local`
-
-### Port Already in Use
-- Frontend: Change NEXT_PUBLIC_PORT in .env.local
-- Backend: Change PORT in server .env file
-
-## Support & Feedback
-
-- 🐛 [Report Issues](https://github.com/HostesAPP/hoste-admin-dashboard/issues)
-- 💬 [Start Discussions](https://github.com/HostesAPP/hoste-admin-dashboard/discussions)
-- 📧 Contact the Hoste team
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
-
-- Hoste Team
-- Next.js community
-- All contributors and maintainers
-
 ---
 
 **Repository:** [HostesAPP/hoste-admin-dashboard](https://github.com/HostesAPP/hoste-admin-dashboard)  
-**Last Updated:** September 3, 2026  
+**Last Updated:** September 19, 2026  
 **Status:** Active Development
-
-For more information, visit [Hoste](https://hoste.app)
