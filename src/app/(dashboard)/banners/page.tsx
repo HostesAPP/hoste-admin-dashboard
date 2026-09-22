@@ -26,6 +26,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MOCK_BANNERS } from "@/features/banners/data/banners.data";
 import { Banner, BannerPlacement } from "@/features/banners/banners.types";
 
+// TODO: pending product confirmation for Banners backend entity and data model per PRD v2.2 §18
+
 export default function BannersPage() {
   const [banners, setBanners] = useState<Banner[]>(MOCK_BANNERS);
   const [search, setSearch] = useState("");

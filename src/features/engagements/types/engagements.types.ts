@@ -20,11 +20,16 @@ export type EngagementParticipantRole =
   | "COLLABORATOR"
   | "MEMBER";
 
+export type ParticipantStatus = "Pending" | "Accepted" | "Declined" | "Cancelled" | "Completed";
+
 export type EngagementParticipant = {
   id: string;
   engagementId: string;
   profileId: string;
+  profileName?: string;
   role?: EngagementParticipantRole;
+  status?: ParticipantStatus; // Declined (normal) vs Cancelled (triggers moderation strike per PRD v2.2 §06)
+  amount?: number;
   createdAt?: string;
 };
 

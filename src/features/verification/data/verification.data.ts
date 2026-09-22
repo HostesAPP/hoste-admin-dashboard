@@ -1,0 +1,56 @@
+import { VerificationApplication } from "../types/verification.types";
+
+export const MOCK_VERIFICATION_APPLICATIONS: VerificationApplication[] = [
+  {
+    id: "VER-2026-001",
+    profileId: "prof-001",
+    profileName: "Amara Okonkwo",
+    profileType: "HOST",
+    email: "amara@hoste.ng",
+    phone: "+2348012345678",
+    submittedAt: "2026-09-18T10:30:00Z",
+    status: "Pending",
+    submittedData: {
+      idType: "National ID (NIN)",
+      idNumber: "12345678901",
+      documentUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80",
+    },
+    feePaymentStatus: "Unpaid",
+  },
+  {
+    id: "VER-2026-002",
+    profileId: "prof-002",
+    profileName: "Luxe Haven Lagos",
+    profileType: "BRAND",
+    email: "info@luxehaven.ng",
+    phone: "+2348023456789",
+    submittedAt: "2026-09-17T14:15:00Z",
+    status: "Approved_Awaiting_Payment",
+    submittedData: {
+      idType: "CAC Certificate",
+      idNumber: "RC-987654",
+      documentUrl: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=600&q=80",
+      cacNumber: "RC-987654",
+      businessRegistrationDoc: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=600&q=80",
+    },
+    feePaymentStatus: "Unpaid",
+  },
+  {
+    id: "VER-2026-003",
+    profileId: "prof-003",
+    profileName: "Elegance Events Co.",
+    profileType: "EVENT_PLANNER",
+    email: "contact@eleganceevents.ng",
+    phone: "+2348034567890",
+    submittedAt: "2026-09-15T09:00:00Z",
+    status: "Active",
+    submittedData: {
+      idType: "Voter's Card",
+      idNumber: "90ABC123456789",
+      documentUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80",
+    },
+    feePaymentStatus: "Paid",
+    paymentReference: "PAY-260915-8812",
+    approvedByStaffId: "staff-vo-01",
+  },
+];

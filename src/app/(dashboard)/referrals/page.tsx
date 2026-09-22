@@ -1,256 +1,219 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  Share2,
-  Search,
-  CheckCircle2,
-  Clock,
-  Gift,
-  XCircle,
-  AlertCircle,
-  Download,
-  Filter,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import Link from "next/link";
+import { PageHeaderLayout } from "@/components/shared/PageHeaderLayout";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { MOCK_REFERRALS, MOCK_REFERRAL_STATS } from "@/features/referrals/data/referrals.data";
-import { Referral, ReferralStatus } from "@/features/referrals/referrals.types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Share2, CheckCircle2, Clock, DollarSign, ExternalLink, Search, Filter } from "lucide-react";
+import { toast } from "sonner";
+import { MOCK_REFERRALS } from "@/features/referrals/data/referrals.data";
+import { ReferralRecord, ReferralStatus, QualifyingStatus, ReferralPayoutStatus } from "@/features/referrals/types/referrals.types";
+
+// TODO: pending product confirmation for referral threshold/progress mechanic per PRD v2.2 §11
+// TODO: pending product confirmation for separate rewards & approvals workflow per PRD v2.2 §12
 
 export default function ReferralsPage() {
-  const [referrals, setReferrals] = useState<Referral[]>(MOCK_REFERRALS);
+  const [referrals, setReferrals] = useState<ReferralRecord[]>(MOCK_REFERRALS);
   const [search, setSearch] = useState("");
-  const [activeStatus, setActiveStatus] = useState<string>("All");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [qualifyingFilter, setQualifyingFilter] = useState("ALL");
+  const [selectedReferral, setSelectedReferral] = useState<ReferralRecord | null>(null);
 
-  const filteredReferrals = referrals.filter((item) => {
-    if (search) {
-      const q = search.toLowerCase();
-      const match =
-        item.referralCode.toLowerCase().includes(q) ||
-        item.referrerName.toLowerCase().includes(q) ||
-        item.referredName.toLowerCase().includes(q) ||
-        item.referrerEmail.toLowerCase().includes(q);
+  const filteredReferrals = referrals.filter((ref) => {
+    const matchesSearch =
+      ref.referrerName.toLowerCase().includes(search.toLowerCase()) ||
+      ref.referredBrandName.toLowerCase().includes(search.toLowerCase()) ||
+      ref.referenceId.toLowerCase().includes(search.toLowerCase());
 
-      if (!match) return false;
-    }
+    const matchesStatus = statusFilter === "ALL" || ref.referralStatus === statusFilter;
+    const matchesQualifying = qualifyingFilter === "ALL" || ref.qualifyingStatus === qualifyingFilter;
 
-    if (activeStatus !== "All" && item.status !== activeStatus) {
-      return false;
-    }
-
-    return true;
+    return matchesSearch && matchesStatus && matchesQualifying;
   });
 
-  const getStatusBadge = (status: ReferralStatus) => {
+  const getReferralStatusBadge = (status: ReferralStatus) => {
     switch (status) {
-      case "Rewarded":
-        return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200">Rewarded</Badge>;
-      case "Converted":
-        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-200">Converted</Badge>;
       case "Pending":
-        return <Badge className="bg-amber-500/10 text-amber-600 border-amber-200">Pending</Badge>;
+        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px]">Pending</Badge>;
+      case "Qualified":
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px]">Qualified</Badge>;
+      case "Paid":
+        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]">Paid (₦1,000)</Badge>;
       case "Expired":
-        return <Badge className="bg-muted text-muted-foreground border-border">Expired</Badge>;
-      case "Rejected":
-        return <Badge className="bg-destructive/10 text-destructive border-destructive/20">Rejected</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200 text-[10px]">Expired</Badge>;
+      case "Cancelled":
+        return <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 text-[10px]">Cancelled</Badge>;
     }
   };
 
-  const handleExport = () => {
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      ["Referral Code,Referrer,Referred,Status,Reward,Date"]
-        .concat(
-          referrals.map(
-            (r) =>
-              `${r.referralCode},${r.referrerName},${r.referredName},${r.status},${r.rewardAmount},${r.createdAt}`
-          )
-        )
-        .join("\n");
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "referrals_report.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const getQualifyingBadge = (st: QualifyingStatus) => {
+    switch (st) {
+      case "Not Qualified":
+        return <Badge variant="secondary" className="text-[10px]">Not Qualified</Badge>;
+      case "Qualifying Engagement Completed":
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px]">Engagement Completed</Badge>;
+      case "Qualified":
+        return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]">Fully Qualified</Badge>;
+    }
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Referrals & Rewards
-          </h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Track user referral links, conversions, invite statuses, and financial reward payouts.
-          </p>
+    <PageHeaderLayout
+      title="Referral Program Management"
+      description="Track Host-to-Brand referrals, ₦1,000 one-time reward qualifications, and payout processing (PRD v2.2)."
+    >
+      <div className="space-y-6">
+        {/* Metric Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Total Referrals</p>
+                <p className="text-2xl font-bold mt-1">{referrals.length}</p>
+              </div>
+              <Share2 className="w-8 h-8 text-primary opacity-80" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Qualified Earning (₦1k)</p>
+                <p className="text-2xl font-bold mt-1 text-blue-600">
+                  {referrals.filter((r) => r.referralStatus === "Qualified").length}
+                </p>
+              </div>
+              <CheckCircle2 className="w-8 h-8 text-blue-500 opacity-80" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Paid Referrals</p>
+                <p className="text-2xl font-bold mt-1 text-emerald-600">
+                  {referrals.filter((r) => r.referralStatus === "Paid").length}
+                </p>
+              </div>
+              <DollarSign className="w-8 h-8 text-emerald-500 opacity-80" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Pending Payouts</p>
+                <p className="text-2xl font-bold mt-1 text-amber-600">
+                  {referrals.filter((r) => r.payoutStatus === "Pending").length}
+                </p>
+              </div>
+              <Clock className="w-8 h-8 text-amber-500 opacity-80" />
+            </CardContent>
+          </Card>
         </div>
 
-        <Button
-          onClick={handleExport}
-          variant="outline"
-          className="h-9 text-xs font-semibold rounded-xl border-border/80 bg-card hover:bg-muted/50 inline-flex items-center gap-2 cursor-pointer"
-        >
-          <Download className="w-3.5 h-3.5" />
-          <span>Export CSV</span>
-        </Button>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-card border border-border/80 rounded-2xl p-4 space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Total Referrals</span>
-            <Share2 className="w-4 h-4 text-primary" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">
-            {MOCK_REFERRAL_STATS.totalReferrals}
-          </div>
-          <div className="text-[11px] text-muted-foreground">Across all user types</div>
-        </div>
-
-        <div className="bg-card border border-border/80 rounded-2xl p-4 space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Converted Invites</span>
-            <CheckCircle2 className="w-4 h-4 text-blue-500" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">
-            {MOCK_REFERRAL_STATS.convertedCount}
-          </div>
-          <div className="text-[11px] text-muted-foreground">
-            {((MOCK_REFERRAL_STATS.convertedCount / MOCK_REFERRAL_STATS.totalReferrals) * 100).toFixed(1)}% conversion rate
-          </div>
-        </div>
-
-        <div className="bg-card border border-border/80 rounded-2xl p-4 space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Rewarded Claims</span>
-            <Gift className="w-4 h-4 text-emerald-500" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">
-            {MOCK_REFERRAL_STATS.rewardedCount}
-          </div>
-          <div className="text-[11px] text-muted-foreground">Fully paid out</div>
-        </div>
-
-        <div className="bg-card border border-border/80 rounded-2xl p-4 space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Total Rewards Paid</span>
-            <Gift className="w-4 h-4 text-primary" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">
-            ₦{(MOCK_REFERRAL_STATS.totalRewardsPaid / 1000000).toFixed(2)}M
-          </div>
-          <div className="text-[11px] text-muted-foreground">Audit logged finance payouts</div>
-        </div>
-      </div>
-
-      {/* Main Table Card */}
-      <div className="bg-card border border-border/80 rounded-2xl shadow-2xs space-y-4 p-5">
-        {/* Status Filter Tabs */}
-        <div className="flex items-center gap-2 border-b border-border/60 pb-3 overflow-x-auto">
-          {["All", "Pending", "Converted", "Rewarded", "Expired", "Rejected"].map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveStatus(tab)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap ${
-                activeStatus === tab
-                  ? "bg-primary text-primary-foreground shadow-2xs"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* Search Bar */}
-        <div className="flex items-center gap-3">
+        {/* Search & Filter Controls */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search code, referrer, or referred user..."
+              placeholder="Search profile name or Ref ID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9 rounded-xl text-xs bg-background border-border/80"
+              className="pl-9 text-xs"
             />
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
+              <Filter className="w-3.5 h-3.5" />
+              <span>Status:</span>
+            </div>
+            {["ALL", "Pending", "Qualified", "Paid", "Expired", "Cancelled"].map((st) => (
+              <Button
+                key={st}
+                variant={statusFilter === st ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter(st)}
+                className="text-xs shrink-0 h-7"
+              >
+                {st}
+              </Button>
+            ))}
           </div>
         </div>
 
-        {/* Table */}
-        <div className="rounded-xl border border-border/80 overflow-hidden">
+        {/* Referrals Main Table */}
+        <div className="border border-border rounded-lg bg-card overflow-hidden">
           <Table>
-            <TableHeader className="bg-muted/30">
-              <TableRow>
-                <TableHead className="text-xs font-bold text-foreground">Referral Code</TableHead>
-                <TableHead className="text-xs font-bold text-foreground">Referrer</TableHead>
-                <TableHead className="text-xs font-bold text-foreground">Referred User</TableHead>
-                <TableHead className="text-xs font-bold text-foreground">Reward</TableHead>
-                <TableHead className="text-xs font-bold text-foreground">Status</TableHead>
-                <TableHead className="text-xs font-bold text-foreground">Payment State</TableHead>
-                <TableHead className="text-xs font-bold text-foreground">Created Date</TableHead>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-xs">Ref ID / Referrer</TableHead>
+                <TableHead className="text-xs">Referred Brand</TableHead>
+                <TableHead className="text-xs">Referral Status</TableHead>
+                <TableHead className="text-xs">Qualifying Status</TableHead>
+                <TableHead className="text-xs">Earning Amount</TableHead>
+                <TableHead className="text-xs">Payout Status</TableHead>
+                <TableHead className="text-xs">Date</TableHead>
+                <TableHead className="text-xs text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredReferrals.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-xs text-muted-foreground">
-                    No referrals found matching filters.
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground text-xs">
+                    No referral records found matching criteria.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredReferrals.map((item) => (
-                  <TableRow key={item.id} className="hover:bg-muted/20 transition-colors">
-                    <TableCell className="font-bold text-xs text-primary">
-                      {item.referralCode}
-                    </TableCell>
+                filteredReferrals.map((ref) => (
+                  <TableRow key={ref.id}>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-foreground">{item.referrerName}</span>
-                        <span className="text-[10px] text-muted-foreground">{item.referrerEmail} ({item.referrerRole})</span>
+                        <Link
+                          href={`/profiles/${ref.referrerProfileId}`}
+                          className="font-semibold text-xs text-primary hover:underline"
+                        >
+                          {ref.referrerName}
+                        </Link>
+                        <span className="text-[10px] font-mono text-muted-foreground">{ref.referenceId}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-foreground">{item.referredName}</span>
-                        <span className="text-[10px] text-muted-foreground">{item.referredEmail}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs font-bold text-foreground">
-                      ₦{item.rewardAmount.toLocaleString()}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(item.status)}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`text-xs font-semibold ${
-                          item.rewardPaymentStatus === "Paid"
-                            ? "text-emerald-600"
-                            : item.rewardPaymentStatus === "Pending"
-                            ? "text-amber-600"
-                            : "text-muted-foreground"
-                        }`}
+                      <Link
+                        href={`/profiles/${ref.referredBrandProfileId}`}
+                        className="text-xs font-medium text-foreground hover:underline"
                       >
-                        {item.rewardPaymentStatus}
-                      </span>
+                        {ref.referredBrandName}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{getReferralStatusBadge(ref.referralStatus)}</TableCell>
+                    <TableCell>{getQualifyingBadge(ref.qualifyingStatus)}</TableCell>
+                    <TableCell className="text-xs font-bold text-emerald-600">
+                      ₦{ref.earningAmount.toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-[10px]">
+                        {ref.payoutStatus}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
-                      {item.createdAt}
+                      {new Date(ref.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-7"
+                        onClick={() => setSelectedReferral(ref)}
+                      >
+                        Inspect Details
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -258,7 +221,84 @@ export default function ReferralsPage() {
             </TableBody>
           </Table>
         </div>
+
+        {/* Referral Details Dialog (PRD §10) */}
+        {selectedReferral && (
+          <Dialog open={!!selectedReferral} onOpenChange={(open) => !open && setSelectedReferral(null)}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-sm font-bold flex items-center justify-between">
+                  <span>Referral Case Details ({selectedReferral.referenceId})</span>
+                  {getReferralStatusBadge(selectedReferral.referralStatus)}
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-4 text-xs">
+                {/* Referrer & Referred Brand Cards */}
+                <div className="p-3 bg-muted/40 rounded-md space-y-2">
+                  <span className="font-bold text-xs border-b border-border/50 pb-1 block">Referral Entity Links</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground text-[10px]">Referrer Host:</span>
+                    <Link href={`/profiles/${selectedReferral.referrerProfileId}`} className="font-semibold text-primary hover:underline flex items-center gap-1">
+                      {selectedReferral.referrerName}
+                      <ExternalLink className="w-3 h-3" />
+                    </Link>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground text-[10px]">Referred Brand:</span>
+                    <Link href={`/profiles/${selectedReferral.referredBrandProfileId}`} className="font-semibold text-primary hover:underline flex items-center gap-1">
+                      {selectedReferral.referredBrandName}
+                      <ExternalLink className="w-3 h-3" />
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Qualification & Earning */}
+                <div className="p-3 border border-border rounded-md space-y-2">
+                  <span className="font-bold text-xs border-b border-border/50 pb-1 block">Qualification & Earning</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground text-[10px]">Qualifying Status:</span>
+                    {getQualifyingBadge(selectedReferral.qualifyingStatus)}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground text-[10px]">Earning Amount:</span>
+                    <span className="font-bold text-emerald-600 text-xs">₦1,000</span>
+                  </div>
+                  {selectedReferral.qualifyingEngagementId && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground text-[10px]">Qualifying Engagement:</span>
+                      <Link href={`/engagements/${selectedReferral.qualifyingEngagementId}`} className="font-mono text-primary hover:underline">
+                        {selectedReferral.qualifyingEngagementId}
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {/* Payout Details */}
+                <div className="p-3 bg-card border border-border rounded-md space-y-1">
+                  <span className="font-bold text-xs border-b border-border/50 pb-1 block">Payout Record</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground text-[10px]">Payout Status:</span>
+                    <Badge variant="outline" className="text-[10px]">{selectedReferral.payoutStatus}</Badge>
+                  </div>
+                  {selectedReferral.payoutReferenceId && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground text-[10px]">Payout Reference:</span>
+                      <span className="font-mono text-[11px]">{selectedReferral.payoutReferenceId}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" size="sm" onClick={() => setSelectedReferral(null)} className="text-xs">
+                  Close
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
-    </div>
+    </PageHeaderLayout>
   );
 }
