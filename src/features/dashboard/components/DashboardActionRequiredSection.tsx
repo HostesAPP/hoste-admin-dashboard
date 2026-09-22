@@ -9,11 +9,44 @@ import { ActionRequiredItem } from "../dashboard.types";
 
 interface DashboardActionRequiredSectionProps {
   items: ActionRequiredItem[];
+  isLoading?: boolean;
 }
 
 export function DashboardActionRequiredSection({
   items,
+  isLoading = false,
 }: DashboardActionRequiredSectionProps) {
+  if (isLoading) {
+    return (
+      <section className="space-y-3 animate-pulse">
+        <div className="flex items-center gap-2">
+          <div className="h-3.5 w-28 bg-muted rounded" />
+          <div className="h-3 w-56 bg-muted rounded" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-card rounded-2xl border border-border/80 shadow-xs p-4 flex items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-full bg-muted shrink-0" />
+                <div className="space-y-1.5">
+                  <div className="h-3.5 w-28 bg-muted rounded" />
+                  <div className="h-3 w-36 bg-muted rounded" />
+                </div>
+              </div>
+              <div className="h-4 w-12 bg-muted rounded" />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (items.length === 0) {
+    return null;
+  }
   return (
     <section className="space-y-3">
       {/* Title */}

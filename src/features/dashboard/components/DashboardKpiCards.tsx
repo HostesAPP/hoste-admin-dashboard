@@ -44,7 +44,7 @@ export function DashboardKpiCards({ kpis, isLoading = false }: DashboardKpiCards
         <a
           key={item.label}
           href={item.href}
-          className="bg-card rounded-2xl border border-border/80 shadow-xs p-5 flex flex-col justify-between hover:border-primary/40 hover:shadow-sm transition-all cursor-pointer block"
+          className="bg-card rounded-2xl border border-border/80 shadow-xs p-5 flex flex-col justify-between hover:border-primary/40 hover:shadow-sm transition-all cursor-pointer"
         >
           <div className="space-y-1">
             <span className="text-xs font-medium text-muted-foreground">

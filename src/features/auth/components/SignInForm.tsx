@@ -11,12 +11,14 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { signInSchema, type SignInFormValues } from "../schemas/auth.schema";
 import { useLogin } from "../hooks/auth.hooks";
+import { useAuthStore } from "../auth.store";
 
 
 export function SignInForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState("");
+  const setAuth = useAuthStore((state) => state.setAuth);
 
   const {
     register,
@@ -37,8 +39,10 @@ export function SignInForm() {
   const onSubmit = (values: SignInFormValues) => {
     setServerError("");
     loginMutation.mutate(values, {
-      onSuccess: (data) => {
-        console.log("Logged in successfully:", data);
+      onSuccess: (response) => {
+        if (response?.data?.user && response?.data?.tokens?.accessToken) {
+          setAuth(response.data.user, response.data.tokens.accessToken);
+        }
         router.push("/");
       },
       onError: (error) => {
@@ -55,7 +59,7 @@ export function SignInForm() {
     <div className="w-full">
       {/* Header */}
       <div className="text-center sm:text-left">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
           Sign in to Admin
         </h1>
         <p className="text-sm text-muted-foreground mt-2">

@@ -17,7 +17,7 @@ export function TransactionSummaryCard({ details }: TransactionSummaryCardProps)
         <h2 className="text-sm font-bold text-foreground tracking-tight">
           Transaction Summary
         </h2>
-        <span className="inline-flex items-center px-4 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200/50 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/40">
+        <span className="inline-flex items-center px-4 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200/50">
           {details.paymentStatus}
         </span>
       </div>
@@ -70,7 +70,7 @@ export function TransactionSummaryCard({ details }: TransactionSummaryCardProps)
             Payment Status
           </span>
           <div>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-sm text-[11px] font-semibold bg-blue-50 text-blue-600 border border-blue-200/50 dark:bg-blue-950/40 dark:text-blue-400">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-sm text-[11px] font-semibold bg-blue-50 text-blue-600 border border-blue-200/50">
               {details.paymentStatus}
             </span>
           </div>
