@@ -18,6 +18,7 @@ interface DashboardRevenueChartCardProps {
   totalRevenue: string;
   growthText: string;
   chartData: Record<DashboardTimeframe, RevenueChartPoint[]>;
+  isLoading?: boolean;
 }
 
 interface CustomTooltipProps {
@@ -51,8 +52,27 @@ export function DashboardRevenueChartCard({
   totalRevenue,
   growthText,
   chartData,
+  isLoading = false,
 }: DashboardRevenueChartCardProps) {
   const [timeframe, setTimeframe] = useState<DashboardTimeframe>("Monthly");
+
+  if (isLoading) {
+    return (
+      <div className="bg-card rounded-2xl border border-border/80 shadow-xs p-6 flex flex-col justify-between h-full space-y-6 animate-pulse">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-3.5 w-28 bg-muted rounded" />
+            <div className="flex items-center gap-2">
+              <div className="h-7 w-36 bg-muted rounded-lg" />
+              <div className="h-4 w-20 bg-muted rounded" />
+            </div>
+          </div>
+          <div className="h-8 w-44 bg-muted rounded-xl" />
+        </div>
+        <div className="w-full h-64 sm:h-72 bg-muted/40 rounded-xl" />
+      </div>
+    );
+  }
 
   const currentData = chartData[timeframe] || chartData.Monthly;
 

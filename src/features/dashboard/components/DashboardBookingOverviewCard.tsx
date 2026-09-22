@@ -9,11 +9,41 @@ import { BookingPipelineBreakdown } from "../dashboard.types";
 
 interface DashboardBookingOverviewCardProps {
   pipeline: BookingPipelineBreakdown;
+  isLoading?: boolean;
 }
 
 export function DashboardBookingOverviewCard({
   pipeline,
+  isLoading = false,
 }: DashboardBookingOverviewCardProps) {
+  if (isLoading) {
+    return (
+      <div className="bg-card rounded-2xl border border-border/80 shadow-xs p-6 flex flex-col justify-between h-full space-y-5 animate-pulse">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="h-3.5 w-28 bg-muted rounded" />
+            <div className="h-3.5 w-24 bg-muted rounded" />
+          </div>
+          <div className="space-y-1 pt-1">
+            <div className="h-3 w-20 bg-muted rounded" />
+            <div className="h-7 w-28 bg-muted rounded-lg" />
+          </div>
+        </div>
+        <div className="h-3 w-full bg-muted/70 rounded-full" />
+        <div className="space-y-3 pt-2 border-t border-border/60">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-muted" />
+                <div className="h-3.5 w-24 bg-muted rounded" />
+              </div>
+              <div className="h-3.5 w-14 bg-muted rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
   const categories = [
     {
       label: "Confirmed",

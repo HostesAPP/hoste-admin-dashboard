@@ -42,7 +42,7 @@ export function RevenueDetailsHeader() {
           <input
             type="text"
             placeholder="Search anything..."
-            className="w-full h-9 pl-8 pr-3 text-xs rounded-xl border border-border/80 bg-card placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
+            className="w-full h-9 pl-8 pr-3 text-xs rounded-xl border border-border/80 bg-card focus:outline-none focus:ring-1 focus:ring-primary/40 text-foreground"
           />
         </div>
 

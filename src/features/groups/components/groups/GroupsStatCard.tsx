@@ -3,8 +3,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 interface GroupStatCardProps {
   title: string;
   value: number;
-  footerText: string
-  rate: number
+  footerText: string;
+  rate: number;
+  isLoading?: boolean;
 }
 
 export const GroupsStatCard = ({
@@ -12,25 +13,37 @@ export const GroupsStatCard = ({
   value,
   footerText,
   rate,
+  isLoading = false,
 }: GroupStatCardProps) => {
+  if (isLoading) {
+    return (
+      <Card className="shadow-xs border-border/80 p-4 rounded-xl animate-pulse space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="h-4 w-28 bg-muted rounded" />
+          <div className="h-5 w-16 bg-muted rounded" />
+        </div>
+        <div className="h-8 w-20 bg-muted rounded" />
+        <div className="h-3 w-36 bg-muted rounded" />
+      </Card>
+    );
+  }
+
   return (
-    <Card className="shadow-sm gap-2 hover:shadow-md py-4 transition-shadow duration-200 rounded-md">
+    <Card className="shadow-xs border-border/80 hover:shadow-md transition-shadow duration-200 rounded-lg">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-medium text-muted-foreground truncate">
+        <CardTitle className="text-xs font-semibold text-muted-foreground truncate">
           {title}
         </CardTitle>
-        {
-          rate && rate > 0 ? (
-            <span className={`text-xs truncate font-bold px-2 py-1 rounded-sm text-secondary-green bg-secondary-green/10`}>
-              +{rate} this month
-            </span>
-          ) : null
-        }
+        {rate > 0 ? (
+          <span className="truncate text-xs font-bold rounded-md text-secondary bg-secondary/10">
+            +{rate} this month
+          </span>
+        ) : null}
       </CardHeader>
-      <CardContent>
-        <div className="text-4xl font-bold text-foreground">{value}</div>
+      <CardContent className="">
+        <div className="text-3xl font-bold tracking-tight text-foreground">{value}</div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="pt-0">
         <p className="text-xs text-muted-foreground">{footerText}</p>
       </CardFooter>
     </Card>

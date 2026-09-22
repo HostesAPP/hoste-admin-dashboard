@@ -16,7 +16,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
 export const metadata: Metadata = {
   title: "Hoste Admin",
   description: "Hoste Admin Dashboard",
@@ -31,7 +30,7 @@ export default function RootLayout({ children }: LayoutProps) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
+      className={cn("h-full max-w-[2240] mx-auto", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
       <body>
         <MobileRestrictionPage>

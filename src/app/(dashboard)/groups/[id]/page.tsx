@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import { EllipsisVertical, AlertCircle, RotateCcw } from "lucide-react";
 import { GoBackLink, StatusBadge } from "@/components/shared";
 import {
   Breadcrumb,
@@ -12,7 +15,13 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
-  getCurrentGroup,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   GroupDetailsBio,
   GroupDetailsStat,
   GroupInformation,
@@ -23,18 +32,9 @@ import {
   RecentGroupBookings,
   GroupManagementControls,
   SuspendGroupDialog,
-  type Group,
+  GroupDetailsSkeleton,
 } from "@/features/groups";
-import { useParams } from "next/navigation";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { EllipsisVertical } from "lucide-react";
-import Link from "next/link";
+import { useGroup } from "@/features/groups/hooks/groups.hooks";
 
 export default function GroupDetailPage() {
   const [suspendOpen, setSuspendOpen] = useState(false);
@@ -42,18 +42,37 @@ export default function GroupDetailPage() {
   const rawGroupId = params?.id as string;
   const groupId = rawGroupId || "GRP-001";
 
-  const currentGroup: Group = getCurrentGroup(groupId) || {
-    id: groupId,
-    name: "Accra Social Club",
-    description:
-      "A professional event hospitality team providing trained staff for corporate events, private functions and nightlife experiences.",
-    leaderProfileId: "10000000-0000-4000-8000-000000000001",
-    category: "Event Hospitality",
-    status: "Active" as const,
-    createdAt: "2026-08-10T09:30:00.000Z",
-    updatedAt: "2026-08-20T14:15:00.000Z",
-    color: "#EF5A22",
-  };
+  const { data: currentGroup, isLoading, isError, refetch } = useGroup(groupId);
+
+  if (isLoading) {
+    return <GroupDetailsSkeleton />;
+  }
+
+  if (isError || !currentGroup) {
+    return (
+      <div className="p-10 text-center space-y-4 pt-20">
+        <div className="w-12 h-12 rounded-full bg-destructive/10 text-destructive mx-auto flex items-center justify-center">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h2 className="text-lg font-bold text-foreground">Group not found</h2>
+        <p className="text-xs text-muted-foreground">
+          The group with ID &quot;{groupId}&quot; could not be loaded or does not exist.
+        </p>
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <Link
+            href="/groups"
+            className="inline-flex items-center justify-center text-xs h-8 px-3 rounded-lg border border-border bg-background hover:bg-muted font-medium transition-colors"
+          >
+            Back to Groups
+          </Link>
+          <Button size="sm" onClick={() => refetch()} className="gap-2 rounded-lg cursor-pointer">
+            <RotateCcw className="w-3.5 h-3.5" />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-12">
@@ -178,7 +197,7 @@ export default function GroupDetailPage() {
       />
 
       {/* Main Content Area */}
-      <main className="px-4 sm:px-6 lg:px-8 space-y-6 max-w-7xl mx-auto">
+      <main className="px-6 space-y-6">
         {/* 1. Group Bio & Hero Card */}
         <GroupDetailsBio group={currentGroup} />
 

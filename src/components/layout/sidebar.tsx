@@ -6,8 +6,6 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Sparkles,
-  ShieldCheck,
-  Calendar,
   CreditCard,
   Users2,
   Users,
@@ -15,8 +13,7 @@ import {
   LifeBuoy,
   Newspaper,
   Image as ImageIcon,
-  Bell,
-  ShieldAlert,
+  ShieldCheck,
   Settings,
   History,
   ChevronRight,
@@ -43,99 +40,21 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  {
-    label: "Overview",
-    href: "/",
-    icon: LayoutDashboard,
-    allowedRoles: ["SUPER_ADMIN", "VERIFICATION_OFFICER", "MODERATOR", "CUSTOMER_SUPPORT", "FINANCE", "OPERATIONS"],
-  },
-  {
-    label: "Profile Activation",
-    href: "/profiles",
-    icon: Sparkles,
-    badgeCount: 2,
-    allowedRoles: ["SUPER_ADMIN", "VERIFICATION_OFFICER", "MODERATOR"],
-  },
-  {
-    label: "Verification",
-    href: "/verification",
-    icon: ShieldCheck,
-    badgeCount: 1,
-    allowedRoles: ["SUPER_ADMIN", "VERIFICATION_OFFICER"],
-  },
-  {
-    label: "Engagements",
-    href: "/engagements",
-    icon: Calendar,
-    allowedRoles: ["SUPER_ADMIN", "CUSTOMER_SUPPORT", "OPERATIONS"],
-  },
-  {
-    label: "Payments / Payouts",
-    href: "/payments",
-    icon: CreditCard,
-    allowedRoles: ["SUPER_ADMIN", "FINANCE"],
-  },
-  {
-    label: "Groups",
-    href: "/groups",
-    icon: Users2,
-    allowedRoles: ["SUPER_ADMIN", "OPERATIONS"],
-  },
-  {
-    label: "Users",
-    href: "/users",
-    icon: Users,
-    allowedRoles: ["SUPER_ADMIN", "CUSTOMER_SUPPORT", "MODERATOR"],
-  },
-  {
-    label: "Reports",
-    href: "/reports",
-    icon: FileBarChart2,
-    allowedRoles: ["SUPER_ADMIN", "FINANCE", "OPERATIONS"],
-  },
-  {
-    label: "Support & Disputes",
-    href: "/disputes",
-    icon: LifeBuoy,
-    badgeCount: 3,
-    allowedRoles: ["SUPER_ADMIN", "CUSTOMER_SUPPORT", "MODERATOR"],
-  },
-  {
-    label: "Content (Blog)",
-    href: "/blog",
-    icon: Newspaper,
-    allowedRoles: ["SUPER_ADMIN", "OPERATIONS"],
-  },
-  {
-    label: "Banners",
-    href: "/banners",
-    icon: ImageIcon,
-    allowedRoles: ["SUPER_ADMIN", "OPERATIONS"],
-  },
-  {
-    label: "Notifications",
-    href: "/notifications",
-    icon: Bell,
-    allowedRoles: ["SUPER_ADMIN", "OPERATIONS"],
-  },
-  {
-    label: "Moderation",
-    href: "/moderation",
-    icon: ShieldAlert,
-    allowedRoles: ["SUPER_ADMIN", "MODERATOR"],
-  },
-  {
-    label: "Settings",
-    href: "/settings",
-    icon: Settings,
-    allowedRoles: ["SUPER_ADMIN", "VERIFICATION_OFFICER", "MODERATOR", "CUSTOMER_SUPPORT", "FINANCE", "OPERATIONS"],
-  },
-  {
-    label: "Audit Log",
-    href: "/audit-logs",
-    icon: History,
-    allowedRoles: ["SUPER_ADMIN"],
-  },
+  { label: "Overview", href: "/", icon: LayoutDashboard },
+  { label: "Profiles", href: "/profiles", icon: Sparkles },
+  { label: "Payments & Payouts", href: "/payments", icon: CreditCard, hasSubmenu: true },
+  { label: "Groups", href: "/groups", icon: Users2 },
+  { label: "Referrals", href: "/referrals", icon: Share2 },
+  { label: "Users", href: "/users", icon: Users },
+  { label: "Reports", href: "/reports", icon: FileBarChart2 },
+  { label: "Notifications", href: "/notifications", icon: Bell },
+  { label: "Support Tickets", href: "/support-tickets", icon: LifeBuoy },
+  { label: "Customer Support", href: "/customer-support", icon: Headphones },
+  { label: "Blog", href: "/blog", icon: Newspaper },
+  { label: "Banners", href: "/banners", icon: ImageIcon, hasSubmenu: true },
+  { label: "Moderation", href: "/moderation", icon: ShieldCheck },
+  { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Audit Log", href: "/audit-log", icon: History },
 ];
 
 export function Sidebar() {
@@ -152,9 +71,9 @@ export function Sidebar() {
       {/* Top Section */}
       <div className="flex flex-col min-h-0">
         {/* Brand Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10">
-          <div className="w-9 h-9 rounded-xl bg-[#EF5A22] flex items-center justify-center shadow-xs">
-            <span className="text-white font-black text-xs tracking-wider">H</span>
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-border/40">
+          <div className="w-10 h-10 rounded-xl bg-amber-100/70 flex items-center justify-center shadow-xs border border-amber-200/50">
+            <span className="text-primary font-bold text-xs tracking-tight">HOSTÉ</span>
           </div>
           <div className="flex flex-col">
             <span className="font-extrabold text-sm tracking-wider text-white">HOSTÉ</span>
@@ -234,14 +153,9 @@ export function Sidebar() {
               HA
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-medium text-white truncate max-w-[110px]">
-              admin@hoste.ng
-            </span>
-            <span className="text-[9px] text-amber-400 font-mono font-semibold">
-              {currentRole}
-            </span>
-          </div>
+          <span className="text-xs text-muted-foreground truncate max-w-27.5">
+            admin@hoste.ng
+          </span>
         </div>
 
         <button

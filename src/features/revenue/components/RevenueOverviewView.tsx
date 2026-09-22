@@ -14,8 +14,12 @@ import { MOCK_REVENUE_OVERVIEW_DATA } from "../data/revenue.data";
 
 export function RevenueOverviewView() {
   const [dateRange, setDateRange] = useState("This Month");
-  const { data: revenueData = MOCK_REVENUE_OVERVIEW_DATA, isLoading } =
-    useRevenueOverview();
+  const {
+    data: revenueData = MOCK_REVENUE_OVERVIEW_DATA,
+    isLoading,
+    isError,
+    refetch,
+  } = useRevenueOverview();
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -26,6 +30,22 @@ export function RevenueOverviewView() {
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
         />
+
+        {/* Error Notification Banner */}
+        {isError && (
+          <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-4 flex items-center justify-between gap-4 text-xs">
+            <span className="text-destructive font-medium">
+              Failed to load live revenue metrics. Showing cached preview.
+            </span>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="px-3 py-1 bg-destructive text-destructive-foreground rounded-lg font-semibold hover:bg-destructive/90 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {/* 1. Top KPI Summary Cards */}
         <section>
@@ -39,11 +59,15 @@ export function RevenueOverviewView() {
               totalRevenue={revenueData.performance.totalRevenue}
               growthText={revenueData.performance.growthText}
               chartData={revenueData.performance.chartData}
+              isLoading={isLoading}
             />
           </div>
 
           <div className="lg:col-span-4">
-            <RevenueBySourceCard sources={revenueData.sources} />
+            <RevenueBySourceCard
+              sources={revenueData.sources}
+              isLoading={isLoading}
+            />
           </div>
         </section>
 
@@ -52,11 +76,15 @@ export function RevenueOverviewView() {
           <div className="lg:col-span-8">
             <RecentTransactionsTableCard
               transactions={revenueData.transactions}
+              isLoading={isLoading}
             />
           </div>
 
           <div className="lg:col-span-4">
-            <FinancialInsightsCard insights={revenueData.insights} />
+            <FinancialInsightsCard
+              insights={revenueData.insights}
+              isLoading={isLoading}
+            />
           </div>
         </section>
       </div>

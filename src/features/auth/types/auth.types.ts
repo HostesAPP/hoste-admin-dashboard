@@ -9,8 +9,8 @@ export interface User {
   id: string;
   email: string;
   phoneNumber?: string;
-  role: "USER" | "ADMIN" | string;
-  accountStatus: "ACTIVE" | "INACTIVE" | "SUSPENDED" | string;
+  role: "USER" | "ADMIN" | "STAFF";
+  accountStatus: "ACTIVE" | "INACTIVE" | "SUSPENDED";
 }
 
 export interface AuthTokens {

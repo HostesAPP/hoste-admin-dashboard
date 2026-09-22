@@ -27,26 +27,50 @@ const CATEGORY_OPTIONS = [
   { label: "Technology", value: "Technology" },
   { label: "Business", value: "Business" },
   { label: "Events", value: "Events" },
-]
+];
 
 const MEMBER_COUNT_OPTIONS = ["Any", "1-20", "21-50", "51-100", "100+"] as const;
 
-export const GroupsFilter = () => {
+interface GroupsFilterProps {
+  status?: string;
+  category?: string;
+  memberCount?: string;
+  onFilterChange?: (filters: {
+    status: string;
+    category: string;
+    memberCount: string;
+  }) => void;
+  onReset?: () => void;
+}
+
+export const GroupsFilter = ({
+  status = "All",
+  category = "All Categories",
+  memberCount = "Any",
+  onFilterChange,
+  onReset,
+}: GroupsFilterProps = {}) => {
   const [open, setOpen] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<string>("All");
-  const [selectedCategory, setSelectedCategory] = useState<string>("All Categories");
-  const [selectedMemberCount, setSelectedMemberCount] = useState<string>("Any");
+  const [selectedStatus, setSelectedStatus] = useState<string>(status);
+  const [selectedCategory, setSelectedCategory] = useState<string>(category);
+  const [selectedMemberCount, setSelectedMemberCount] = useState<string>(memberCount);
 
   const handleReset = () => {
     setSelectedStatus("All");
     setSelectedCategory("All Categories");
     setSelectedMemberCount("Any");
+    onReset?.();
   };
 
   const handleApply = () => {
     // Apply filters logic
     setOpen(false);
-    console.log(selectedCategory, selectedMemberCount, selectedStatus)
+    onFilterChange?.({
+      status: selectedStatus,
+      category: selectedCategory,
+      memberCount: selectedMemberCount,
+    });
+    console.log(selectedCategory, selectedMemberCount, selectedStatus);
   };
 
   const hasActiveFilters =

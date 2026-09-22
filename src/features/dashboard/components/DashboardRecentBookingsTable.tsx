@@ -9,10 +9,12 @@ import { DashboardRecentBooking } from "../dashboard.types";
 
 interface DashboardRecentBookingsTableProps {
   bookings: DashboardRecentBooking[];
+  isLoading?: boolean;
 }
 
 export function DashboardRecentBookingsTable({
   bookings,
+  isLoading = false,
 }: DashboardRecentBookingsTableProps) {
   const getStatusBadge = (status: DashboardRecentBooking["status"]) => {
     switch (status) {
@@ -57,42 +59,61 @@ export function DashboardRecentBookingsTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-border/40">
-            {bookings.map((booking) => (
-              <tr
-                key={booking.id}
-                className="hover:bg-muted/30 transition-colors group"
-              >
-                <td className="py-3.5 font-bold text-foreground">
-                  <Link
-                    href={`/bookings/${booking.bookingCode}`}
-                    className="hover:text-primary transition-colors"
-                  >
-                    {booking.bookingCode}
-                  </Link>
-                </td>
-                <td className="py-3.5 font-bold text-foreground">
-                  {booking.customerName}
-                </td>
-                <td className="py-3.5 text-muted-foreground font-medium">
-                  {booking.hosteName}
-                </td>
-                <td className="py-3.5 text-muted-foreground">
-                  {booking.eventDate}
-                </td>
-                <td className="py-3.5 font-bold text-foreground">
-                  {booking.amount}
-                </td>
-                <td className="py-3.5 text-right">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-sm text-[11px] font-semibold ${getStatusBadge(
-                      booking.status
-                    )}`}
-                  >
-                    {booking.status}
-                  </span>
+            {isLoading ? (
+              [1, 2, 3, 4, 5].map((i) => (
+                <tr key={i} className="animate-pulse">
+                  <td className="py-3.5"><div className="h-3.5 w-20 bg-muted rounded" /></td>
+                  <td className="py-3.5"><div className="h-3.5 w-28 bg-muted rounded" /></td>
+                  <td className="py-3.5"><div className="h-3.5 w-24 bg-muted rounded" /></td>
+                  <td className="py-3.5"><div className="h-3.5 w-20 bg-muted rounded" /></td>
+                  <td className="py-3.5"><div className="h-3.5 w-16 bg-muted rounded" /></td>
+                  <td className="py-3.5 text-right"><div className="h-5 w-16 bg-muted rounded-full ml-auto" /></td>
+                </tr>
+              ))
+            ) : bookings.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="py-8 text-center text-xs text-muted-foreground">
+                  No recent bookings found.
                 </td>
               </tr>
-            ))}
+            ) : (
+              bookings.map((booking) => (
+                <tr
+                  key={booking.id}
+                  className="hover:bg-muted/30 transition-colors group"
+                >
+                  <td className="py-3.5 font-bold text-foreground">
+                    <Link
+                      href={`/bookings/${booking.bookingCode}`}
+                      className="hover:text-primary transition-colors"
+                    >
+                      {booking.bookingCode}
+                    </Link>
+                  </td>
+                  <td className="py-3.5 font-bold text-foreground">
+                    {booking.customerName}
+                  </td>
+                  <td className="py-3.5 text-muted-foreground font-medium">
+                    {booking.hosteName}
+                  </td>
+                  <td className="py-3.5 text-muted-foreground">
+                    {booking.eventDate}
+                  </td>
+                  <td className="py-3.5 font-bold text-foreground">
+                    {booking.amount}
+                  </td>
+                  <td className="py-3.5 text-right">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-sm text-[11px] font-semibold ${getStatusBadge(
+                        booking.status
+                      )}`}
+                    >
+                      {booking.status}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
