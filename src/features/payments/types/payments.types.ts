@@ -8,7 +8,7 @@ export interface PaymentItem {
   paymentType: PaymentType;
   engagementId?: string;
   grossAmount: number;
-  commissionAmount: number;
+  serviceFee: number; // 10% Service Fee paid by Brand (PRD v2.3 §4)
   processingFee: number;
   status: PaymentStatus;
   retryChainCount?: number;
@@ -16,6 +16,7 @@ export interface PaymentItem {
   createdAt: string;
 }
 
+// TODO: pending confirmation - Payout.PlatformFlatFee field naming pending DB team sign-off (PRD v2.3 §4 & §23)
 export interface PayoutItem {
   id: string;
   referenceId: string; // PYO-YYMMDD-XXXX
@@ -25,7 +26,8 @@ export interface PayoutItem {
   bankName: string;
   accountNumber: string;
   grossAmount: number;
-  commissionAmount: number;
+  serviceFee: number;
+  platformFlatFee: number; // ₦1,000 flat per Host per engagement
   processingFee: number;
   finalAmount: number; // Locked historical final amount
   status: PayoutStatus;

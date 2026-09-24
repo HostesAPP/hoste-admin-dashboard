@@ -23,9 +23,9 @@ export function FinancialBreakdownCard({ breakdown }: FinancialBreakdownCardProp
           <span className="font-bold text-foreground">{breakdown.grossAmount}</span>
         </div>
 
-        {/* Platform Commission */}
+        {/* Service Fee */}
         <div className="py-2.5 flex items-center justify-between">
-          <span className="text-muted-foreground font-medium">Platform Commission</span>
+          <span className="text-muted-foreground font-medium">Service Fee (10%)</span>
           <span className="font-bold text-destructive">{breakdown.platformCommission}</span>
         </div>
 

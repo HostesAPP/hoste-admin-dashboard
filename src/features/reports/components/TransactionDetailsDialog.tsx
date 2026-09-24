@@ -146,10 +146,10 @@ export const TransactionDetailsDialog: React.FC<TransactionDetailsDialogProps> =
               </div>
             </div>
 
-            {/* Hosté Commission */}
+            {/* Service Fee */}
             <div className="p-3 bg-card border border-border/70 rounded-xl space-y-1">
               <span className="text-[11px] font-semibold text-muted-foreground">
-                Hosté Commission (15%)
+                Service Fee (10%)
               </span>
               <div className="font-bold text-secondary">
                 {transaction.status === "Successful"

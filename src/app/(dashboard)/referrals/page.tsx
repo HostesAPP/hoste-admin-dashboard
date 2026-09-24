@@ -1,5 +1,7 @@
 "use client";
 
+// TODO: pending confirmation - Referral threshold/progress mechanic and Rewards & Approval workflow gate (PRD v2.3 §17 & §23)
+
 import React, { useState } from "react";
 import {
   Share2,

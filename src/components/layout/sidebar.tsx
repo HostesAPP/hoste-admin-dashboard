@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Sparkles,
-  Calendar,
   CreditCard,
   Users2,
+  Gift,
   Users,
   FileBarChart2,
   Bell,
@@ -15,7 +15,9 @@ import {
   Headphones,
   Newspaper,
   Image as ImageIcon,
+  ShieldAlert,
   Settings,
+  ClipboardList,
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,12 +30,13 @@ interface NavItem {
   hasSubmenu?: boolean;
 }
 
+// TODO: pending confirmation - Verification and Engagements/Bookings standalone sidebar placement vs nested tabs (PRD v2.3 §3 & §8)
 const navItems: NavItem[] = [
   { label: "Overview", href: "/", icon: LayoutDashboard },
   { label: "Profiles", href: "/profiles", icon: Sparkles },
-  { label: "Bookings", href: "/bookings", icon: Calendar },
   { label: "Payments & Payouts", href: "/payments", icon: CreditCard, hasSubmenu: true },
   { label: "Groups", href: "/groups", icon: Users2 },
+  { label: "Referrals", href: "/referrals", icon: Gift },
   { label: "Users", href: "/users", icon: Users },
   { label: "Reports", href: "/reports", icon: FileBarChart2 },
   { label: "Notifications", href: "/notifications", icon: Bell },
@@ -41,7 +44,9 @@ const navItems: NavItem[] = [
   { label: "Customer Support", href: "/customer-support", icon: Headphones },
   { label: "Blog", href: "/blog", icon: Newspaper },
   { label: "Banners", href: "/banners", icon: ImageIcon, hasSubmenu: true },
+  { label: "Moderation", href: "/moderation", icon: ShieldAlert },
   { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Audit Log", href: "/audit-logs", icon: ClipboardList },
 ];
 
 export function Sidebar() {

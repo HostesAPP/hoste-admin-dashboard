@@ -1,5 +1,7 @@
 "use client";
 
+// TODO: pending confirmation - CAC verification provider integration (PRD v2.3 §7 & §23)
+
 import { useState } from "react";
 import { PageHeaderLayout } from "@/components/shared/PageHeaderLayout";
 import { Badge } from "@/components/ui/badge";
