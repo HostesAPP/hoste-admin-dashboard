@@ -225,7 +225,7 @@ export default function BookingDetailPage({
               </div>
 
               <div className="flex justify-between items-center py-1">
-                <span className="text-muted-foreground">Platform Commission (10%)</span>
+                <span className="text-muted-foreground">Service Fee (10%)</span>
                 <span className="font-semibold text-foreground">
                   ₦{(booking.totalAmount * 0.1).toLocaleString()}
                 </span>

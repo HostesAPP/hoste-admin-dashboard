@@ -3,6 +3,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { RevenueDetailsHeader } from "./RevenueDetailsHeader";
 import { TransactionSummaryCard } from "./TransactionSummaryCard";
 import { PaymentJourneyCard } from "./PaymentJourneyCard";
@@ -150,12 +151,12 @@ export function RevenueDetailsView({ id }: RevenueDetailsViewProps) {
               >
                 Retry
               </button>
-              <a
+              <Link
                 href="/revenue"
                 className="px-4 py-2 border border-border bg-card text-foreground text-xs font-semibold rounded-xl hover:bg-muted/50 transition-colors"
               >
                 Back to Revenue
-              </a>
+              </Link>
             </div>
           </div>
         </div>

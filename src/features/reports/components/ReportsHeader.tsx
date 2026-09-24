@@ -59,7 +59,7 @@ export const ReportsHeader: React.FC<ReportsHeaderProps> = ({
 
         {/* Subtitle */}
         <p className="text-xs sm:text-sm text-muted-foreground">
-          Track revenue, commissions, transactions, and payment activity
+          Track revenue, service fees, transactions, and payment activity
         </p>
       </div>
 
