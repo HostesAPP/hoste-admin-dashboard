@@ -31,10 +31,10 @@ export default function PaymentsPage() {
   const [refundAmount, setRefundAmount] = useState("");
   const [refundDescription, setRefundDescription] = useState("");
 
-  // Net Commission calculation: summed from Payment.commissionAmount
-  const totalNetCommission = payments
+  // Service Fee calculation: summed from Payment.serviceFee
+  const totalServiceFee = payments
     .filter((p) => p.status === "Successful")
-    .reduce((sum, p) => sum + p.commissionAmount, 0);
+    .reduce((sum, p) => sum + p.serviceFee, 0);
 
   const totalHeldEscrow = payouts
     .filter((p) => p.status === "Pending")
@@ -92,11 +92,11 @@ export default function PaymentsPage() {
   };
 
   const handleCSVExport = () => {
-    const headers = "Reference,Type,Payer,Gross,Commission,GatewayFee,Status,CreatedAt\n";
+    const headers = "Reference,Type,Payer,Gross,ServiceFee,GatewayFee,Status,CreatedAt\n";
     const rows = payments
       .map(
         (p) =>
-          `${p.referenceId},${p.paymentType},"${p.payerProfileName}",${p.grossAmount},${p.commissionAmount},${p.processingFee},${p.status},${p.createdAt}`
+          `${p.referenceId},${p.paymentType},"${p.payerProfileName}",${p.grossAmount},${p.serviceFee},${p.processingFee},${p.status},${p.createdAt}`
       )
       .join("\n");
     const blob = new Blob([headers + rows], { type: "text/csv" });
@@ -111,7 +111,7 @@ export default function PaymentsPage() {
   return (
     <PageHeaderLayout
       title="Payments, Payouts & Escrow Ledger"
-      description="Track platform net commission, held escrow funds, idempotency-backed manual payouts, and Paystack direct refunds."
+      description="Track platform service fee revenue, held escrow funds, idempotency-backed manual payouts, and Paystack direct refunds."
     >
       <div className="space-y-6">
         {/* Metric Overview Cards */}
@@ -119,9 +119,9 @@ export default function PaymentsPage() {
           <Card>
             <CardContent className="p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground font-medium">Net Commission Earned</p>
+                <p className="text-xs text-muted-foreground font-medium">Service Fee Earned</p>
                 <p className="text-2xl font-bold mt-1 text-emerald-600">
-                  ₦{totalNetCommission.toLocaleString()}
+                  ₦{totalServiceFee.toLocaleString()}
                 </p>
               </div>
               <DollarSign className="w-8 h-8 text-emerald-500 opacity-80" />
@@ -220,7 +220,7 @@ export default function PaymentsPage() {
                   <TableHead className="text-xs">Reference / Payer</TableHead>
                   <TableHead className="text-xs">Type</TableHead>
                   <TableHead className="text-xs">Gross Amount</TableHead>
-                  <TableHead className="text-xs">Net Commission (Revenue)</TableHead>
+                  <TableHead className="text-xs">Service Fee (10%)</TableHead>
                   <TableHead className="text-xs">Gateway Processing Fee</TableHead>
                   <TableHead className="text-xs">Status</TableHead>
                   <TableHead className="text-xs text-right">Actions</TableHead>
@@ -242,7 +242,7 @@ export default function PaymentsPage() {
                     </TableCell>
                     <TableCell className="text-xs font-semibold">₦{pmt.grossAmount.toLocaleString()}</TableCell>
                     <TableCell className="text-xs font-semibold text-emerald-600">
-                      ₦{pmt.commissionAmount.toLocaleString()}
+                      ₦{pmt.serviceFee.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       ₦{pmt.processingFee.toLocaleString()}
