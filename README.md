@@ -1,6 +1,5 @@
-Here's the file, written out for copy-paste:
 
-```markdown
+
 # Hoste Admin Dashboard
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
