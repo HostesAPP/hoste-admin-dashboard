@@ -141,7 +141,7 @@ export const REPORT_CATEGORY_CARDS: ReportCategoryCardItem[] = [
     iconBg: "bg-primary/10 text-primary border-primary/20",
     iconColor: "text-primary",
     bulletPoints: [
-      "Platform revenue & commissions",
+      "Platform revenue & service fees",
       "Payouts & transaction logs",
       "Payment activity summary",
     ],

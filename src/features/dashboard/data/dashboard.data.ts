@@ -30,7 +30,7 @@ export const MOCK_DASHBOARD_OVERVIEW_DATA: DashboardOverviewData = {
       value: "₦4,850,000",
       changeText: "+15.8%",
       changePositive: true,
-      subtext: "Hosté commission fee revenue",
+      subtext: "Hosté service fee revenue",
     },
   },
 
