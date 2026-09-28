@@ -37,6 +37,7 @@ export { UsersPagination } from "./components/usersPagination";
 export { UserDetailDialog } from "./components/userDetailDialog";
 
 export { UserDetailsView } from "./components/userDetailsView";
+export { UserDetailsSkeleton } from "./components/userDetailsSkeleton";
 export { UserBreadcrumbBar } from "./components/userBreadcrumbBar";
 export { UserProfileCard } from "./components/userProfileCard";
 export { UserInformationCard } from "./components/userInformationCard";
