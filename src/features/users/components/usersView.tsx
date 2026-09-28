@@ -143,7 +143,7 @@ export function UsersView() {
         </div>
 
         {/* KPI Stats Cards */}
-        <UsersStats stats={stats} />
+        <UsersStats stats={stats} isLoading={isLoading} />
 
         {/* Main Table Container Card */}
         <div className="bg-card rounded-2xl border border-border/70 shadow-soft p-5 space-y-4">

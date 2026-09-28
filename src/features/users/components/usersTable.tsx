@@ -38,8 +38,91 @@ export function UsersTable({
 }: UsersTableProps) {
   if (isLoading) {
     return (
-      <div className="w-full py-16 flex items-center justify-center text-muted-foreground text-xs">
-        Loading users...
+      <div className="w-full overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-b border-border/60 hover:bg-transparent">
+              <TableHead className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider py-3.5 pl-4">
+                USER
+              </TableHead>
+              <TableHead className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider py-3.5">
+                USER ID
+              </TableHead>
+              <TableHead className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider py-3.5">
+                TYPE / ROLE
+              </TableHead>
+              <TableHead className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider py-3.5">
+                EMAIL
+              </TableHead>
+              <TableHead className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider py-3.5">
+                DATE JOINED
+              </TableHead>
+              <TableHead className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider py-3.5">
+                LAST ACTIVE
+              </TableHead>
+              <TableHead className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider py-3.5">
+                STATUS
+              </TableHead>
+              <TableHead className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider py-3.5 pr-4 text-right">
+                ACTION
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-border/40">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <TableRow key={i} className="animate-pulse border-border/40">
+                {/* User Avatar + Name */}
+                <TableCell className="py-3.5 pl-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-muted shrink-0" />
+                    <div className="h-4 w-28 bg-muted rounded" />
+                  </div>
+                </TableCell>
+
+                {/* User ID */}
+                <TableCell className="py-3.5">
+                  <div className="h-3.5 w-20 bg-muted rounded font-mono" />
+                </TableCell>
+
+                {/* Type / Role */}
+                <TableCell className="py-3.5">
+                  <div className="space-y-1">
+                    <div className="h-3.5 w-16 bg-muted rounded" />
+                    <div className="h-3 w-20 bg-muted rounded" />
+                  </div>
+                </TableCell>
+
+                {/* Email */}
+                <TableCell className="py-3.5">
+                  <div className="h-3.5 w-36 bg-muted rounded" />
+                </TableCell>
+
+                {/* Date Joined */}
+                <TableCell className="py-3.5">
+                  <div className="h-3.5 w-24 bg-muted rounded" />
+                </TableCell>
+
+                {/* Last Active */}
+                <TableCell className="py-3.5">
+                  <div className="h-3.5 w-20 bg-muted rounded" />
+                </TableCell>
+
+                {/* Status Badge */}
+                <TableCell className="py-3.5">
+                  <div className="h-5 w-16 bg-muted rounded-full" />
+                </TableCell>
+
+                {/* Actions */}
+                <TableCell className="py-3.5 pr-4 text-right">
+                  <div className="flex items-center justify-end gap-1.5">
+                    <div className="h-7 w-20 bg-muted rounded-md" />
+                    <div className="h-7 w-7 bg-muted rounded-md" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     );
   }
