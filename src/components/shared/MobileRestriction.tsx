@@ -12,7 +12,7 @@ export function MobileRestrictionPage({
 }) {
   return (
     <>
-      {/* Mobile / Tablet Restriction Screen (viewports < 1280px) */}
+      {/* Mobile / Tablet Restriction Screen (viewports < 1024px) */}
       <div className="flex lg:hidden min-h-screen w-full bg-background text-foreground flex-col items-center justify-between p-6 sm:p-8 select-none">
         {/* Top Spacer / Header Container */}
         <div className="w-full max-w-sm flex flex-col items-center pt-2 sm:pt-4">
@@ -290,17 +290,17 @@ export function MobileRestrictionPage({
 
           {/* Restriction Copy */}
           <div className="text-center px-2 mt-6">
-            <span className="text-xs sm:text-sm font-semibold text-primary">
+            <span className="text-sm font-semibold text-primary">
               Sign In to HOSTÉ Admin
             </span>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mt-1.5">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground mt-1.5">
               Desktop Access Required
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-2.5 leading-relaxed">
+            <p className="text-sm text-muted-foreground mt-2.5 leading-relaxed">
               The Hosté Admin Dashboard is currently only available on desktop
               devices.
             </p>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
+            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
               Please log in using a PC or laptop to access your dashboard.
             </p>
           </div>
@@ -329,7 +329,7 @@ export function MobileRestrictionPage({
               ?
             </div>
             <div>
-              <p className="text-xs sm:text-sm font-bold text-foreground leading-snug">
+              <p className="text-sm font-bold text-foreground leading-snug">
                 Need help?
               </p>
               <p className="text-xs text-muted-foreground">
@@ -346,8 +346,8 @@ export function MobileRestrictionPage({
         </div>
       </div>
 
-      {/* Desktop Dashboard View (viewports >= 1280px) */}
-      <div className="xl:flex min-h-full flex-col hidden">{children}</div>
+      {/* Desktop Dashboard View (viewports >= 1024px) */}
+      <div className="hidden lg:flex min-h-full flex-col">{children}</div>
     </>
   );
 }

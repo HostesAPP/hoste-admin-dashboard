@@ -103,7 +103,7 @@ export function ProfilesView() {
       />
 
       {/* Main Content Area */}
-      <div className="p-8 space-y-6 max-w-7xl">
+      <div className="p-8 space-y-6">
         {/* Status Filter Tabs */}
         <ProfilesTabs
           activeTab={activeTab}
