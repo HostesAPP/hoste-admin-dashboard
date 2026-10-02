@@ -13,7 +13,7 @@ export function MobileRestrictionPage({
   return (
     <>
       {/* Mobile / Tablet Restriction Screen (viewports < 1280px) */}
-      <div className="flex xl:hidden min-h-screen w-full bg-background text-foreground flex-col items-center justify-between p-6 sm:p-8 select-none">
+      <div className="flex lg:hidden min-h-screen w-full bg-background text-foreground flex-col items-center justify-between p-6 sm:p-8 select-none">
         {/* Top Spacer / Header Container */}
         <div className="w-full max-w-sm flex flex-col items-center pt-2 sm:pt-4">
           {/* Brand Header */}

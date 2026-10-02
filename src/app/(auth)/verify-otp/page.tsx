@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { VerifyOtpForm } from "@/features/auth";
 
@@ -7,5 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function VerifyOtpPage() {
-  return <VerifyOtpForm />;
+  return (
+    <Suspense fallback={<div className="w-full text-center py-10 text-xs text-muted-foreground">Loading...</div>}>
+      <VerifyOtpForm />
+    </Suspense>
+  );
 }
+

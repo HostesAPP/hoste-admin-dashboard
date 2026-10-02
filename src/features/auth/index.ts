@@ -6,3 +6,6 @@ export * from "./components/ResetPasswordForm";
 export * from "./components/AccountLocked";
 export * from "./schemas/auth.schema";
 export * from "./types/auth.types";
+export * from "./hooks/auth.hooks";
+export * from "./auth.store";
+

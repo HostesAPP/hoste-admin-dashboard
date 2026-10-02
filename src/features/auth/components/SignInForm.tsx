@@ -40,9 +40,18 @@ export function SignInForm() {
     setServerError("");
     loginMutation.mutate(values, {
       onSuccess: (response) => {
-        if (response?.data?.user && response?.data?.tokens?.accessToken) {
-          setAuth(response.data.user, response.data.tokens.accessToken);
+        if ("requiresOtp" in response.data && response.data.requiresOtp) {
+          const email = response.data.email || values.email;
+          router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+          return;
         }
+
+        if ("tokens" in response.data && response.data.tokens?.accessToken) {
+          setAuth(response.data.user, response.data.tokens.accessToken);
+          router.push("/");
+          return;
+        }
+
         router.push("/");
       },
       onError: (error) => {
