@@ -5,12 +5,11 @@ import {
   MOCK_REVENUE_OVERVIEW_DATA,
   MOCK_REVENUE_TRANSACTION_DETAILS,
 } from "../data/revenue.data";
+import { apiClient } from "@/lib/api-client";
 
 export async function fetchRevenueOverview(): Promise<RevenueOverviewData> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(MOCK_REVENUE_OVERVIEW_DATA);
-    }, 100);
+  return apiClient<RevenueOverviewData>("/admin/revenue/overview", {
+    method: "GET",
   });
 }
 

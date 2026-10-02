@@ -126,7 +126,7 @@ export const BrandBookingAndSpendingGrid: React.FC<BrandBookingAndSpendingGridPr
             </div>
             <div>
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                PLATFORM REVENUE (COMMISSION)
+                PLATFORM REVENUE (SERVICE FEE)
               </p>
               <p className="text-xl sm:text-2xl font-bold text-primary">
                 {spendingBreakdown.platformRevenue}

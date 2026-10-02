@@ -5,9 +5,10 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Sparkles,
-  Calendar,
+  CalendarCheck,
   CreditCard,
   Users2,
+  Gift,
   Users,
   FileBarChart2,
   Bell,
@@ -15,9 +16,9 @@ import {
   Headphones,
   Newspaper,
   Image as ImageIcon,
+  ShieldAlert,
   Settings,
   ChevronRight,
-  Share2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,9 +33,9 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Overview", href: "/", icon: LayoutDashboard },
   { label: "Profiles", href: "/profiles", icon: Sparkles },
-  { label: "Bookings", href: "/bookings", icon: Calendar },
+  { label: "Bookings", href: "/bookings", icon: CalendarCheck },
   { label: "Payments & Payouts", href: "/payments", icon: CreditCard, hasSubmenu: true },
-  { label: "Referrals", href: "/referrals", icon: Share2 },
+  { label: "Referrals", href: "/referrals", icon: Gift },
   { label: "Groups", href: "/groups", icon: Users2 },
   { label: "Users", href: "/users", icon: Users },
   { label: "Reports", href: "/reports", icon: FileBarChart2 },
@@ -46,7 +47,6 @@ const navItems: NavItem[] = [
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
-
 export function Sidebar() {
   const pathname = usePathname();
 
@@ -56,7 +56,7 @@ export function Sidebar() {
       <div className="flex flex-col">
         {/* Brand Header */}
         <div className="flex items-center gap-3 px-5 py-5 border-b border-border/40">
-          <div className="w-10 h-10 rounded-xl bg-amber-100/70 dark:bg-amber-950/40 flex items-center justify-center shadow-xs border border-amber-200/50 dark:border-amber-900/30">
+          <div className="w-10 h-10 rounded-xl bg-amber-100/70 flex items-center justify-center shadow-xs border border-amber-200/50">
             <span className="text-primary font-bold text-xs tracking-tight">HOSTÉ</span>
           </div>
           <div className="flex flex-col">
@@ -118,18 +118,13 @@ export function Sidebar() {
               HA
             </AvatarFallback>
           </Avatar>
-          <span className="text-xs text-muted-foreground truncate max-w-[110px]">
+          <span className="text-xs text-muted-foreground truncate max-w-27.5">
             admin@hoste.ng
           </span>
         </div>
 
         <button
           type="button"
-          onClick={() => {
-            if (typeof window !== "undefined") {
-              window.location.href = "/sign-in";
-            }
-          }}
           className="text-xs text-primary font-medium hover:underline flex items-center gap-1 cursor-pointer"
         >
           <span>Log Out</span>

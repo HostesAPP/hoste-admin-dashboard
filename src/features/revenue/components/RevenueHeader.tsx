@@ -96,10 +96,7 @@ export function RevenueHeader({
             Date Range
           </span>
           <DropdownMenu>
-            <DropdownMenuTrigger
-              type="button"
-              className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl border border-border/80 bg-card hover:bg-muted/50 text-xs font-semibold text-foreground transition-colors shadow-2xs cursor-pointer min-w-[120px] justify-between"
-            >
+            <DropdownMenuTrigger className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl border border-border/80 bg-card hover:bg-muted/50 text-xs font-semibold text-foreground transition-colors shadow-2xs cursor-pointer min-w-30 justify-between">
               <span>{selectedRange}</span>
               <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
             </DropdownMenuTrigger>

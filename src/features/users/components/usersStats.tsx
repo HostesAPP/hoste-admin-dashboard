@@ -4,11 +4,30 @@ import type { UserStats } from "../types/users.types";
 
 interface UsersStatsProps {
   stats: UserStats;
+  isLoading: boolean;
 }
 
-export function UsersStats({ stats }: UsersStatsProps) {
+export function UsersStats({ stats, isLoading }: UsersStatsProps) {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-4 gap-4 lg:gap-6">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="bg-card rounded-md border border-border/80 p-5 shadow-xs flex flex-col justify-between h-25 animate-pulse space-y-3"
+          >
+            <div className="h-3.5 w-24 bg-muted rounded" />
+            <div className="flex items-baseline justify-between gap-2">
+              <div className="h-7 w-28 bg-muted rounded" />
+              <div className="h-3.5 w-16 bg-muted rounded" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+    <div className="grid grid-cols-4 gap-6">
       {/* Total Users */}
       <div className="bg-card rounded-md border border-border/80 p-5 shadow-xs flex flex-col justify-between h-25 transition-shadow hover:shadow-sm">
         <span className="text-xs font-normal text-muted-foreground">

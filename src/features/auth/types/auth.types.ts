@@ -9,8 +9,8 @@ export interface User {
   id: string;
   email: string;
   phoneNumber?: string;
-  role: "USER" | "ADMIN" | string;
-  accountStatus: "ACTIVE" | "INACTIVE" | "SUSPENDED" | string;
+  role: "USER" | "ADMIN" | "STAFF";
+  accountStatus: "ACTIVE" | "INACTIVE" | "SUSPENDED";
 }
 
 export interface AuthTokens {
@@ -20,12 +20,43 @@ export interface AuthTokens {
   expiresIn: number;
 }
 
-export interface LoginData {
+export interface LoginSuccessData {
   user: User;
   tokens: AuthTokens;
+  requiresOtp?: false;
 }
+
+export interface LoginOtpRequiredData {
+  message?: string;
+  email: string;
+  requiresOtp: true;
+}
+
+export type LoginData = LoginSuccessData | LoginOtpRequiredData;
 
 export interface LoginResponse {
   success: boolean;
   data: LoginData;
 }
+
+export interface VerifyOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyOtpResponse {
+  success: boolean;
+  data: LoginSuccessData;
+}
+
+export interface ResendOtpRequest {
+  email: string;
+}
+
+export interface ResendOtpResponse {
+  success: boolean;
+  data: {
+    message?: string;
+  };
+}
+

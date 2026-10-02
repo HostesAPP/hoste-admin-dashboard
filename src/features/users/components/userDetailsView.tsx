@@ -13,6 +13,10 @@ import { UserAccountActionsCard } from "./userAccountActionsCard";
 import { SuspendUserModal } from "./suspendUserModal";
 import { ChangeRoleModal } from "./changeRoleModal";
 import { ExportUsersModal } from "./exportUsersModal";
+import Link from "next/link";
+import { AlertCircle, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { UserDetailsSkeleton } from "./userDetailsSkeleton";
 import { useUserDetail, useUpdateUserStatus, useChangeUserRole } from "../hooks/useUsers";
 import type { User, UserType } from "../types/users.types";
 
@@ -21,7 +25,7 @@ interface UserDetailsViewProps {
 }
 
 export function UserDetailsView({ userId }: UserDetailsViewProps) {
-  const { data: user, isLoading } = useUserDetail(userId);
+  const { data: user, isLoading, isError, refetch } = useUserDetail(userId);
   const updateStatusMutation = useUpdateUserStatus();
   const changeRoleMutation = useChangeUserRole();
 
@@ -67,12 +71,34 @@ export function UserDetailsView({ userId }: UserDetailsViewProps) {
     });
   };
 
-  if (isLoading || !user) {
+  if (isLoading) {
+    return <UserDetailsSkeleton />;
+  }
+
+  if (isError || !user) {
     return (
-      <div className="flex flex-col min-h-screen bg-background p-6 lg:p-8 space-y-6">
+      <div className="flex flex-col min-h-screen bg-background">
         <UsersHeader />
-        <div className="py-20 text-center text-xs text-muted-foreground">
-          Loading user details...
+        <div className="p-10 text-center space-y-4 pt-20">
+          <div className="w-12 h-12 rounded-full bg-destructive/10 text-destructive mx-auto flex items-center justify-center">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground">User not found</h2>
+          <p className="text-xs text-muted-foreground">
+            The user with ID &quot;{userId}&quot; could not be loaded or does not exist.
+          </p>
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <Link
+              href="/users"
+              className="inline-flex items-center justify-center text-xs h-8 px-3 rounded-lg border border-border bg-background hover:bg-muted font-medium transition-colors"
+            >
+              Back to Users
+            </Link>
+            <Button size="sm" onClick={() => refetch()} className="gap-2 rounded-lg cursor-pointer">
+              <RotateCcw className="w-3.5 h-3.5" />
+              Retry
+            </Button>
+          </div>
         </div>
       </div>
     );

@@ -245,7 +245,7 @@ export function EscalationDetailsForm({
             maxLength={1000}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Explain why this issue needs dispute escalation..."
-            className="w-full rounded-xl border border-border/80 bg-background p-3.5 pb-6 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/40 leading-relaxed resize-none"
+            className="w-full rounded-xl border border-border/80 bg-background p-3.5 pb-6 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 leading-relaxed resize-none"
             required
           />
           <span className="absolute bottom-2.5 right-3 text-[11px] text-muted-foreground/80 font-medium">
@@ -266,7 +266,7 @@ export function EscalationDetailsForm({
             maxLength={1000}
             onChange={(e) => setTriedSoFar(e.target.value)}
             placeholder="Document all troubleshooting and support actions already attempted..."
-            className="w-full rounded-xl border border-border/80 bg-background p-3.5 pb-6 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/40 leading-relaxed resize-none"
+            className="w-full rounded-xl border border-border/80 bg-background p-3.5 pb-6 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 leading-relaxed resize-none"
           />
           <span className="absolute bottom-2.5 right-3 text-[11px] text-muted-foreground/80 font-medium">
             {triedSoFar.length}/1000
@@ -289,9 +289,8 @@ export function EscalationDetailsForm({
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`border border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-muted/20 hover:bg-muted/40 ${
-            isDragging ? "border-primary bg-primary/5" : "border-border/80"
-          }`}
+          className={`border border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-muted/20 hover:bg-muted/40 ${isDragging ? "border-primary bg-primary/5" : "border-border/80"
+            }`}
         >
           <input
             type="file"
@@ -327,7 +326,7 @@ export function EscalationDetailsForm({
                 </div>
 
                 <div className="min-w-0 pr-1">
-                  <p className="font-semibold text-foreground text-xs truncate max-w-[140px]">
+                  <p className="font-semibold text-foreground text-xs truncate max-w-35">
                     {file.name}
                   </p>
                   <p className="text-[10px] text-muted-foreground">{file.size}</p>
@@ -399,7 +398,7 @@ export function EscalationDetailsForm({
             maxLength={1000}
             onChange={(e) => setInternalNote(e.target.value)}
             placeholder="Add internal context for dispute specialists..."
-            className="w-full rounded-xl border border-border/80 bg-background p-3.5 pb-6 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/40 leading-relaxed resize-none"
+            className="w-full rounded-xl border border-border/80 bg-background p-3.5 pb-6 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 leading-relaxed resize-none"
           />
           <span className="absolute bottom-2.5 right-3 text-[11px] text-muted-foreground/80 font-medium">
             {internalNote.length}/1000
@@ -416,14 +415,12 @@ export function EscalationDetailsForm({
             role="switch"
             aria-checked={notifyCustomer}
             onClick={() => setNotifyCustomer(!notifyCustomer)}
-            className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
-              notifyCustomer ? "bg-primary" : "bg-muted"
-            }`}
+            className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${notifyCustomer ? "bg-primary" : "bg-muted"
+              }`}
           >
             <span
-              className={`block w-3.5 h-3.5 rounded-full bg-white transition-transform ${
-                notifyCustomer ? "translate-x-4.5" : "translate-x-1"
-              }`}
+              className={`block w-3.5 h-3.5 rounded-full bg-white transition-transform ${notifyCustomer ? "translate-x-4.5" : "translate-x-1"
+                }`}
             />
           </button>
           <span className="text-xs text-foreground font-medium select-none">

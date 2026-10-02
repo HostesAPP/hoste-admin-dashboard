@@ -1,5 +1,7 @@
 "use client";
 
+// TODO: pending confirmation - Banner Management backend persistence data model (PRD v2.3 §19 & §23)
+
 import React, { useState } from "react";
 import {
   Image as ImageIcon,

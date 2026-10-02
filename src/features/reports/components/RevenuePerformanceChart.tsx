@@ -86,7 +86,7 @@ export const RevenuePerformanceChart: React.FC<RevenuePerformanceChartProps> = (
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            Commission
+            Service Fee
           </button>
           <button
             type="button"
@@ -166,12 +166,12 @@ export const RevenuePerformanceChart: React.FC<RevenuePerformanceChartProps> = (
               />
             )}
 
-            {/* Hosté Commission Area (Primary Orange) */}
+            {/* Hosté Service Fee Area (Primary Orange) */}
             {(activeView === "total" || activeView === "commission") && (
               <Area
                 type="monotone"
                 dataKey="commission"
-                name="Hosté Commission (15%)"
+                name="Service Fee (10%)"
                 stroke="var(--primary)"
                 strokeWidth={2.5}
                 fillOpacity={1}
@@ -191,7 +191,7 @@ export const RevenuePerformanceChart: React.FC<RevenuePerformanceChartProps> = (
         </div>
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-primary shrink-0" />
-          <span>Hosté Commission (15%)</span>
+          <span>Service Fee (10%)</span>
         </div>
       </div>
     </div>

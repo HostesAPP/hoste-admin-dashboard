@@ -49,6 +49,7 @@ export type GroupMembersTableProps = {
   rowsPerPage: number;
   onRowsPerPageChange: (rows: number) => void;
   totalMembersCount: number;
+  isLoading?: boolean;
 };
 
 export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
@@ -64,6 +65,7 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
   rowsPerPage,
   onRowsPerPageChange,
   totalMembersCount,
+  isLoading = false,
 }) => {
   const allCurrentPageSelected =
     members.length > 0 &&
@@ -111,7 +113,32 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
           </TableHeader>
 
           <TableBody>
-            {members.length === 0 ? (
+            {isLoading ? (
+              [1, 2, 3, 4, 5].map((i) => (
+                <TableRow key={i} className="animate-pulse">
+                  <TableCell className="px-4 py-4">
+                    <div className="w-4 h-4 bg-muted rounded" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-muted" />
+                      <div className="h-4 w-28 bg-muted rounded" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div className="h-3 w-16 bg-muted rounded" />
+                      <div className="h-3.5 w-32 bg-muted rounded" />
+                    </div>
+                  </TableCell>
+                  <TableCell><div className="h-6 w-20 bg-muted rounded-full" /></TableCell>
+                  <TableCell><div className="h-6 w-16 bg-muted rounded-full" /></TableCell>
+                  <TableCell><div className="h-3.5 w-24 bg-muted rounded" /></TableCell>
+                  <TableCell><div className="h-3.5 w-20 bg-muted rounded" /></TableCell>
+                  <TableCell><div className="h-8 w-8 bg-muted rounded-lg ml-auto" /></TableCell>
+                </TableRow>
+              ))
+            ) : members.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={8}

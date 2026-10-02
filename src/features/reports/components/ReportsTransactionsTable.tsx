@@ -63,7 +63,7 @@ export const ReportsTransactionsTable: React.FC<ReportsTransactionsTableProps> =
             <th className="py-3.5 px-4">CUSTOMER / BRAND</th>
             <th className="py-3.5 px-4">BOOKING TYPE</th>
             <th className="py-3.5 px-4">AMOUNT (₦)</th>
-            <th className="py-3.5 px-4">COMMISSION</th>
+            <th className="py-3.5 px-4">SERVICE FEE</th>
             <th className="py-3.5 px-4">METHOD</th>
             <th className="py-3.5 px-4">STATUS</th>
             <th className="py-3.5 px-4">DATE</th>
@@ -110,7 +110,7 @@ export const ReportsTransactionsTable: React.FC<ReportsTransactionsTableProps> =
                   {txn.amount}
                 </td>
 
-                {/* COMMISSION */}
+                {/* SERVICE FEE */}
                 <td className="py-4 px-4 whitespace-nowrap">
                   {txn.status === "Successful" ? (
                     <span className="text-secondary font-bold">

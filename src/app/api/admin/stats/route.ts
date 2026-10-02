@@ -1,3 +1,4 @@
+// TODO: pending confirmation - ORM selection (Prisma vs native pg) unresolved (PRD v2.3 §2 & §23)
 import { NextRequest, NextResponse } from 'next/server';
 
 /**

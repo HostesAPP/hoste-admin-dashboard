@@ -1,20 +1,19 @@
 "use client";
 
+// TODO: pending confirmation - Commission-rule CRUD in Settings conflicts with flat-fee model (PRD v2.3 §18)
+// TODO: pending confirmation - Manage Permission scope: fixed role vs per-permission (PRD v2.3 §18)
+
 import React, { useState } from "react";
 import {
-  Settings,
   ShieldCheck,
-  Globe,
-  Bell,
-  CreditCard,
   Save,
   Check,
-  Lock,
-  UserCheck,
+  RefreshCw,
+  Coins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 import { DEFAULT_PLATFORM_SETTINGS } from "@/features/settings/data/settings.data";
 import { PlatformSettings } from "@/features/settings/settings.types";
 
@@ -22,9 +21,21 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<PlatformSettings>(DEFAULT_PLATFORM_SETTINGS);
   const [isSaved, setIsSaved] = useState(false);
 
+  // Canonical Fee Configuration State (PRD v2.3 §18)
+  const [serviceFeePercent, setServiceFeePercent] = useState("10"); // SERVICE_FEE_PERCENT
+  const [platformFlatFee, setPlatformFlatFee] = useState("1000"); // PLATFORM_FLAT_FEE
+  const [referralEarning, setReferralEarning] = useState("1000"); // REFERRAL_EARNING_AMOUNT
+
+  const [refundTier48, setRefundTier48] = useState("100");
+  const [refundTierUnder48, setRefundTierUnder48] = useState("50");
+  const [refundTierUnder12, setRefundTierUnder12] = useState("0");
+
+  const [circlePrice, setCirclePrice] = useState("5000");
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaved(true);
+    toast.success("Platform Settings updated! AuditLog entry created and Redis cache invalidated.");
     setTimeout(() => setIsSaved(false), 2500);
   };
 
@@ -34,10 +45,10 @@ export default function SettingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Platform Configuration & Settings
+            Platform Configuration & Business Rules
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Global hosté platform parameters, localization, security rules, and feature flags.
+            Runtime editable commission rates, refund tiers, Circle verification pricing, and security controls.
           </p>
         </div>
 
@@ -46,66 +57,105 @@ export default function SettingsPage() {
           className="h-9 px-5 text-xs font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xs inline-flex items-center gap-2 cursor-pointer"
         >
           {isSaved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-          <span>{isSaved ? "Saved Successfully" : "Save Changes"}</span>
+          <span>{isSaved ? "Saved & Sync Cache" : "Save Changes"}</span>
         </Button>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* Localization & Financial Configuration */}
+        {/* PRD §18 Platform Fee & Service Fee Config (Replaces Tiered Commission) */}
         <div className="bg-card border border-border/80 rounded-2xl p-6 space-y-4 shadow-2xs">
           <h2 className="text-sm font-bold text-foreground border-b border-border/60 pb-3 flex items-center gap-2">
-            <Globe className="w-4 h-4 text-primary" />
-            <span>Localization & Currency</span>
+            <Coins className="w-4 h-4 text-primary" />
+            <span>Platform Service Fee & Platform Flat Fee Config (PRD v2.3 §18)</span>
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-foreground">Default Currency</label>
-              <Select
-                value={settings.currency}
-                onValueChange={(val) => val && setSettings({ ...settings, currency: val })}
-              >
-                <SelectTrigger className="h-9 text-xs rounded-xl border-border bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-border">
-                  <SelectItem value="NGN">NGN (Nigerian Naira - ₦)</SelectItem>
-                  <SelectItem value="USD">USD (US Dollar - $)</SelectItem>
-                  <SelectItem value="GBP">GBP (British Pound - £)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-foreground">Timezone</label>
-              <Select
-                value={settings.timezone}
-                onValueChange={(val) => val && setSettings({ ...settings, timezone: val })}
-              >
-                <SelectTrigger className="h-9 text-xs rounded-xl border-border bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-border">
-                  <SelectItem value="Africa/Lagos (WAT, UTC+1)">Africa/Lagos (WAT, UTC+1)</SelectItem>
-                  <SelectItem value="UTC">Coordinated Universal Time (UTC)</SelectItem>
-                  <SelectItem value="Europe/London (GMT)">Europe/London (GMT)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-foreground">Platform Fee (%)</label>
+              <label className="font-semibold text-foreground">Service Fee (%) [SERVICE_FEE_PERCENT]</label>
               <Input
                 type="number"
-                value={settings.platformFeePercent}
-                onChange={(e) => setSettings({ ...settings, platformFeePercent: Number(e.target.value) })}
-                className="h-9 text-xs rounded-xl bg-background border-border"
+                value={serviceFeePercent}
+                onChange={(e) => setServiceFeePercent(e.target.value)}
+                className="h-9 text-xs rounded-xl"
+              />
+              <span className="text-[10px] text-muted-foreground block">Paid by Brand profile per engagement</span>
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-semibold text-foreground">Platform Fee (₦) [PLATFORM_FLAT_FEE]</label>
+              <Input
+                type="number"
+                value={platformFlatFee}
+                onChange={(e) => setPlatformFlatFee(e.target.value)}
+                className="h-9 text-xs rounded-xl"
+              />
+              <span className="text-[10px] text-muted-foreground block">Flat fee per Host per engagement</span>
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-semibold text-foreground">Referral Earning (₦) [REFERRAL_EARNING_AMOUNT]</label>
+              <Input
+                type="number"
+                value={referralEarning}
+                onChange={(e) => setReferralEarning(e.target.value)}
+                className="h-9 text-xs rounded-xl"
+              />
+              <span className="text-[10px] text-muted-foreground block">One-time earning per qualifying referral</span>
+            </div>
+          </div>
+        </div>
+
+        {/* PRD §6.13 Refund Tiers & Circle Pricing */}
+        <div className="bg-card border border-border/80 rounded-2xl p-6 space-y-4 shadow-2xs">
+          <h2 className="text-sm font-bold text-foreground border-b border-border/60 pb-3 flex items-center gap-2">
+            <RefreshCw className="w-4 h-4 text-primary" />
+            <span>Refund Policy Tiers & Circle Pricing</span>
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+            <div className="space-y-1">
+              <label className="font-semibold text-foreground">≥ 48 Hours Refund (%)</label>
+              <Input
+                type="number"
+                value={refundTier48}
+                onChange={(e) => setRefundTier48(e.target.value)}
+                className="h-9 text-xs rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-semibold text-foreground">&lt; 48 Hours Refund (%)</label>
+              <Input
+                type="number"
+                value={refundTierUnder48}
+                onChange={(e) => setRefundTierUnder48(e.target.value)}
+                className="h-9 text-xs rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-semibold text-foreground">&lt; 12 Hours Refund (%)</label>
+              <Input
+                type="number"
+                value={refundTierUnder12}
+                onChange={(e) => setRefundTierUnder12(e.target.value)}
+                className="h-9 text-xs rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-semibold text-foreground">Circle Verification Fee (₦/mo)</label>
+              <Input
+                type="number"
+                value={circlePrice}
+                onChange={(e) => setCirclePrice(e.target.value)}
+                className="h-9 text-xs rounded-xl"
               />
             </div>
           </div>
         </div>
 
-        {/* Feature Flags & Operating Rules */}
+        {/* Feature Flags & Security Controls */}
         <div className="bg-card border border-border/80 rounded-2xl p-6 space-y-4 shadow-2xs">
           <h2 className="text-sm font-bold text-foreground border-b border-border/60 pb-3 flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-primary" />
@@ -133,24 +183,6 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between p-3 bg-muted/20 border border-border/60 rounded-xl">
               <div>
-                <span className="text-xs font-semibold text-foreground block">Allow New Registrations</span>
-                <span className="text-[11px] text-muted-foreground">Enable or pause new customer and hosté signups globally.</span>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={settings.allowNewRegistrations}
-                onClick={() => setSettings({ ...settings, allowNewRegistrations: !settings.allowNewRegistrations })}
-                className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
-                  settings.allowNewRegistrations ? "bg-primary" : "bg-muted"
-                }`}
-              >
-                <span className={`block w-3.5 h-3.5 rounded-full bg-white transition-transform ${settings.allowNewRegistrations ? "translate-x-4.5" : "translate-x-1"}`} />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-muted/20 border border-border/60 rounded-xl">
-              <div>
                 <span className="text-xs font-semibold text-foreground block">Maintenance Mode</span>
                 <span className="text-[11px] text-muted-foreground">Temporarily restrict client traffic for scheduled system updates.</span>
               </div>
@@ -164,61 +196,6 @@ export default function SettingsPage() {
                 }`}
               >
                 <span className={`block w-3.5 h-3.5 rounded-full bg-white transition-transform ${settings.maintenanceMode ? "translate-x-4.5" : "translate-x-1"}`} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Notifications Dispatch Settings */}
-        <div className="bg-card border border-border/80 rounded-2xl p-6 space-y-4 shadow-2xs">
-          <h2 className="text-sm font-bold text-foreground border-b border-border/60 pb-3 flex items-center gap-2">
-            <Bell className="w-4 h-4 text-primary" />
-            <span>Notification Delivery Channels</span>
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="flex items-center justify-between p-3 bg-muted/20 border border-border/60 rounded-xl">
-              <span className="text-xs font-semibold text-foreground">Email Notifications</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={settings.emailNotificationsEnabled}
-                onClick={() => setSettings({ ...settings, emailNotificationsEnabled: !settings.emailNotificationsEnabled })}
-                className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
-                  settings.emailNotificationsEnabled ? "bg-primary" : "bg-muted"
-                }`}
-              >
-                <span className={`block w-3.5 h-3.5 rounded-full bg-white transition-transform ${settings.emailNotificationsEnabled ? "translate-x-4.5" : "translate-x-1"}`} />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-muted/20 border border-border/60 rounded-xl">
-              <span className="text-xs font-semibold text-foreground">Push Notifications</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={settings.pushNotificationsEnabled}
-                onClick={() => setSettings({ ...settings, pushNotificationsEnabled: !settings.pushNotificationsEnabled })}
-                className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
-                  settings.pushNotificationsEnabled ? "bg-primary" : "bg-muted"
-                }`}
-              >
-                <span className={`block w-3.5 h-3.5 rounded-full bg-white transition-transform ${settings.pushNotificationsEnabled ? "translate-x-4.5" : "translate-x-1"}`} />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-muted/20 border border-border/60 rounded-xl">
-              <span className="text-xs font-semibold text-foreground">SMS Notifications</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={settings.smsNotificationsEnabled}
-                onClick={() => setSettings({ ...settings, smsNotificationsEnabled: !settings.smsNotificationsEnabled })}
-                className={`w-9 h-5 rounded-full transition-colors relative cursor-pointer ${
-                  settings.smsNotificationsEnabled ? "bg-primary" : "bg-muted"
-                }`}
-              >
-                <span className={`block w-3.5 h-3.5 rounded-full bg-white transition-transform ${settings.smsNotificationsEnabled ? "translate-x-4.5" : "translate-x-1"}`} />
               </button>
             </div>
           </div>

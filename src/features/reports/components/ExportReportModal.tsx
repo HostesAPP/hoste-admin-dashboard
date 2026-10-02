@@ -38,7 +38,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
       "Booking ID",
       "Booking Type",
       "Amount",
-      "Commission",
+      "Service Fee",
       "Payment Method",
       "Status",
       "Date",

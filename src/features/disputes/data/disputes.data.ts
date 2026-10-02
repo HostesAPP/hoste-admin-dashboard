@@ -1,0 +1,40 @@
+import { ReportDispute } from "../types/disputes.types";
+
+export const MOCK_DISPUTES: ReportDispute[] = [
+  {
+    id: "DSP-2026-001",
+    engagementId: "ENG-260912-8819",
+    supportTicketId: "TCK-1004",
+    reportedEntityType: "Engagement",
+    reportedEntityId: "ENG-260912-8819",
+    description: "Provider failed to show up at scheduled venue time for Full-Time event.",
+    internalNote: "Staff Note: Spoke with provider via phone. Provider claims vehicle breakdown but gave no prior notice. Payout blocked in escrow.",
+    issueCategory: "Provider No-Show",
+    assignedDisputeTeam: "OPERATIONS_DISPUTES",
+    priorityLevel: "URGENT",
+    whatHasBeenTried: "Support attempted mediation; client requested 100% refund of ₦150,000.",
+    notifyCustomer: true,
+    evidenceUrls: [
+      "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=600&q=80",
+    ],
+    status: "UNDER_REVIEW",
+    createdAt: "2026-09-15T10:00:00Z",
+    updatedAt: "2026-09-16T14:30:00Z",
+  },
+  {
+    id: "DSP-2026-002",
+    engagementId: "ENG-260905-1204",
+    supportTicketId: "TCK-0992",
+    description: "Disagreement regarding equipment damage during group engagement.",
+    internalNote: "Staff Note: Inspecting evidence photos provided by Brand profile.",
+    issueCategory: "Property Damage",
+    assignedDisputeTeam: "TRUST_SAFETY",
+    priorityLevel: "HIGH",
+    whatHasBeenTried: "Direct messaging between parties failed to reach consensus.",
+    notifyCustomer: false,
+    evidenceUrls: [],
+    status: "OPEN",
+    createdAt: "2026-09-12T09:15:00Z",
+    updatedAt: "2026-09-12T09:15:00Z",
+  },
+];
