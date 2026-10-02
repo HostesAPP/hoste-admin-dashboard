@@ -6,10 +6,7 @@ import { useProfiles } from "../hooks/use-profiles";
 import { ProfilesHeader } from "./ProfilesHeader";
 import { ProfilesTabs } from "./ProfilesTabs";
 import { ProfilesTable } from "./ProfilesTable";
-import {
-  ProfileActionModal,
-  type ActionType,
-} from "./ProfileActionModal";
+import { ProfileActionModal, type ActionType } from "./ProfileActionModal";
 import type { Profile } from "../types/profiles.types";
 
 export function ProfilesView() {
@@ -62,7 +59,7 @@ export function ProfilesView() {
   const handleConfirmAction = (
     profileId: string,
     reason?: string,
-    durationDays?: number
+    durationDays?: number,
   ) => {
     if (!modalState.selectedProfile || !modalState.actionType) return;
 
@@ -80,7 +77,7 @@ export function ProfilesView() {
       case "suspend":
         suspendProfile(profileId, reason, durationDays);
         toast.warning(
-          `Profile for ${profileName} suspended for ${durationDays || 30} days.`
+          `Profile for ${profileName} suspended for ${durationDays || 30} days.`,
         );
         break;
       case "restore":
@@ -97,10 +94,7 @@ export function ProfilesView() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Top Header */}
-      <ProfilesHeader
-        searchQuery={searchQuery}
-        onSearchChange={handleSearch}
-      />
+      <ProfilesHeader searchQuery={searchQuery} onSearchChange={handleSearch} />
 
       {/* Main Content Area */}
       <div className="p-8 space-y-6">
