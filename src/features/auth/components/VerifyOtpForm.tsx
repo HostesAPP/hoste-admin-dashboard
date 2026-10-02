@@ -2,30 +2,37 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { otpSchema, type OtpFormValues } from "../schemas/auth.schema";
+import { useVerifyOtp, useResendOtp } from "../hooks/auth.hooks";
 
 interface VerifyOtpFormProps {
   email?: string;
 }
 
-export function VerifyOtpForm({ email = "adm***@hoste.ng" }: VerifyOtpFormProps) {
+export function VerifyOtpForm({ email: initialEmail }: VerifyOtpFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") || initialEmail || "admin@hoste.app";
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const [serverError, setServerError] = useState("");
   const [resendCooldown, setResendCooldown] = useState(60);
   const [timeLeft, setTimeLeft] = useState(572); // ~09:32 in seconds
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  const verifyOtpMutation = useVerifyOtp();
+  const resendOtpMutation = useResendOtp();
+  const isSubmitting = verifyOtpMutation.isPending;
+
   const {
     handleSubmit,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<OtpFormValues>({
     resolver: zodResolver(otpSchema),
     defaultValues: {
@@ -117,25 +124,50 @@ export function VerifyOtpForm({ email = "adm***@hoste.ng" }: VerifyOtpFormProps)
   };
 
   const handleResend = () => {
-    if (resendCooldown > 0) return;
-    setResendCooldown(60);
-    setTimeLeft(600);
-    setDigits(["", "", "", "", "", ""]);
-    setValue("otp", "");
-    inputRefs.current[0]?.focus();
+    if (resendCooldown > 0 || resendOtpMutation.isPending) return;
+    setServerError("");
+    resendOtpMutation.mutate(
+      { email },
+      {
+        onSuccess: () => {
+          setResendCooldown(60);
+          setTimeLeft(600);
+          setDigits(["", "", "", "", "", ""]);
+          setValue("otp", "");
+          inputRefs.current[0]?.focus();
+        },
+        onError: (error) => {
+          setServerError(
+            error instanceof Error
+              ? error.message
+              : "Failed to resend OTP. Please try again."
+          );
+        },
+      }
+    );
   };
 
-  const onSubmit = async (values: OtpFormValues) => {
+  const onSubmit = (values: OtpFormValues) => {
     setServerError("");
-
-    try {
-      // Simulate verification request
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      console.log("Verified OTP:", values.otp);
-      router.push("/");
-    } catch {
-      setServerError("Invalid verification code. Please try again.");
-    }
+    verifyOtpMutation.mutate(
+      { email, otp: values.otp },
+      {
+        onSuccess: (response) => {
+          if (response?.data?.user && response?.data?.tokens?.accessToken) {
+            router.push("/");
+          } else {
+            router.push("/");
+          }
+        },
+        onError: (error) => {
+          setServerError(
+            error instanceof Error
+              ? error.message
+              : "Invalid verification code. Please try again."
+          );
+        },
+      }
+    );
   };
 
   return (
