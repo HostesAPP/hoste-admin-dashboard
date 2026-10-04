@@ -4,6 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Bell, Download, Search } from "lucide-react";
 import { toast } from "sonner";
+import { ReferralActivity } from "./referral.activity";
+import { ReferralTabs } from "./referral.tabs";
+import { downloadReferralCsv } from "../referrals.export";
+import type {
+  ActivityPromoter,
+  ActivityReferral,
+  ActivitySummary,
+} from "../referrals.activity.types";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,13 +42,6 @@ import {
   ReferrersTable,
 } from "./referral.overview.tables";
 
-const TABS: ReferralTab[] = [
-  "Overview",
-  "Referral Activity",
-  "Referrers",
-  "Rewards & Approvals",
-  "Payouts",
-];
 const RANGES = [
   { value: "30", label: "Last 30 Days" },
   { value: "7", label: "Last 7 Days" },
@@ -53,6 +54,9 @@ interface ReferralsOverviewProps {
   promoters: ReferrerOverview[];
   activity: ReferralActivityOverview[];
   chartData: ReferralPerformancePoint[];
+  activityRecords: ActivityReferral[];
+  activityPromoters: ActivityPromoter[];
+  activitySummary: ActivitySummary;
 }
 
 export function ReferralsOverview({
@@ -61,6 +65,9 @@ export function ReferralsOverview({
   promoters,
   activity,
   chartData,
+  activityRecords,
+  activityPromoters,
+  activitySummary,
 }: ReferralsOverviewProps) {
   const [search, setSearch] = useState("");
   const [range, setRange] = useState<ReferralRange>("30");
@@ -149,32 +156,23 @@ export function ReferralsOverview({
       toast.error("No records to export.");
       return;
     }
-    const csv = rows
-      .map((row) =>
-        row
-          .map((value) => {
-            const text = String(value);
-            const safe =
-              typeof value === "string" && /^[=+@\-\t\r\n]/.test(text)
-                ? `'${text}`
-                : text;
-            return `"${safe.replaceAll('"', '""')}"`;
-          })
-          .join(","),
-      )
-      .join("\r\n");
-    const url = URL.createObjectURL(
-      new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }),
+    downloadReferralCsv(
+      rows,
+      `hoste-referrals-${tab.toLowerCase().replaceAll(" ", "-")}-${range}-days.csv`,
     );
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `hoste-referrals-${tab.toLowerCase().replaceAll(" ", "-")}-${range}-days.csv`;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
     toast.success("Referral report exported.");
   };
+
+  if (tab === "Referral Activity") {
+    return (
+      <ReferralActivity
+        rows={activityRecords}
+        promoters={activityPromoters}
+        summary={activitySummary}
+        onTabChange={setTab}
+      />
+    );
+  }
 
   return (
     <div className="min-w-[1024px] tracking-normal">
@@ -258,21 +256,7 @@ export function ReferralsOverview({
             </Button>
           </div>
         </div>
-        <nav
-          aria-label="Referral sections"
-          className="flex gap-7 border-b border-border"
-        >
-          {TABS.map((item) => (
-            <button
-              key={item}
-              aria-current={tab === item ? "page" : undefined}
-              onClick={() => setTab(item)}
-              className={`border-b-2 pb-3 text-xs ${tab === item ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
-            >
-              {item}
-            </button>
-          ))}
-        </nav>
+        <ReferralTabs activeTab={tab} onTabChange={setTab} />
         {tab === "Overview" ? (
           <>
             <div className="flex items-center justify-between gap-3 rounded-md border border-border border-l-[3px] border-l-success bg-card px-4 py-3 text-[10px]">

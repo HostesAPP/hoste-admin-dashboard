@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
 import { ReferralsOverview } from "@/features/referrals/components/referrals.overview";
+import { Toaster } from "@/components/ui/sonner";
+import {
+  MOCK_ACTIVITY_PROMOTERS,
+  MOCK_ACTIVITY_REFERRALS,
+  MOCK_ACTIVITY_SUMMARY,
+} from "@/features/referrals/data/referrals.activity.data";
 import {
   MOCK_RECENT_REFERRALS,
   MOCK_REFERRAL_OVERVIEW,
@@ -12,12 +18,18 @@ export const metadata: Metadata = { title: "Referral Overview | Hosté Admin" };
 
 export default function ReferralsPage() {
   return (
-    <ReferralsOverview
-      summary={MOCK_REFERRAL_OVERVIEW}
-      topReferrers={MOCK_TOP_REFERRERS}
-      promoters={MOCK_REFERRAL_PROMOTERS}
-      activity={MOCK_RECENT_REFERRALS}
-      chartData={MOCK_REFERRAL_PERFORMANCE}
-    />
+    <>
+      <Toaster />
+      <ReferralsOverview
+        summary={MOCK_REFERRAL_OVERVIEW}
+        topReferrers={MOCK_TOP_REFERRERS}
+        promoters={MOCK_REFERRAL_PROMOTERS}
+        activity={MOCK_RECENT_REFERRALS}
+        chartData={MOCK_REFERRAL_PERFORMANCE}
+        activityRecords={MOCK_ACTIVITY_REFERRALS}
+        activityPromoters={MOCK_ACTIVITY_PROMOTERS}
+        activitySummary={MOCK_ACTIVITY_SUMMARY}
+      />
+    </>
   );
 }
