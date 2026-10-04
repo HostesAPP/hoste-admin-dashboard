@@ -18,10 +18,10 @@ export function PaymentHeader({
       {/* Title & Subtitle */}
       <div>
         <h1 className="text-xl font-bold tracking-tight text-foreground">
-          Profiles
+          Payments Overview
         </h1>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Host profile approvals &amp; account management
+          Manage all systems and push notifications
         </p>
       </div>
 
