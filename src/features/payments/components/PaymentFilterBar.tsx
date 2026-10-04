@@ -107,7 +107,9 @@ export function PaymentFilter({ onExport }: { onExport: () => void }) {
             <DropdownMenu>
               <DropdownMenuTrigger className="h-10 text-xs font-normal border border-border/80 bg-card hover:bg-muted/50 px-3.5 gap-2 text-muted-foreground min-w-[85px] justify-between inline-flex items-center rounded-md cursor-pointer">
                 <span>
-                  <span className="capitalize">{name}: </span>
+                  <span className="capitalize text-[13px] font-medium">
+                    {name}:{" "}
+                  </span>
                   {filter.options.find((option) => option.value === field.value)
                     ?.label ?? filter.label}
                 </span>
