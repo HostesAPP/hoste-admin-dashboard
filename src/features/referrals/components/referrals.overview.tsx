@@ -5,6 +5,17 @@ import Link from "next/link";
 import { ArrowRight, Bell, Download, Search } from "lucide-react";
 import { toast } from "sonner";
 import { ReferralActivity } from "./referral.activity";
+import { ReferralPayouts } from "./referral.payouts";
+import { RewardsApprovals } from "./rewards.approvals";
+import { ReferrersDirectory } from "./referrers.directory";
+import { reviewMockReward } from "../data/rewards.data";
+import type { PayoutsData } from "../payouts.types";
+import type { RewardReferrer, RewardsSnapshot } from "../rewards.types";
+import type {
+  DirectoryReferrer,
+  ReferrerHistoryRecord,
+  ReferrersSummary,
+} from "../referrers.types";
 import { ReferralTabs } from "./referral.tabs";
 import { downloadReferralCsv } from "../referrals.export";
 import type {
@@ -57,6 +68,12 @@ interface ReferralsOverviewProps {
   activityRecords: ActivityReferral[];
   activityPromoters: ActivityPromoter[];
   activitySummary: ActivitySummary;
+  directoryRows: DirectoryReferrer[];
+  directoryHistory: ReferrerHistoryRecord[];
+  directorySummary: ReferrersSummary;
+  rewardsSnapshot: RewardsSnapshot;
+  rewardReferrers: RewardReferrer[];
+  payoutData: PayoutsData;
 }
 
 export function ReferralsOverview({
@@ -68,10 +85,17 @@ export function ReferralsOverview({
   activityRecords,
   activityPromoters,
   activitySummary,
+  directoryRows,
+  directoryHistory,
+  directorySummary,
+  rewardsSnapshot,
+  rewardReferrers,
+  payoutData,
 }: ReferralsOverviewProps) {
   const [search, setSearch] = useState("");
   const [range, setRange] = useState<ReferralRange>("30");
   const [tab, setTab] = useState<ReferralTab>("Overview");
+  const [rewards, setRewards] = useState(rewardsSnapshot);
   const query = search.trim().toLowerCase();
   // Historical mock snapshot; API integration should supply the reporting period.
   const end = new Date(`${summary.periodEnd}T00:00:00Z`);
@@ -169,6 +193,45 @@ export function ReferralsOverview({
         rows={activityRecords}
         promoters={activityPromoters}
         summary={activitySummary}
+        onTabChange={setTab}
+      />
+    );
+  }
+
+  if (tab === "Referrers") {
+    return (
+      <ReferrersDirectory
+        rows={directoryRows}
+        history={directoryHistory}
+        summary={directorySummary}
+        onTabChange={setTab}
+      />
+    );
+  }
+
+  if (tab === "Rewards & Approvals") {
+    return (
+      <RewardsApprovals
+        snapshot={rewards}
+        referrers={rewardReferrers}
+        onTabChange={setTab}
+        onReview={async (id, decision, note) => {
+          const response = await reviewMockReward(rewards, id, decision, note);
+          setRewards(response);
+          toast.success(
+            decision === "Approved" ? "Reward approved." : "Reward rejected.",
+          );
+        }}
+      />
+    );
+  }
+
+  if (tab === "Payouts") {
+    return (
+      <ReferralPayouts
+        {...payoutData}
+        referrers={directoryRows}
+        history={directoryHistory}
         onTabChange={setTab}
       />
     );
