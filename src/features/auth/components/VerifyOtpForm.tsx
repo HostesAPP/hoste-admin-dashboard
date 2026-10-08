@@ -9,7 +9,9 @@ import { Loader2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { otpSchema, type OtpFormValues } from "../schemas/auth.schema";
-import { useVerifyOtp, useResendOtp } from "../hooks/auth.hooks";
+import { useVerifyOtp, useResendOtp, extractAuthData } from "../hooks/auth.hooks";
+import { useAuthStore } from "../auth.store";
+import type { LoginResponse } from "../types/auth.types";
 
 interface VerifyOtpFormProps {
   email?: string;
@@ -18,7 +20,7 @@ interface VerifyOtpFormProps {
 export function VerifyOtpForm({ email: initialEmail }: VerifyOtpFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get("email") || initialEmail || "admin@hoste.app";
+  const email = searchParams.get("email") || initialEmail || "hostedevelopers@gmail.com";
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const [serverError, setServerError] = useState("");
   const [resendCooldown, setResendCooldown] = useState(60);
@@ -153,11 +155,11 @@ export function VerifyOtpForm({ email: initialEmail }: VerifyOtpFormProps) {
       { email, otp: values.otp },
       {
         onSuccess: (response) => {
-          if (response?.data?.user && response?.data?.tokens?.accessToken) {
-            router.push("/");
-          } else {
-            router.push("/");
+          const authData = extractAuthData(response as unknown as LoginResponse);
+          if (authData) {
+            useAuthStore.getState().setAuth(authData.accessToken, authData.user);
           }
+          router.push("/");
         },
         onError: (error) => {
           setServerError(
