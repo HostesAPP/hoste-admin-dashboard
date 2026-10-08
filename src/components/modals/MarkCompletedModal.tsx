@@ -3,97 +3,117 @@
 import React from "react";
 import { X, Check } from "lucide-react";
 
-interface ConfirmBookingModalProps {
+interface MarkCompletedModalProps {
   isOpen: boolean;
   onClose: () => void;
-  bookingId?: string;
-  eventName?: string;
-  eventDate?: string;
-  assignedHostesCount?: number;
-  onConfirm?: () => void;
+  onConfirm: () => void;
+  bookingId: string;
 }
 
-export default function ConfirmBookingModal({
+export default function MarkCompletedModal({
   isOpen,
   onClose,
-  bookingId = "#BK-10482",
-  eventName = "Luxury Corporate Dinner",
-  eventDate = "August 28, 2026",
-  assignedHostesCount = 8,
   onConfirm,
-}: ConfirmBookingModalProps) {
+  bookingId,
+}: MarkCompletedModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="relative w-full max-w-[480px] bg-white p-6 shadow-xl">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 font-sans text-slate-900"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-lg bg-white p-6 shadow-xl border border-slate-100"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close button */}
         <button
-          onClick={onClose}
           type="button"
-          className="absolute right-5 top-5 text-gray-400 hover:text-gray-600"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClose();
+          }}
+          className="absolute right-5 top-5 text-slate-400 hover:text-slate-600 transition-colors"
+          aria-label="Close modal"
         >
-          <X className="h-5 w-5" />
+          <X className="h-6 w-6 stroke-[1.75]" />
         </button>
 
-        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] text-[#0F9D58]">
-          <Check className="h-5 w-5 stroke-[2.5]" />
+        {/* Icon */}
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#E6F0EB]">
+          <Check className="h-6 w-6 text-[#006837] stroke-[2.5]" />
         </div>
 
-        <h2 className="text-xl font-bold text-slate-900">
+        {/* Title */}
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900">
           Mark booking as completed?
         </h2>
 
-        <p className="mt-2 text-sm leading-snug text-slate-600">
+        {/* Description */}
+        <p className="mt-2 text-base leading-relaxed text-slate-600">
           You’re about to mark booking{" "}
           <span className="font-bold text-slate-900">{bookingId}</span> as
           completed. This will close the booking and record it as successfully
           fulfilled.
         </p>
 
-        <div className="mt-6 border border-gray-200 bg-[#F8FAFC]/50 p-4">
-          <div className="grid grid-cols-2 gap-y-4 gap-x-4">
+        {/* Booking details */}
+        <div className="mt-6 border border-slate-200/80 bg-slate-50/50 p-4">
+          <div className="grid grid-cols-2 gap-y-4">
             <div>
-              <p className="text-xs text-slate-400">Booking ID</p>
+              <p className="text-xs font-medium text-slate-500">Booking ID</p>
               <p className="mt-1 text-sm font-bold text-slate-900">
                 {bookingId}
               </p>
             </div>
+
             <div>
-              <p className="text-xs text-slate-400">Event</p>
+              <p className="text-xs font-medium text-slate-500">Event</p>
               <p className="mt-1 text-sm font-bold text-slate-900">
-                {eventName}
+                Luxury Corporate Dinner
               </p>
             </div>
+
             <div>
-              <p className="text-xs text-slate-400">Date</p>
+              <p className="text-xs font-medium text-slate-500">Date</p>
               <p className="mt-1 text-sm font-bold text-slate-900">
-                {eventDate}
+                August 28, 2026
               </p>
             </div>
+
             <div>
-              <p className="text-xs text-slate-400">Assigned Hostés</p>
-              <p className="mt-1 text-sm font-bold text-slate-900">
-                {assignedHostesCount} Hostés
+              <p className="text-xs font-medium text-slate-500">
+                Assigned Hostés
               </p>
+              <p className="mt-1 text-sm font-bold text-slate-900">8 Hostés</p>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-end space-x-3">
+        {/* Actions */}
+        <div className="mt-8 flex justify-end gap-3">
           <button
             type="button"
-            onClick={onClose}
-            className="border border-gray-300 px-6 py-2.5 text-sm font-medium text-slate-700 hover:bg-gray-50"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
+            className="border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-800 cursor-pointer transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 active:bg-slate-100"
           >
             Cancel
           </button>
+
           <button
             type="button"
-            onClick={() => {
-              if (onConfirm) onConfirm();
-              onClose();
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onConfirm();
             }}
-            className="bg-[#E65100] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#cc4700] transition"
+            className="bg-[#EF5A22] px-6 py-3 text-sm font-semibold text-white shadow-sm cursor-pointer transition-colors hover:bg-[#d84d1a] focus:outline-none focus:ring-2 focus:ring-[#EF5A22] focus:ring-offset-2 active:bg-[#c44315]"
           >
             Mark as Completed
           </button>

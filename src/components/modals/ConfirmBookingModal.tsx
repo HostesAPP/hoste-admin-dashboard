@@ -3,96 +3,99 @@
 import React from "react";
 import { X } from "lucide-react";
 
-interface ConfirmBookingModalProps {
-  isOpen: boolean;
+type ConfirmationModalProps = {
+  isOpen?: boolean;
   onClose: () => void;
-  bookingId?: string;
-  eventName?: string;
-  eventDate?: string;
-  assignedHostesCount?: number;
   onConfirm: () => void;
-}
+  bookingId?: string;
+};
 
-export default function ConfirmBookingModal({
-  isOpen,
+export default function ConfirmationModal({
+  isOpen = false,
   onClose,
-  bookingId = "#BK-10482",
-  eventName = "Luxury Corporate Dinner",
-  eventDate = "August 28, 2026",
-  assignedHostesCount = 8,
   onConfirm,
-}: ConfirmBookingModalProps) {
+  bookingId = "#BK-10482",
+}: ConfirmationModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4">
-      <div className="relative w-full max-w-[480px] rounded-2xl bg-white p-6 shadow-xl">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 font-sans text-slate-900">
+      {" "}
+      <div className="relative w-full max-w-lg border border-slate-100 bg-white p-6 shadow-xl">
+        {/* Close Button */}{" "}
         <button
           type="button"
           onClick={onClose}
+          className="absolute right-5 top-5 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
           aria-label="Close modal"
-          className="absolute right-5 top-5 rounded-full p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
         >
-          <X className="h-5 w-5" />
+          {" "}
+          <X className="h-5 w-5 stroke-[1.75]" />{" "}
         </button>
-
-        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-orange-50 text-lg font-bold text-[#EE6038]">
-          !
+        {/* Warning Icon */}
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50">
+          <span className="text-2xl font-semibold text-amber-500">!</span>
         </div>
-
-        <h2 className="text-xl font-bold text-slate-900">
+        {/* Title */}
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900">
           Confirm this booking?
         </h2>
-
-        <p className="mt-2 text-xs leading-relaxed text-slate-500">
-          You&apos;re about to confirm booking{" "}
-          <span className="font-bold text-slate-800">{bookingId}</span> for{" "}
-          <span className="font-bold text-slate-800">{eventName}</span>. The
-          assigned Hostés will be notified and the booking will move to
+        {/* Description */}
+        <p className="mt-2 text-sm leading-relaxed text-slate-600">
+          You’re about to confirm booking{" "}
+          <span className="font-bold text-slate-900">{bookingId}</span> for{" "}
+          <span className="font-bold text-slate-900">
+            Luxury Corporate Dinner
+          </span>
+          . The assigned Hostés will be notified and the booking will move to
           Confirmed.
         </p>
-
-        <div className="mt-5 rounded-xl border border-gray-100 bg-[#F9FAFB] p-4">
-          <div className="grid grid-cols-2 gap-x-2 gap-y-4">
+        {/* Info Card */}
+        <div className="mt-6 rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
+          <div className="grid grid-cols-2 gap-y-4">
+            {/* Booking ID */}
             <div>
-              <p className="text-[11px] font-medium text-gray-400">
-                Booking ID
-              </p>
-              <p className="mt-0.5 text-xs font-bold text-slate-900">
+              <p className="text-xs font-medium text-slate-500">Booking ID</p>
+
+              <p className="mt-1 text-sm font-bold text-slate-900">
                 {bookingId}
               </p>
             </div>
 
+            {/* Event */}
             <div>
-              <p className="text-[11px] font-medium text-gray-400">Event</p>
-              <p className="mt-0.5 text-xs font-bold text-slate-900">
-                {eventName}
+              <p className="text-xs font-medium text-slate-500">Event</p>
+
+              <p className="mt-1 text-sm font-bold text-slate-900">
+                Luxury Corporate Dinner
               </p>
             </div>
 
+            {/* Date */}
             <div>
-              <p className="text-[11px] font-medium text-gray-400">Date</p>
-              <p className="mt-0.5 text-xs font-bold text-slate-900">
-                {eventDate}
+              <p className="text-xs font-medium text-slate-500">Date</p>
+
+              <p className="mt-1 text-sm font-bold text-slate-900">
+                August 28, 2026
               </p>
             </div>
 
+            {/* Assigned Hostés */}
             <div>
-              <p className="text-[11px] font-medium text-gray-400">
+              <p className="text-xs font-medium text-slate-500">
                 Assigned Hostés
               </p>
-              <p className="mt-0.5 text-xs font-bold text-slate-900">
-                {assignedHostesCount} Hostés
-              </p>
+
+              <p className="mt-1 text-sm font-bold text-slate-900">8 Hostés</p>
             </div>
           </div>
         </div>
-
-        <div className="mt-6 flex items-center justify-end gap-3">
+        {/* Action Buttons */}
+        <div className="mt-8 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-gray-200 px-6 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-gray-50"
+            className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-50"
           >
             Cancel
           </button>
@@ -100,7 +103,7 @@ export default function ConfirmBookingModal({
           <button
             type="button"
             onClick={onConfirm}
-            className="rounded-lg bg-[#EE6038] px-6 py-2.5 text-xs font-bold text-white transition hover:bg-[#d94f29]"
+            className="rounded-xl bg-[#ea580c] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#c2410c]"
           >
             Confirm Booking
           </button>
