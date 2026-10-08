@@ -95,7 +95,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
     items: ["Banners & Blog", "FAQs", "Help & Support Content"],
     summary: "12 Published Articles • 4 Active Banners",
     tone: "primary",
-    href: "/blog",
+    href: "/settings/platform-content",
   },
   {
     id: "security",
@@ -104,7 +104,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
     items: ["Authentication & 2FA", "Session Management", "Login Security"],
     summary: "2FA enabled • Secure sessions active",
     tone: "secondary",
-    href: "/settings/configuration",
+    href: "/settings/security",
   },
   {
     id: "system",
@@ -118,6 +118,6 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
     ],
     summary: "Platform Online • Maintenance Mode Off",
     tone: "primary",
-    href: "/settings/configuration",
+    href: "/settings/system",
   },
 ];
