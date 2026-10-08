@@ -11,7 +11,6 @@ import {
   paymentFilterSchema,
   PaymentFilterSchema,
 } from "../schemas/payment.filter";
-import { object } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 export const paymentFilters = {
@@ -44,7 +43,7 @@ export const paymentFilters = {
 };
 
 export function PaymentFilter({ onExport }: { onExport: () => void }) {
-  const { register, setValue, control, reset, watch } =
+  const { register, setValue, control } =
     useForm<PaymentFilterSchema>({
       resolver: zodResolver(paymentFilterSchema),
       defaultValues: {
@@ -55,33 +54,6 @@ export function PaymentFilter({ onExport }: { onExport: () => void }) {
       },
     });
 
-  const handleConfirmExport = (
-    scope: "all" | "filtered",
-    format: "csv" | "xlsx" | "pdf" | "json",
-  ) => {
-    const targetUsers = scope === "all" ? data?.users || [] : users;
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      ["User ID,Name,Type,Role,Email,Date Joined,Last Active,Status"]
-        .concat(
-          targetUsers.map(
-            (u) =>
-              `"${u.userCode}","${u.name}","${u.type}","${u.roleSubtitle || ""}","${u.email}","${u.dateJoined}","${u.lastActive}","${u.status}"`,
-          ),
-        )
-        .join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute(
-      "download",
-      `users_export.${format === "xlsx" ? "xlsx" : format === "pdf" ? "pdf" : format === "json" ? "json" : "csv"}`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-  const { status, method, date, search } = watch();
   return (
     <div className="flex flex-wrap items-center gap-3 pt-1">
       {/* Search Input */}
