@@ -86,7 +86,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
     ],
     summary: "Email enabled • Push enabled",
     tone: "secondary",
-    href: "/notifications",
+    href: "/settings/notifications",
   },
   {
     id: "content",

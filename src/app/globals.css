@@ -13,6 +13,8 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-warning-surface: var(--warning-surface);
+  --color-warning-border: var(--warning-border);
   --color-yellow: var(--yellow);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -71,6 +73,8 @@
   --success-foreground: #FAFAFA;
   --warning: #92400E;
   --warning-foreground: #FAFAFA;
+  --warning-surface: #FFFFE5;
+  --warning-border: #F1DF65;
   --yellow: #F59E0B;
 
   /* Surfaces & Semantic Colors */
@@ -120,6 +124,8 @@
 }
 
 .dark {
+  --warning-surface: #2D2B16;
+  --warning-border: #6B6228;
   --primary-orange: #EF5A22;
   --secondary-green: #006837;
   --dark: #1A1A1A;

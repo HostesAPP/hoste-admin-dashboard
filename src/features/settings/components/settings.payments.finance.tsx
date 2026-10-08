@@ -259,7 +259,7 @@ function PaymentFinanceForm({
             {snapshot.stats.map((stat) => (
               <div
                 key={stat.label}
-                className={`rounded-lg border p-4 ${stat.highlight ? "border-warning/30 bg-warning/10" : "border-border bg-card"}`}
+                className={`rounded-lg border p-4 ${stat.highlight ? "border-warning-border bg-warning-surface" : "border-border bg-card"}`}
               >
                 <p className="text-[11px] text-muted-foreground">
                   {stat.label}

@@ -202,7 +202,7 @@ export function FinanceEscrowFields({ disabled }: { disabled: boolean }) {
         disabled={disabled}
       />
       {enabled && (
-        <div className="flex gap-2 rounded-md border border-warning/40 bg-warning/10 p-3 text-[11px]">
+        <div className="flex gap-2 rounded-md border border-warning-border bg-warning-surface p-3 text-[11px]">
           <Info className="size-4 shrink-0 text-secondary" />
           <div>
             <p className="font-semibold text-secondary">

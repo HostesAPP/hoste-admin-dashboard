@@ -173,7 +173,8 @@ export function SettingsOverview({
                 category.id === "access" ||
                 category.id === "hoste" ||
                 category.id === "bookings" ||
-                category.id === "payments" ? (
+                category.id === "payments" ||
+                category.id === "notifications" ? (
                   <Link
                     href={category.href}
                     aria-label={`Manage ${category.title}`}

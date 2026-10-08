@@ -505,7 +505,7 @@ export function GeneralSettings({
                 )}
               />
             </div>
-            <p className="mt-3 flex items-center gap-2 rounded-md border border-yellow/20 bg-yellow/10 px-3 py-2.5 text-xs text-warning">
+            <p className="mt-3 flex items-center gap-2 rounded-md border border-warning-border bg-warning-surface px-3 py-2.5 text-xs text-warning">
               <Info aria-hidden="true" className="size-4 shrink-0" />
               Administrators will still have dashboard access.
             </p>
