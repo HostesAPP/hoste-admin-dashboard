@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import type { Booking } from "@/features/bookings/bookings.types";
 import {
   Table,
   TableBody,
@@ -8,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export function PaymentTable() {
+export function PaymentTable({ bookings = [] }: { bookings?: Booking[] }) {
   return (
     <div className="rounded-xl border border-border/80 overflow-hidden">
       <Table>
@@ -99,7 +101,9 @@ export function PaymentTable() {
                 <TableCell className="text-xs font-bold text-foreground">
                   ₦{booking.totalAmount.toLocaleString()}
                 </TableCell>
-                <TableCell>{getStatusBadge(booking.status)}</TableCell>
+                <TableCell>
+                  <StatusBadge status={booking.status} />
+                </TableCell>
                 <TableCell>
                   <span
                     className={`text-xs font-semibold ${
