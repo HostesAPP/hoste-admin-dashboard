@@ -1,5 +1,3 @@
-// features/auth/auth.api.ts
-
 import { apiClient } from "@/lib/api-client";
 import type {
   LoginRequest,
@@ -12,6 +10,8 @@ import type {
   ForgotPasswordResponse,
   ResetPasswordRequest,
   ResetPasswordResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
 } from "./types/auth.types";
 
 export async function login(data: LoginRequest) {
@@ -27,7 +27,6 @@ export async function verifyOtp(data: VerifyOtpRequest) {
     body: JSON.stringify(data),
   });
 }
-
 
 // no route for this yet
 export async function resendOtp(data: ResendOtpRequest) {
@@ -51,9 +50,17 @@ export async function resetPassword(data: ResetPasswordRequest) {
   });
 }
 
+export async function rotateRefreshToken(data: RefreshTokenRequest) {
+  return apiClient<RefreshTokenResponse>("/auth/refresh-token", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
 export async function logout() {
   return apiClient<{ success?: boolean; message?: string }>("/auth/logout", {
     method: "POST",
   });
 }
+
 
