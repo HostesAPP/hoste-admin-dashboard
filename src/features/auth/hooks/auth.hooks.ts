@@ -1,6 +1,4 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { login, verifyOtp, resendOtp, forgotPassword, resetPassword, logout } from "../auth.api";
@@ -9,11 +7,11 @@ import type { LoginResponse, VerifyOtpResponse, User } from "../types/auth.types
 
 
 /**
- * Helper to safely extract authenticated user and accessToken from various backend response shapes.
+ * Helper to safely extract authenticated user, accessToken, and refreshToken from various backend response shapes.
  */
 export function extractAuthData(
   response: LoginResponse | VerifyOtpResponse
-): { user: User; accessToken: string } | null {
+): { user: User; accessToken: string; refreshToken?: string } | null {
   if (!response) return null;
 
   // 1. Direct top-level response: { user, accessToken, ... }
@@ -21,6 +19,7 @@ export function extractAuthData(
     return {
       user: response.user,
       accessToken: response.accessToken,
+      refreshToken: response.refreshToken || response.tokens?.refreshToken,
     };
   }
 
@@ -29,6 +28,7 @@ export function extractAuthData(
     return {
       user: response.user,
       accessToken: response.tokens.accessToken,
+      refreshToken: response.tokens.refreshToken || response.refreshToken,
     };
   }
 
@@ -36,10 +36,12 @@ export function extractAuthData(
   if (response.data && "user" in response.data && response.data.user) {
     const data = response.data;
     const token = data.accessToken || data.tokens?.accessToken;
+    const refreshToken = data.refreshToken || data.tokens?.refreshToken || response.refreshToken;
     if (token) {
       return {
         user: data.user,
         accessToken: token,
+        refreshToken,
       };
     }
   }
@@ -55,7 +57,7 @@ export function useLogin() {
     onSuccess: (response: LoginResponse) => {
       const auth = extractAuthData(response);
       if (auth) {
-        setAuth(auth.accessToken, auth.user);
+        setAuth(auth.accessToken, auth.user, auth.refreshToken);
       }
     },
   });
@@ -69,11 +71,12 @@ export function useVerifyOtp() {
     onSuccess: (response: VerifyOtpResponse) => {
       const auth = extractAuthData(response);
       if (auth) {
-        setAuth(auth.accessToken, auth.user);
+        setAuth(auth.accessToken, auth.user, auth.refreshToken);
       }
     },
   });
 }
+
 
 // not working yet
 export function useResendOtp() {
@@ -95,8 +98,6 @@ export function useResetPassword() {
 }
 
 export function useLogout() {
-  const router = useRouter();
-
   const clearAuth = useAuthStore((state) => state.clearAuth);
 
   return useMutation({
@@ -104,7 +105,7 @@ export function useLogout() {
     onSettled: () => {
       clearAuth();
       toast.success("Signed out successfully.");
-      router.push("/sign-in");
+      redirect("/sign-in");
     },
   });
 }
