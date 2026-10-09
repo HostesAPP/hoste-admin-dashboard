@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import {
   verifyResetOtpSchema,
   newPasswordSchema,
@@ -225,14 +226,16 @@ export function ResetPasswordForm() {
           setTimerSeconds(119);
           setDigits(["", "", "", "", "", ""]);
           formStep2.setValue("otp", "");
+          toast.success("A fresh verification code has been dispatched.");
           inputRefs.current[0]?.focus();
         },
         onError: (error) => {
-          setServerError(
+          const errorMsg =
             error instanceof Error
               ? error.message
-              : "Failed to resend code. Please try again."
-          );
+              : "Failed to resend code. Please try again.";
+          setServerError(errorMsg);
+          toast.error(errorMsg);
         },
       }
     );
@@ -256,18 +259,21 @@ export function ResetPasswordForm() {
       },
       {
         onSuccess: () => {
+          toast.success("Password reset successfully! Please sign in with your new password.");
           setIsSuccessComplete(true);
         },
         onError: (error) => {
-          setServerError(
+          const errorMsg =
             error instanceof Error
               ? error.message
-              : "Failed to reset password. Please verify your reset code and try again."
-          );
+              : "Failed to reset password. Please verify your reset code and try again.";
+          setServerError(errorMsg);
+          toast.error(errorMsg);
         },
       }
     );
   };
+
 
   // Success Complete Screen
   if (isSuccessComplete) {

@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { login, verifyOtp, resendOtp, forgotPassword, resetPassword, logout } from "../auth.api";
 import { useAuthStore } from "../auth.store";
 import type { LoginResponse, VerifyOtpResponse, User } from "../types/auth.types";
+
 
 /**
  * Helper to safely extract authenticated user and accessToken from various backend response shapes.
@@ -94,14 +96,17 @@ export function useResetPassword() {
 
 export function useLogout() {
   const router = useRouter();
+
   const clearAuth = useAuthStore((state) => state.clearAuth);
 
   return useMutation({
     mutationFn: logout,
     onSettled: () => {
       clearAuth();
+      toast.success("Signed out successfully.");
       router.push("/sign-in");
     },
   });
 }
+
 

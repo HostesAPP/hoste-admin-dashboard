@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { otpSchema, type OtpFormValues } from "../schemas/auth.schema";
 import { useVerifyOtp, useResendOtp, extractAuthData } from "../hooks/auth.hooks";
 import { useAuthStore } from "../auth.store";
@@ -136,14 +137,16 @@ export function VerifyOtpForm({ email: initialEmail }: VerifyOtpFormProps) {
           setTimeLeft(600);
           setDigits(["", "", "", "", "", ""]);
           setValue("otp", "");
+          toast.success("A new verification code has been sent to your email.");
           inputRefs.current[0]?.focus();
         },
         onError: (error) => {
-          setServerError(
+          const errorMsg =
             error instanceof Error
               ? error.message
-              : "Failed to resend OTP. Please try again."
-          );
+              : "Failed to resend OTP. Please try again.";
+          setServerError(errorMsg);
+          toast.error(errorMsg);
         },
       }
     );
@@ -159,18 +162,21 @@ export function VerifyOtpForm({ email: initialEmail }: VerifyOtpFormProps) {
           if (authData) {
             useAuthStore.getState().setAuth(authData.accessToken, authData.user);
           }
+          toast.success("Identity verified! Welcome to Hosté Admin.");
           router.push("/");
         },
         onError: (error) => {
-          setServerError(
+          const errorMsg =
             error instanceof Error
               ? error.message
-              : "Invalid verification code. Please try again."
-          );
+              : "Invalid verification code. Please try again.";
+          setServerError(errorMsg);
+          toast.error(errorMsg);
         },
       }
     );
   };
+
 
   return (
     <div className="w-full text-center">
