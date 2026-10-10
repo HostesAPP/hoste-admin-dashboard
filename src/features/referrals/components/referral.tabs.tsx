@@ -1,4 +1,4 @@
-import type { ReferralTab } from "../referrals.overview.types";
+import type { ReferralTab } from "../types/referrals.overview.types";
 
 const TABS: ReferralTab[] = [
   "Overview",

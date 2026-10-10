@@ -2,14 +2,15 @@ import type {
   DirectoryReferrer,
   ReferrerHistoryRecord,
   ReferrersSummary,
-} from "../referrers.types";
+} from "../types/referrers.types";
 
 export const MOCK_REFERRERS_SUMMARY: ReferrersSummary = {
   periodEnd: "2026-09-02",
   total: 127,
   active: 98,
   activeRate: "77.2%",
-  breakdown: "52 Students · 31 Individuals · 18 Brands · 14 Clubs · 12 Partners",
+  breakdown:
+    "52 Students · 31 Individuals · 18 Brands · 14 Clubs · 12 Partners",
   successful: 842,
   successfulEarnings: 842000,
   totalRewards: 4210000,

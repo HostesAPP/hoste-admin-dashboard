@@ -19,9 +19,9 @@ import {
 import type {
   DirectoryReferrer,
   ReferrerHistoryRecord,
-} from "../referrers.types";
-import type { ReferralTab } from "../referrals.overview.types";
-import type { PayoutsData } from "../payouts.types";
+} from "../types/referrers.types";
+import type { ReferralTab } from "../types/referrals.overview.types";
+import type { PayoutsData } from "../types/payouts.types";
 import {
   payoutsFilterSchema,
   PAYOUT_FILTER_DEFAULTS,

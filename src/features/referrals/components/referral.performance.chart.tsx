@@ -13,7 +13,7 @@ import {
 import type {
   ReferralMetric,
   ReferralPerformancePoint,
-} from "../referrals.overview.types";
+} from "../types/referrals.overview.types";
 
 const METRICS: { value: ReferralMetric; label: string }[] = [
   { value: "referrals", label: "Referrals" },

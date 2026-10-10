@@ -3,7 +3,7 @@ import type {
   ReferralPerformancePoint,
   ReferralOverviewSummary,
   ReferrerOverview,
-} from "../referrals.overview.types";
+} from "../types/referrals.overview.types";
 
 export const MOCK_REFERRAL_OVERVIEW = {
   periodEnd: "2026-08-31",
