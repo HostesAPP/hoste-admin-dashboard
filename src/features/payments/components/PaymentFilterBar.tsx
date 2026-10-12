@@ -42,10 +42,19 @@ export const paymentFilters = {
   },
 };
 
-export function PaymentFilter({ onExport }: { onExport: () => void }) {
+export function PaymentFilter({
+  onExport,
+  filters,
+  onFiltersChange,
+}: {
+  onExport: () => void;
+  filters?: PaymentFilterSchema;
+  onFiltersChange?: (filters: Partial<PaymentFilterSchema>) => void;
+}) {
   const { register, setValue, control } =
     useForm<PaymentFilterSchema>({
       resolver: zodResolver(paymentFilterSchema),
+      values: filters,
       defaultValues: {
         search: "",
         date: "LAST_30_DAYS",
@@ -61,10 +70,12 @@ export function PaymentFilter({ onExport }: { onExport: () => void }) {
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           {...register("search")}
+          aria-label="Search transactions"
           placeholder="Search by name, email, phone number or User ID..."
           className="pl-10 h-10 text-xs rounded-lg bg-card border-border/80 focus-visible:ring-primary focus-visible:ring-1"
           onChange={(e) => {
             setValue("search", e.target.value);
+            onFiltersChange?.({ search: e.target.value });
           }}
         />
       </div>
@@ -91,7 +102,10 @@ export function PaymentFilter({ onExport }: { onExport: () => void }) {
                 {filter.options.map(({ label, value }) => (
                   <DropdownMenuItem
                     key={value}
-                    onSelect={() => field.onChange(value)}
+                    onClick={() => {
+                      field.onChange(value);
+                      onFiltersChange?.({ [field.name]: value });
+                    }}
                   >
                     {label}
                   </DropdownMenuItem>

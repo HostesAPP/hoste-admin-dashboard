@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { PageHeaderLayout } from "@/components/shared/PageHeaderLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ import {
   Search,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import {
   MOCK_PAYMENTS,
   MOCK_PAYOUTS,
@@ -52,8 +54,18 @@ import { PaymentHeader } from "@/features/payments/components/PaymentHeader";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { PaymentFilter } from "./PaymentFilterBar";
+import { PaymentTable } from "./PaymentTable";
+import {
+  mockTransactionsAdapter,
+  type TransactionsAdapter,
+} from "../transactions.adapter";
+import type { PaymentFilterSchema } from "../schemas/payment.filter";
 
-export default function PaymentsView() {
+export default function PaymentsView({
+  transactionsAdapter = mockTransactionsAdapter,
+}: {
+  transactionsAdapter?: TransactionsAdapter;
+}) {
   const [payments, setPayments] = useState<PaymentItem[]>(MOCK_PAYMENTS);
   const [payouts, setPayouts] = useState<PayoutItem[]>(MOCK_PAYOUTS);
   const [refunds, setRefunds] = useState<RefundItem[]>(MOCK_REFUNDS);
@@ -62,6 +74,35 @@ export default function PaymentsView() {
     "PAYMENTS" | "PAYOUTS" | "REFUNDS"
   >("PAYMENTS");
   const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<PaymentFilterSchema>({
+    search: "",
+    date: "LAST_30_DAYS",
+    status: "ALL",
+    method: "ALL",
+  });
+  const [page, setPage] = useState(1);
+  const [retryingId, setRetryingId] = useState<string | null>(null);
+  const transactions = useQuery({
+    queryKey: ["payments", "transactions", filters, page],
+    queryFn: () => transactionsAdapter.list(filters, page, 7),
+  });
+  const changeFilters = (changes: Partial<PaymentFilterSchema>) => {
+    setFilters((previous) => ({ ...previous, ...changes }));
+    if (changes.search !== undefined) setSearch(changes.search);
+    setPage(1);
+  };
+  const retry = async (id: string) => {
+    setRetryingId(id);
+    try {
+      const result = await transactionsAdapter.retry(id);
+      toast.info(result.message);
+      await transactions.refetch();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to retry payment.");
+    } finally {
+      setRetryingId(null);
+    }
+  };
 
   // Manual Payout Trigger state
   const [selectedPayout, setSelectedPayout] = useState<PayoutItem | null>(null);
@@ -139,15 +180,22 @@ export default function PaymentsView() {
     setRefundDescription("");
   };
 
-  const handleCSVExport = () => {
-    if (payments.length === 0) {
+  const handleCSVExport = async () => {
+    let exportRows;
+    try {
+      exportRows = (await transactionsAdapter.list(filters, 1, Number.MAX_SAFE_INTEGER)).rows;
+    } catch {
+      toast.error("Unable to export transactions.");
+      return;
+    }
+    if (exportRows.length === 0) {
       toast.error("No payments to export.");
       return;
     }
 
     const rows = [
       ["Reference", "Type", "Payer", "Gross", "ServiceFee", "GatewayFee", "Status", "CreatedAt"],
-      ...payments.map((payment) => [
+      ...exportRows.map(({ payment }) => [
         payment.referenceId,
         payment.paymentType,
         payment.payerProfileName,
@@ -181,9 +229,10 @@ export default function PaymentsView() {
 
   return (
     <>
+      <Toaster />
       <PaymentHeader
         searchQuery={search}
-        onSearchChange={handleTriggerManualPayout}
+        onSearchChange={(value) => changeFilters({ search: value })}
       />
       <div className="page-content">
         <div className="container mx-auto px-6">
@@ -280,8 +329,23 @@ export default function PaymentsView() {
             </Card>
           </div>
           <div className="filter-bar mt-4">
-            <PaymentFilter onExport={handleCSVExport} />
+            <PaymentFilter
+              onExport={handleCSVExport}
+              filters={filters}
+              onFiltersChange={changeFilters}
+            />
           </div>
+          <PaymentTable
+            transactions={transactions.data?.rows ?? []}
+            total={transactions.data?.total ?? 0}
+            page={page}
+            onPageChange={setPage}
+            onRetry={retry}
+            retryingId={retryingId}
+            loading={transactions.isPending}
+            error={transactions.isError ? transactions.error.message : undefined}
+            onReload={() => void transactions.refetch()}
+          />
         </div>
       </div>
     </>
