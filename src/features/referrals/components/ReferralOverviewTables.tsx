@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import type {
   ReferralActivityOverview,
   ReferrerOverview,
-} from "../referrals.overview.types";
+} from "../types/referrals.overview.types";
 
 export function ReferralTag({ label }: { label: string }) {
   const tone =

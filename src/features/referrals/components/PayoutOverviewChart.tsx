@@ -1,7 +1,7 @@
 "use client";
 
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
-import type { PayoutChartPoint } from "../payouts.types";
+import type { PayoutChartPoint } from "../types/payouts.types";
 
 export function PayoutOverviewChart({ data }: { data: PayoutChartPoint[] }) {
   return (

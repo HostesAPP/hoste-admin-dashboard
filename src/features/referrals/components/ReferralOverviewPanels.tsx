@@ -3,7 +3,7 @@ import { ArrowRight, CircleAlert, Clock3, Flag } from "lucide-react";
 import type {
   ReferralTab,
   ReferralOverviewSummary,
-} from "../referrals.overview.types";
+} from "../types/referrals.overview.types";
 
 export function ReferralMetrics({
   summary,

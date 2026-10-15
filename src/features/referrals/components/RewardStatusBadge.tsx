@@ -1,4 +1,4 @@
-import type { RewardStatus } from "../rewards.types";
+import type { RewardStatus } from "../types/rewards.types";
 
 export function RewardStatusBadge({ status }: { status: RewardStatus }) {
   const tone =

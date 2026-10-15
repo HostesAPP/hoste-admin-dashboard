@@ -19,7 +19,7 @@ import {
 import type {
   ActivityPromoter,
   ActivityReferral,
-} from "../referrals.activity.types";
+} from "../types/referrals.activity.types";
 
 export function ActivityStatus({
   status,

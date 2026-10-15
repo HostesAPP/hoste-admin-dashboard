@@ -22,7 +22,7 @@ import {
 import type {
   DirectoryReferrer,
   ReferrerHistoryRecord,
-} from "../referrers.types";
+} from "../types/referrers.types";
 import { REFERRER_RANGES } from "../schemas/referrers.filter.schema";
 import {
   ReferrerStatusBadge,

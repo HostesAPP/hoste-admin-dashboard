@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import type { ReferralReward, RewardReferrer } from "../rewards.types";
+import type { ReferralReward, RewardReferrer } from "../types/rewards.types";
 import {
   rewardReviewSchema,
   type RewardReviewValues,

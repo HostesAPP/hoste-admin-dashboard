@@ -1,4 +1,4 @@
-import { PlatformSettings } from "../settings.types";
+import { PlatformSettings } from "../types/settings.types";
 
 export const DEFAULT_PLATFORM_SETTINGS: PlatformSettings = {
   currency: "NGN",

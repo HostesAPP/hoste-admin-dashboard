@@ -26,12 +26,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { DirectoryReferrer } from "../referrers.types";
+import type { DirectoryReferrer } from "../types/referrers.types";
 import type {
   ReferralPayout,
   PayoutEvent,
   PayoutRewardRecord,
-} from "../payouts.types";
+} from "../types/payouts.types";
 import { formatPayoutDate } from "../payouts.format";
 import { PayoutStatusBadge } from "./PayoutStatusBadge";
 import { ReferrerStatusBadge } from "./ReferrersControls";

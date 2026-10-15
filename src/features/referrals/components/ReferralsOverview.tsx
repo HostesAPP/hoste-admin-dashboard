@@ -9,20 +9,20 @@ import { ReferralPayouts } from "./ReferralPayouts";
 import { RewardsApprovals } from "./RewardsApprovals";
 import { ReferrersDirectory } from "./ReferrersDirectory";
 import { reviewMockReward } from "../data/rewards.data";
-import type { PayoutsData } from "../payouts.types";
-import type { RewardReferrer, RewardsSnapshot } from "../rewards.types";
+import type { PayoutsData } from "../types/payouts.types";
+import type { RewardReferrer, RewardsSnapshot } from "../types/rewards.types";
 import type {
   DirectoryReferrer,
   ReferrerHistoryRecord,
   ReferrersSummary,
-} from "../referrers.types";
+} from "../types/referrers.types";
 import { ReferralTabs } from "./ReferralTabs";
 import { downloadReferralCsv } from "../referrals.export";
 import type {
   ActivityPromoter,
   ActivityReferral,
   ActivitySummary,
-} from "../referrals.activity.types";
+} from "../types/referrals.activity.types";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +40,7 @@ import type {
   ReferrerOverview,
   ReferralRange,
   ReferralTab,
-} from "../referrals.overview.types";
+} from "../types/referrals.overview.types";
 import {
   ReferralAttention,
   ReferralJourney,

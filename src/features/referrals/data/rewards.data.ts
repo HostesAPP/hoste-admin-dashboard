@@ -2,7 +2,7 @@ import type {
   ReferralReward,
   RewardReferrer,
   RewardsSnapshot,
-} from "../rewards.types";
+} from "../types/rewards.types";
 
 export const MOCK_REWARD_REFERRERS: RewardReferrer[] = [
   {

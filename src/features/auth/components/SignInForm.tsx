@@ -9,8 +9,9 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { signInSchema, type SignInFormValues } from "../schemas/auth.schema";
-import { useLogin } from "../hooks/auth.hooks";
+import { useLogin, extractAuthData } from "../hooks/auth.hooks";
 import { useAuthStore } from "../auth.store";
 
 
@@ -40,29 +41,41 @@ export function SignInForm() {
     setServerError("");
     loginMutation.mutate(values, {
       onSuccess: (response) => {
-        if ("requiresOtp" in response.data && response.data.requiresOtp) {
-          const email = response.data.email || values.email;
+        // Check if OTP verification is required
+        const isOtpRequired =
+          Boolean(response?.requiresOtp) ||
+          Boolean(response?.data && "requiresOtp" in response.data && response.data.requiresOtp);
+
+        if (isOtpRequired) {
+          const email =
+            (response.data && "email" in response.data ? response.data.email : undefined) ||
+            response.email ||
+            values.email;
+          toast.info("Verification code sent to your email.");
           router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
           return;
         }
 
-        if ("tokens" in response.data && response.data.tokens?.accessToken) {
-          setAuth(response.data.user, response.data.tokens.accessToken);
-          router.push("/");
-          return;
+        // Store access token and user in Zustand memory
+        const authData = extractAuthData(response);
+        if (authData) {
+          setAuth(authData.accessToken, authData.user);
         }
 
+        toast.success("Welcome back! Signed in successfully.");
         router.push("/");
       },
       onError: (error) => {
-        setServerError(
+        const errorMsg =
           error instanceof Error
             ? error.message
-            : "Invalid email or password. Please try again."
-        );
+            : "Invalid email or password. Please try again.";
+        setServerError(errorMsg);
+        toast.error(errorMsg);
       },
     });
   };
+
 
   return (
     <div className="w-full">
