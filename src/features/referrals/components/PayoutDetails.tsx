@@ -33,8 +33,8 @@ import type {
   PayoutRewardRecord,
 } from "../types/payouts.types";
 import { formatPayoutDate } from "../payouts.format";
-import { PayoutStatusBadge } from "./payout.status.badge";
-import { ReferrerStatusBadge } from "./referrers.controls";
+import { PayoutStatusBadge } from "./PayoutStatusBadge";
+import { ReferrerStatusBadge } from "./ReferrersControls";
 
 function PayoutRewardsTable({ rows }: { rows: PayoutRewardRecord[] }) {
   return (

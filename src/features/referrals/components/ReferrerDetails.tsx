@@ -28,7 +28,7 @@ import {
   ReferrerStatusBadge,
   ReferrersPagination,
   ReferrersSelect,
-} from "./referrers.controls";
+} from "./ReferrersControls";
 
 export function ReferrerDetails({
   referrer,

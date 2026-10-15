@@ -1,4 +1,4 @@
-import { ReferralsOverview } from "@/features/referrals/components/referrals.overview";
+import { ReferralsOverview } from "@/features/referrals/components/ReferralsOverview";
 import { Toaster } from "@/components/ui/sonner";
 import { MOCK_PAYOUTS_DATA } from "@/features/referrals/data/payouts.data";
 import {
