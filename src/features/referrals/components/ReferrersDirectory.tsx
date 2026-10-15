@@ -35,13 +35,13 @@ import {
   type ReferrersFilters,
 } from "../schemas/referrers.filter.schema";
 import { downloadReferralCsv } from "../referrals.export";
-import { ReferralTabs } from "./referral.tabs";
-import { ReferrerDetails } from "./referrer.details";
+import { ReferralTabs } from "./ReferralTabs";
+import { ReferrerDetails } from "./ReferrerDetails";
 import {
   ReferrerStatusBadge,
   ReferrersPagination,
   ReferrersSelect,
-} from "./referrers.controls";
+} from "./ReferrersControls";
 
 const FILTERS = [
   {

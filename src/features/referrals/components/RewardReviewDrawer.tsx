@@ -20,7 +20,7 @@ import {
   rewardReviewSchema,
   type RewardReviewValues,
 } from "../schemas/rewards.filter.schema";
-import { RewardStatusBadge } from "./reward.status.badge";
+import { RewardStatusBadge } from "./RewardStatusBadge";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString("en-US", {

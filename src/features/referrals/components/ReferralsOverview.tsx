@@ -4,10 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Bell, Download, Search } from "lucide-react";
 import { toast } from "sonner";
-import { ReferralActivity } from "./referral.activity";
-import { ReferralPayouts } from "./referral.payouts";
-import { RewardsApprovals } from "./rewards.approvals";
-import { ReferrersDirectory } from "./referrers.directory";
+import { ReferralActivity } from "./ReferralActivity";
+import { ReferralPayouts } from "./ReferralPayouts";
+import { RewardsApprovals } from "./RewardsApprovals";
+import { ReferrersDirectory } from "./ReferrersDirectory";
 import { reviewMockReward } from "../data/rewards.data";
 import type { PayoutsData } from "../payouts.types";
 import type { RewardReferrer, RewardsSnapshot } from "../rewards.types";
@@ -16,7 +16,7 @@ import type {
   ReferrerHistoryRecord,
   ReferrersSummary,
 } from "../referrers.types";
-import { ReferralTabs } from "./referral.tabs";
+import { ReferralTabs } from "./ReferralTabs";
 import { downloadReferralCsv } from "../referrals.export";
 import type {
   ActivityPromoter,
@@ -46,12 +46,12 @@ import {
   ReferralJourney,
   ReferralMetrics,
   ReferralRules,
-} from "./referral.overview.panels";
-import { ReferralPerformanceChart } from "./referral.performance.chart";
+} from "./ReferralOverviewPanels";
+import { ReferralPerformanceChart } from "./ReferralPerformanceChart";
 import {
   RecentReferralsTable,
   ReferrersTable,
-} from "./referral.overview.tables";
+} from "./ReferralOverviewTables";
 
 const RANGES = [
   { value: "30", label: "Last 30 Days" },

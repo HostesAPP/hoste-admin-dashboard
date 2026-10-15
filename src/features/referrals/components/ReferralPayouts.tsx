@@ -30,12 +30,12 @@ import {
 import { REFERRER_RANGES } from "../schemas/referrers.filter.schema";
 import { downloadReferralCsv } from "../referrals.export";
 import { formatPayoutDate } from "../payouts.format";
-import { ReferralTabs } from "./referral.tabs";
-import { ReferrersPagination, ReferrersSelect } from "./referrers.controls";
-import { ReferrerDetails } from "./referrer.details";
-import { PayoutStatusBadge } from "./payout.status.badge";
-import { PayoutOverviewChart } from "./payout.overview.chart";
-import { PayoutDetails } from "./payout.details";
+import { ReferralTabs } from "./ReferralTabs";
+import { ReferrersPagination, ReferrersSelect } from "./ReferrersControls";
+import { ReferrerDetails } from "./ReferrerDetails";
+import { PayoutStatusBadge } from "./PayoutStatusBadge";
+import { PayoutOverviewChart } from "./PayoutOverviewChart";
+import { PayoutDetails } from "./PayoutDetails";
 
 export interface ReferralPayoutsProps extends PayoutsData {
   referrers: DirectoryReferrer[];

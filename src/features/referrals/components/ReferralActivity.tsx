@@ -32,12 +32,12 @@ import {
   type ReferralActivityFilters,
 } from "../schemas/referral.activity.schema";
 import { downloadReferralCsv } from "../referrals.export";
-import { ReferralTabs } from "./referral.tabs";
-import { ReferralActivityFiltersBar } from "./referral.activity.filters";
+import { ReferralTabs } from "./ReferralTabs";
+import { ReferralActivityFiltersBar } from "./ReferralActivityFilters";
 import {
   ReferralActivityDetails,
   ReferralActivityTable,
-} from "./referral.activity.table";
+} from "./ReferralActivityTable";
 
 export function ReferralActivity({
   rows,

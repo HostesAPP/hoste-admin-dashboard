@@ -23,10 +23,10 @@ import {
   type RewardsFilters,
 } from "../schemas/rewards.filter.schema";
 import { REFERRER_RANGES } from "../schemas/referrers.filter.schema";
-import { ReferrersPagination, ReferrersSelect } from "./referrers.controls";
-import { ReferralTabs } from "./referral.tabs";
-import { RewardStatusBadge } from "./reward.status.badge";
-import { RewardReviewDrawer } from "./reward.review.drawer";
+import { ReferrersPagination, ReferrersSelect } from "./ReferrersControls";
+import { ReferralTabs } from "./ReferralTabs";
+import { RewardStatusBadge } from "./RewardStatusBadge";
+import { RewardReviewDrawer } from "./RewardReviewDrawer";
 import { downloadReferralCsv } from "../referrals.export";
 
 const FILTERS = [

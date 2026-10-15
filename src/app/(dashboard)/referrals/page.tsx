@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ReviewPage } from "@/features/referrals/components/review.page";
+import { ReviewPage } from "@/features/referrals/components/ReviewPage";
 
 export const metadata: Metadata = { title: "Referral Overview | Hosté Admin" };
 
