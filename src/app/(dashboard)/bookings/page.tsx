@@ -1,291 +1,405 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
-  Calendar,
   Search,
-  Filter,
-  Eye,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  XCircle,
-  TrendingUp,
-  CreditCard,
-  ChevronRight,
+  Bell,
+  ChevronDown,
   MoreVertical,
-  ChevronLeft,
+  SlidersHorizontal,
+  Download,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useBookings } from "@/features/bookings/hooks/useBookings";
-import { BookingStatus } from "@/features/bookings/bookings.types";
+
+interface BookingRow {
+  id: string;
+  event: string;
+  client: string;
+  hosteAssigned: string;
+  date: string;
+  amount: string;
+  payment: "Paid" | "Unpaid" | "Pending";
+  status: "Confirmed" | "Pending" | "Completed" | "Cancelled";
+}
+
+const BOOKINGS_DATA: BookingRow[] = [
+  {
+    id: "#BK-10482",
+    event: "Luxury Corporate Dinner",
+    client: "ABC Events Ltd",
+    hosteAssigned: "Amaka Okafor + 7",
+    date: "Aug 28, 2026",
+    amount: "₦250,000",
+    payment: "Paid",
+    status: "Confirmed",
+  },
+  {
+    id: "#BK-10481",
+    event: "Wedding Reception",
+    client: "Sarah Events",
+    hosteAssigned: "Blessing Eze + 5",
+    date: "Aug 27, 2026",
+    amount: "₦180,000",
+    payment: "Paid",
+    status: "Pending",
+  },
+  {
+    id: "#BK-10480",
+    event: "Product Launch",
+    client: "XYZ Brand",
+    hosteAssigned: "Chiamaka Obi + 3",
+    date: "Aug 25, 2026",
+    amount: "₦120,000",
+    payment: "Paid",
+    status: "Completed",
+  },
+  {
+    id: "#BK-10479",
+    event: "Private Gala Night",
+    client: "Vanguard Group",
+    hosteAssigned: "Amaka Okafor + 11",
+    date: "Aug 24, 2026",
+    amount: "₦450,000",
+    payment: "Paid",
+    status: "Confirmed",
+  },
+  {
+    id: "#BK-10478",
+    event: "Annual Tech Summit",
+    client: "Qodebyte Labs",
+    hosteAssigned: "Grace Utomi + 4",
+    date: "Aug 22, 2026",
+    amount: "₦210,000",
+    payment: "Paid",
+    status: "Completed",
+  },
+  {
+    id: "#BK-10477",
+    event: "Fashion Week Afterparty",
+    client: "Style House",
+    hosteAssigned: "Blessing Eze + 8",
+    date: "Aug 20, 2026",
+    amount: "₦320,000",
+    payment: "Paid",
+    status: "Pending",
+  },
+  {
+    id: "#BK-10476",
+    event: "VIP Charity Luncheon",
+    client: "Grace Foundation",
+    hosteAssigned: "Amaka Okafor + 2",
+    date: "Aug 18, 2026",
+    amount: "₦95,000",
+    payment: "Paid",
+    status: "Completed",
+  },
+];
 
 export default function BookingsPage() {
-  const { bookings, kpis, filters, setFilters, updateBookingStatus } = useBookings();
-  const [activeTab, setActiveTab] = useState<string>("All");
+  const [activeTab, setActiveTab] = useState("All Bookings");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    setFilters({
-      ...filters,
-      status: tab === "All" ? "All" : (tab as BookingStatus),
-    });
-  };
-
-  const getStatusBadge = (status: BookingStatus) => {
+  const renderStatusBadge = (status: BookingRow["status"]) => {
     switch (status) {
       case "Confirmed":
-        return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200">Confirmed</Badge>;
-      case "Ongoing":
-        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-200">Ongoing</Badge>;
-      case "Completed":
-        return <Badge className="bg-primary/10 text-primary border-primary/20">Completed</Badge>;
+        return (
+          <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#E8F8EE] text-[#2BB168] border border-[#C6F0D6]">
+            Confirmed
+          </span>
+        );
       case "Pending":
-        return <Badge className="bg-amber-500/10 text-amber-600 border-amber-200">Pending</Badge>;
+        return (
+          <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#FFF8E6] text-[#D99000] border border-[#FFE7B3]">
+            Pending
+          </span>
+        );
+      case "Completed":
+        return (
+          <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#E8F8EE] text-[#2BB168] border border-[#C6F0D6]">
+            Completed
+          </span>
+        );
       case "Cancelled":
-        return <Badge className="bg-muted text-muted-foreground border-border">Cancelled</Badge>;
-      case "Disputed":
-        return <Badge className="bg-destructive/10 text-destructive border-destructive/20">Disputed</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+        return (
+          <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#FDE8E8] text-[#E02424] border border-[#FBD5D5]">
+            Cancelled
+          </span>
+        );
     }
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="w-full bg-[#F9FAFB] min-h-screen text-slate-700 text-xs font-sans">
+      <header className="bg-white border-b border-gray-200 px-8 py-3.5 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Bookings Management
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+            Bookings
           </h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Overview of all customer bookings, schedules, payment states, and status workflows.
+          <p className="text-[11px] text-gray-400 font-normal">
+            All bookings across platform
           </p>
         </div>
-      </div>
 
-      {/* KPI Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-card border border-border/80 rounded-2xl p-4 space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Total Bookings</span>
-            <Calendar className="w-4 h-4 text-primary" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">{kpis.totalBookings}</div>
-          <div className="text-[11px] text-muted-foreground">
-            Revenue: <span className="font-semibold text-foreground">₦{(kpis.totalRevenue / 1000000).toFixed(1)}M</span>
-          </div>
-        </div>
-
-        <div className="bg-card border border-border/80 rounded-2xl p-4 space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Active & Confirmed</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">
-            {kpis.confirmedBookings + kpis.ongoingBookings}
-          </div>
-          <div className="text-[11px] text-muted-foreground">
-            {kpis.ongoingBookings} currently ongoing
-          </div>
-        </div>
-
-        <div className="bg-card border border-border/80 rounded-2xl p-4 space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Completed</span>
-            <TrendingUp className="w-4 h-4 text-blue-500" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">{kpis.completedBookings}</div>
-          <div className="text-[11px] text-muted-foreground">Successful events</div>
-        </div>
-
-        <div className="bg-card border border-border/80 rounded-2xl p-4 space-y-2 shadow-2xs">
-          <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-xs font-semibold">Disputed / Cancelled</span>
-            <AlertTriangle className="w-4 h-4 text-destructive" />
-          </div>
-          <div className="text-2xl font-bold text-foreground">
-            {kpis.disputedBookings + kpis.cancelledBookings}
-          </div>
-          <div className="text-[11px] text-muted-foreground">
-            {kpis.disputedBookings} open disputes
-          </div>
-        </div>
-      </div>
-
-      {/* Main Table Card */}
-      <div className="bg-card border border-border/80 rounded-2xl shadow-2xs space-y-4 p-5">
-        {/* Status Filter Tabs */}
-        <div className="flex items-center gap-2 border-b border-border/60 pb-3 overflow-x-auto">
-          {["All", "Pending", "Confirmed", "Ongoing", "Completed", "Cancelled", "Disputed"].map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => handleTabChange(tab)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap ${
-                activeTab === tab
-                  ? "bg-primary text-primary-foreground shadow-2xs"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* Search & Date Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search booking ID, customer, host, event..."
-              value={filters.search || ""}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-              className="pl-9 h-9 rounded-xl text-xs bg-background border-border/80"
+        <div className="flex items-center space-x-5">
+          <div className="relative w-80">
+            <Search className="w-4 h-4 absolute left-3 top-2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search anything..."
+              className="w-full pl-9 pr-4 py-1.5 bg-[#F3F4F6] text-xs rounded-md focus:outline-none placeholder-gray-400 text-slate-800"
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Input
-              type="date"
-              value={filters.startDate || ""}
-              onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-              className="h-9 rounded-xl text-xs bg-background border-border/80"
+          <div className="relative cursor-pointer">
+            <Bell className="w-5 h-5 text-gray-500" />
+            <span className="absolute -top-1.5 -right-1.5 bg-[#E0533C] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              12
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-2.5 pl-3 border-l border-gray-200">
+            <Image
+              src="/Image/name.png"
+              alt="John Admin Avatar"
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-full object-cover"
             />
-            <span className="text-xs text-muted-foreground">to</span>
-            <Input
-              type="date"
-              value={filters.endDate || ""}
-              onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-              className="h-9 rounded-xl text-xs bg-background border-border/80"
-            />
+            <div className="leading-tight">
+              <p className="text-xs font-bold text-slate-900">John Admin</p>
+              <p className="text-[10px] text-gray-400 font-normal">
+                Super Admin
+              </p>
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* Bookings Table */}
-        <div className="rounded-xl border border-border/80 overflow-hidden">
-          <Table>
-            <TableHeader className="bg-muted/30">
-              <TableRow>
-                <TableHead className="text-xs font-bold text-foreground">Booking Code</TableHead>
-                <TableHead className="text-xs font-bold text-foreground">Customer</TableHead>
-                <TableHead className="text-xs font-bold text-foreground">Host / Brand</TableHead>
-                <TableHead className="text-xs font-bold text-foreground">Event & Date</TableHead>
-                <TableHead className="text-xs font-bold text-foreground">Total Amount</TableHead>
-                <TableHead className="text-xs font-bold text-foreground">Status</TableHead>
-                <TableHead className="text-xs font-bold text-foreground">Payment</TableHead>
-                <TableHead className="text-xs font-bold text-foreground text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {bookings.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-10 text-xs text-muted-foreground">
-                    No bookings found matching your filters.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                bookings.map((booking) => (
-                  <TableRow key={booking.id} className="hover:bg-muted/20 transition-colors">
-                    <TableCell className="font-bold text-xs text-primary">
-                      <Link href={`/bookings/${booking.id}`} className="hover:underline">
-                        {booking.bookingCode}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-foreground">{booking.customerName}</span>
-                        <span className="text-[10px] text-muted-foreground">{booking.customerEmail}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-foreground">{booking.hostName}</span>
-                        {booking.brandName && (
-                          <span className="text-[10px] text-muted-foreground">{booking.brandName}</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-foreground">{booking.eventName}</span>
-                        <span className="text-[10px] text-muted-foreground">{booking.eventDate} ({booking.location})</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs font-bold text-foreground">
-                      ₦{booking.totalAmount.toLocaleString()}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(booking.status)}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`text-xs font-semibold ${
-                          booking.paymentStatus === "Paid"
-                            ? "text-emerald-600"
-                            : booking.paymentStatus === "Refunded"
-                            ? "text-muted-foreground"
-                            : "text-amber-600"
-                        }`}
-                      >
-                        {booking.paymentStatus}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          type="button"
-                          className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+      <main className="p-8 space-y-6 max-w-[1400px] mx-auto">
+        <div className="flex justify-end space-x-3">
+          <button className="flex items-center space-x-1.5 border border-gray-300 bg-white px-4 py-1.5 rounded-md text-slate-700 font-medium hover:bg-gray-50">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-gray-500" />
+            <span>Filter</span>
+          </button>
+          <button className="flex items-center space-x-1.5 border border-gray-300 bg-white px-4 py-1.5 rounded-md text-slate-700 font-medium hover:bg-gray-50">
+            <Download className="w-3.5 h-3.5 text-gray-500" />
+            <span>Export</span>
+          </button>
+        </div>
+        <div className="grid grid-cols-4 gap-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-between h-28 relative">
+            <span className="text-xs text-gray-400 font-normal">
+              Total Bookings
+            </span>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-2xl font-black text-slate-900">1,284</span>
+              <div className="text-right">
+                <span className="text-xs font-bold text-[#10B981]">+12%</span>
+                <p className="text-[10px] text-gray-400 leading-none">
+                  vs last mo
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-between h-28">
+            <span className="text-xs text-gray-400 font-normal">
+              Pending Action
+            </span>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-2xl font-black text-[#D97706]">42</span>
+              <span className="text-[10px] text-gray-400 leading-tight text-right w-16">
+                Requires attention
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-between h-28">
+            <span className="text-xs text-gray-400 font-normal">Confirmed</span>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-2xl font-black text-[#059669]">186</span>
+              <span className="text-[10px] text-gray-400 leading-tight text-right w-16">
+                Upcoming events
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-between h-28">
+            <span className="text-xs text-gray-400 font-normal">Completed</span>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-2xl font-black text-slate-900">1,012</span>
+              <div className="text-right">
+                <span className="text-xs font-bold text-[#10B981]">98.4%</span>
+                <p className="text-[10px] text-gray-400 leading-none">
+                  fulfill rate
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-5">
+          <div className="flex space-x-7 border-b border-gray-100 pb-3 text-xs font-semibold">
+            {[
+              "All Bookings",
+              "Pending (42)",
+              "Confirmed",
+              "Ongoing",
+              "Completed",
+              "Cancelled",
+            ].map((tab) => {
+              const isActive = activeTab === tab;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`relative pb-3 -mb-3 transition-colors ${
+                    isActive
+                      ? "text-slate-900 font-bold"
+                      : "text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  {tab}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#EE6038] rounded-full" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-between space-x-3 pt-1">
+            <div className="relative flex-1">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by booking ID, client, event or Hosté..."
+                className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-md text-xs placeholder-gray-400 focus:outline-none focus:border-gray-400 text-slate-700"
+              />
+            </div>
+
+            <div className="flex items-center space-x-2 text-xs">
+              <div className="flex items-center space-x-1.5 border border-gray-200 rounded-md px-3 py-1.5 text-slate-600 bg-white">
+                <span className="text-gray-700 font-medium">Date: All</span>
+                <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-1" />
+              </div>
+
+              <div className="flex items-center space-x-1.5 border border-gray-200 rounded-md px-3 py-1.5 text-slate-600 bg-white">
+                <span className="text-gray-700 font-medium">Payment: Paid</span>
+                <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-1" />
+              </div>
+
+              <div className="flex items-center space-x-1.5 border border-gray-200 rounded-md px-3 py-1.5 text-slate-600 bg-white">
+                <span className="text-gray-700 font-medium">
+                  Type: All Events
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-1" />
+              </div>
+
+              <button className="text-slate-600 font-bold px-2 hover:text-slate-900">
+                Clear Filters
+              </button>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-gray-100 text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                  <th className="py-3 px-2">Booking ID</th>
+                  <th className="py-3 px-2">Event</th>
+                  <th className="py-3 px-2">Client</th>
+                  <th className="py-3 px-2">Hosté Assigned</th>
+                  <th className="py-3 px-2">Date</th>
+                  <th className="py-3 px-2">Amount</th>
+                  <th className="py-3 px-2">Payment</th>
+                  <th className="py-3 px-2">Status</th>
+                  <th className="py-3 px-2">Actions</th>
+                  <th className="py-3 px-1"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-xs text-slate-700">
+                {BOOKINGS_DATA.map((row) => {
+                  const rawId = row.id.replace("#", "");
+                  return (
+                    <tr
+                      key={row.id}
+                      className="hover:bg-slate-50/60 transition-colors"
+                    >
+                      <td className="py-3.5 px-2 font-bold text-slate-900">
+                        {row.id}
+                      </td>
+                      <td className="py-3.5 px-2 font-extrabold text-slate-900">
+                        {row.event}
+                      </td>
+                      <td className="py-3.5 px-2 text-slate-500">
+                        {row.client}
+                      </td>
+                      <td className="py-3.5 px-2 text-slate-500">
+                        {row.hosteAssigned}
+                      </td>
+                      <td className="py-3.5 px-2 text-slate-500">{row.date}</td>
+                      <td className="py-3.5 px-2 font-black text-slate-900">
+                        {row.amount}
+                      </td>
+                      <td className="py-3.5 px-2">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#ECFDF5] text-[#10B981]">
+                          {row.payment}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-2">
+                        {renderStatusBadge(row.status)}
+                      </td>
+                      <td className="py-3.5 px-2">
+                        <Link
+                          href={`/bookings/${rawId}`}
+                          className="text-[#EF5A36] font-bold hover:underline"
                         >
+                          View Booking
+                        </Link>
+                      </td>
+                      <td className="py-3.5 px-1 text-right">
+                        <button className="p-1 text-gray-400 hover:text-gray-600">
                           <MoreVertical className="w-4 h-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="rounded-xl border-border">
-                          <DropdownMenuItem onClick={() => window.location.href = `/bookings/${booking.id}`}>
-                            <Eye className="w-3.5 h-3.5 text-muted-foreground" />
-                            <span>View Details</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateBookingStatus(booking.id, "Confirmed")}>
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                            <span>Mark Confirmed</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateBookingStatus(booking.id, "Completed")}>
-                            <TrendingUp className="w-3.5 h-3.5 text-blue-500" />
-                            <span>Mark Completed</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateBookingStatus(booking.id, "Disputed", "Disputed by admin action")}>
-                            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                            <span>Flag Dispute</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateBookingStatus(booking.id, "Cancelled", "Cancelled by admin")}>
-                            <XCircle className="w-3.5 h-3.5 text-destructive" />
-                            <span>Cancel Booking</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="pt-3 flex items-center justify-between text-xs text-gray-400 border-t border-gray-100">
+            <div>
+              Showing <span className="font-bold text-slate-800">1–10</span> of{" "}
+              <span className="font-bold text-slate-800">1,284</span> bookings
+            </div>
+            <div className="flex items-center space-x-1.5 text-xs">
+              <button className="px-3 py-1 border border-gray-200 rounded text-gray-500 hover:bg-gray-50">
+                Previous
+              </button>
+              <button className="w-6 h-6 rounded bg-[#EE6038] text-white font-bold flex items-center justify-center text-xs">
+                1
+              </button>
+              <button className="w-6 h-6 rounded hover:bg-gray-100 text-gray-600 font-medium flex items-center justify-center text-xs">
+                2
+              </button>
+              <button className="w-6 h-6 rounded hover:bg-gray-100 text-gray-600 font-medium flex items-center justify-center text-xs">
+                3
+              </button>
+              <span className="px-1 text-gray-400">...</span>
+              <button className="w-6 h-6 rounded hover:bg-gray-100 text-gray-600 font-medium flex items-center justify-center text-xs">
+                129
+              </button>
+              <button className="px-3 py-1 border border-gray-200 rounded text-gray-500 hover:bg-gray-50">
+                Next
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

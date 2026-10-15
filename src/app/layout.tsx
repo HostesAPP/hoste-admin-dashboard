@@ -21,6 +21,8 @@ export const metadata: Metadata = {
   description: "Hoste Admin Dashboard",
 };
 
+import { Toaster } from "@/components/ui/sonner";
+
 interface LayoutProps {
   children: React.ReactNode;
 }
@@ -36,9 +38,11 @@ export default function RootLayout({ children }: LayoutProps) {
         <MobileRestrictionPage>
           <QueryProvider>
             {children}
+            <Toaster position="top-right" richColors />
           </QueryProvider>
         </MobileRestrictionPage>
       </body>
     </html>
   );
 }
+

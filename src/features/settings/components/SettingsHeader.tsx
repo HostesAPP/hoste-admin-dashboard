@@ -14,7 +14,7 @@ export function SettingsHeader({
   onSearch: (value: string) => void;
 }) {
   return (
-    <header className="flex h-[76px] items-center justify-between gap-6 border-b border-border bg-card px-8">
+    <header className="flex h-19 items-center justify-between gap-6 border-b border-border bg-card px-8">
       <div className="relative w-96">
         <Search
           aria-hidden="true"
@@ -29,8 +29,8 @@ export function SettingsHeader({
         />
       </div>
       <div className="flex items-center gap-7">
-          <Button
-            nativeButton={false}
+        <Button
+          nativeButton={false}
           variant="ghost"
           size="icon"
           aria-label="Open notifications"

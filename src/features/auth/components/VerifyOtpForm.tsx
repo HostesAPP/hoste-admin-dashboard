@@ -8,8 +8,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { otpSchema, type OtpFormValues } from "../schemas/auth.schema";
-import { useVerifyOtp, useResendOtp } from "../hooks/auth.hooks";
+import { useVerifyOtp, useResendOtp, extractAuthData } from "../hooks/auth.hooks";
+import { useAuthStore } from "../auth.store";
+import type { LoginResponse } from "../types/auth.types";
 
 interface VerifyOtpFormProps {
   email?: string;
@@ -18,7 +21,7 @@ interface VerifyOtpFormProps {
 export function VerifyOtpForm({ email: initialEmail }: VerifyOtpFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get("email") || initialEmail || "admin@hoste.app";
+  const email = searchParams.get("email") || initialEmail || "hostedevelopers@gmail.com";
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const [serverError, setServerError] = useState("");
   const [resendCooldown, setResendCooldown] = useState(60);
@@ -134,14 +137,16 @@ export function VerifyOtpForm({ email: initialEmail }: VerifyOtpFormProps) {
           setTimeLeft(600);
           setDigits(["", "", "", "", "", ""]);
           setValue("otp", "");
+          toast.success("A new verification code has been sent to your email.");
           inputRefs.current[0]?.focus();
         },
         onError: (error) => {
-          setServerError(
+          const errorMsg =
             error instanceof Error
               ? error.message
-              : "Failed to resend OTP. Please try again."
-          );
+              : "Failed to resend OTP. Please try again.";
+          setServerError(errorMsg);
+          toast.error(errorMsg);
         },
       }
     );
@@ -153,22 +158,25 @@ export function VerifyOtpForm({ email: initialEmail }: VerifyOtpFormProps) {
       { email, otp: values.otp },
       {
         onSuccess: (response) => {
-          if (response?.data?.user && response?.data?.tokens?.accessToken) {
-            router.push("/");
-          } else {
-            router.push("/");
+          const authData = extractAuthData(response as unknown as LoginResponse);
+          if (authData) {
+            useAuthStore.getState().setAuth(authData.accessToken, authData.user);
           }
+          toast.success("Identity verified! Welcome to Hosté Admin.");
+          router.push("/");
         },
         onError: (error) => {
-          setServerError(
+          const errorMsg =
             error instanceof Error
               ? error.message
-              : "Invalid verification code. Please try again."
-          );
+              : "Invalid verification code. Please try again.";
+          setServerError(errorMsg);
+          toast.error(errorMsg);
         },
       }
     );
   };
+
 
   return (
     <div className="w-full text-center">

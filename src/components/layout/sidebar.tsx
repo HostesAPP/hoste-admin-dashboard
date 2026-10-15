@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuthStore, useLogout } from "@/features/auth";
+import { Loader2 } from "lucide-react";
 
 interface NavItem {
   label: string;
@@ -49,6 +51,16 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const user = useAuthStore((state) => state.user);
+  const logoutMutation = useLogout();
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
+
+  const userInitials = user?.email
+    ? user.email.slice(0, 2).toUpperCase()
+    : "HA";
 
   return (
     <aside className="w-64 shrink-0 border-r border-border bg-card flex flex-col justify-between h-screen sticky top-0 select-none">
@@ -115,19 +127,28 @@ export function Sidebar() {
           <Avatar className="w-7 h-7 border border-border">
             <AvatarImage src="/avatar-placeholder.png" alt="Admin" />
             <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-bold">
-              HA
+              {userInitials}
             </AvatarFallback>
           </Avatar>
-          <span className="text-xs text-muted-foreground truncate max-w-27.5">
-            admin@hoste.ng
+          <span className="text-xs text-muted-foreground truncate max-w-27.5" title={user?.email || "admin@hoste.ng"}>
+            {user?.email || "admin@hoste.ng"}
           </span>
         </div>
 
         <button
           type="button"
-          className="text-xs text-primary font-medium hover:underline flex items-center gap-1 cursor-pointer"
+          onClick={handleLogout}
+          disabled={logoutMutation.isPending}
+          className="text-xs text-primary font-medium hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
         >
-          <span>Log Out</span>
+          {logoutMutation.isPending ? (
+            <>
+              <Loader2 className="w-3 h-3 animate-spin" />
+              <span>Logging out...</span>
+            </>
+          ) : (
+            <span>Log Out</span>
+          )}
         </button>
       </div>
     </aside>
