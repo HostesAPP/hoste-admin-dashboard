@@ -1,4 +1,4 @@
-import type { HosteSnapshot } from "../settings.hoste.types";
+import type { HosteSnapshot } from "../types/settings.hoste.types";
 
 // Screenshot fixtures only; rates are not production fee rules.
 export const MOCK_HOSTE_SETTINGS: HosteSnapshot = {

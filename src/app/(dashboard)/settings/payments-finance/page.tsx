@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PaymentFinanceSettingsPage } from "@/features/settings/components/settings.payments.finance";
+import { PaymentFinanceSettingsPage } from "@/features/settings/components/SettingsPaymentsFinance";
 
 export const metadata: Metadata = {
   title: "Payment & Finance Settings | Hosté Admin",

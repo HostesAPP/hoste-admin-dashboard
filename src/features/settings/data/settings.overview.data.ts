@@ -1,4 +1,4 @@
-import type { SettingsCategory } from "../settings.types";
+import type { SettingsCategory } from "../types/settings.types";
 
 // Overview fixtures, not a platform configuration API contract.
 export const SETTINGS_CATEGORIES: SettingsCategory[] = [

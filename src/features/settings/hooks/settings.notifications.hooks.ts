@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   NotificationSettings,
   NotificationSettingsAdapter,
-} from "../settings.notifications.types";
+} from "../types/settings.notifications.types";
 
 export function useNotificationSettings(adapter: NotificationSettingsAdapter) {
   const client = useQueryClient();

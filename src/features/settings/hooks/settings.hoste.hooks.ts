@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   HosteSettings,
   HosteSettingsAdapter,
-} from "../settings.hoste.types";
+} from "../types/settings.hoste.types";
 
 export function useHosteSettings(adapter: HosteSettingsAdapter) {
   const client = useQueryClient();
