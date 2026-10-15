@@ -1,4 +1,4 @@
-import type { ReferralPayoutStatus } from "../payouts.types";
+import type { ReferralPayoutStatus } from "../types/payouts.types";
 
 export function PayoutStatusBadge({
   status,

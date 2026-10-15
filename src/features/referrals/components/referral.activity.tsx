@@ -23,8 +23,8 @@ import type {
   ActivityPromoter,
   ActivityReferral,
   ActivitySummary,
-} from "../referrals.activity.types";
-import type { ReferralTab } from "../referrals.overview.types";
+} from "../types/referrals.activity.types";
+import type { ReferralTab } from "../types/referrals.overview.types";
 import {
   ACTIVITY_FILTER_DEFAULTS,
   ACTIVITY_RANGES,

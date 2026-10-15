@@ -26,8 +26,8 @@ import type {
   DirectoryReferrer,
   ReferrerHistoryRecord,
   ReferrersSummary,
-} from "../referrers.types";
-import type { ReferralTab } from "../referrals.overview.types";
+} from "../types/referrers.types";
+import type { ReferralTab } from "../types/referrals.overview.types";
 import {
   referrersFilterSchema,
   REFERRERS_FILTER_DEFAULTS,
@@ -217,7 +217,9 @@ export function ReferrersDirectory({
                 <Input
                   value={filters.search}
                   onChange={(event) =>
-                    setValue("search", event.target.value, { shouldDirty: true })
+                    setValue("search", event.target.value, {
+                      shouldDirty: true,
+                    })
                   }
                   aria-label="Search referrers"
                   placeholder="Search referrer..."
@@ -285,7 +287,9 @@ export function ReferrersDirectory({
                 <Input
                   value={filters.search}
                   onChange={(event) =>
-                    setValue("search", event.target.value, { shouldDirty: true })
+                    setValue("search", event.target.value, {
+                      shouldDirty: true,
+                    })
                   }
                   aria-label="Search all referrers"
                   placeholder="Search by name, email or referral code"
@@ -360,7 +364,8 @@ export function ReferrersDirectory({
                     <TableCell className="text-[11px] text-muted-foreground">
                       {row.lastActivity === summary.periodEnd
                         ? "Today"
-                        : row.lastActivity === yesterday.toISOString().slice(0, 10)
+                        : row.lastActivity ===
+                            yesterday.toISOString().slice(0, 10)
                           ? "Yesterday"
                           : new Date(
                               `${row.lastActivity}T00:00:00Z`,

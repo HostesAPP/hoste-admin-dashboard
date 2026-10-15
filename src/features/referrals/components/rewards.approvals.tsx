@@ -15,8 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { RewardReferrer, RewardsSnapshot } from "../rewards.types";
-import type { ReferralTab } from "../referrals.overview.types";
+import type { RewardReferrer, RewardsSnapshot } from "../types/rewards.types";
+import type { ReferralTab } from "../types/referrals.overview.types";
 import {
   rewardsFilterSchema,
   REWARDS_FILTER_DEFAULTS,
