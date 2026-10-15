@@ -23,7 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatPaymentAmount, PAYMENT_METHOD_LABELS } from "./PaymentTable";
-import { RefundReceiptViewer } from "./refund.receipt.viewer";
+import { RefundReceiptViewer } from "./RefundReceiptViewer";
 import type {
   RefundContext,
   RefundDraft,
