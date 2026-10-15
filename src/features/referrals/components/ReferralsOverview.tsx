@@ -48,10 +48,7 @@ import {
   ReferralRules,
 } from "./ReferralOverviewPanels";
 import { ReferralPerformanceChart } from "./ReferralPerformanceChart";
-import {
-  RecentReferralsTable,
-  ReferrersTable,
-} from "./ReferralOverviewTables";
+import { RecentReferralsTable, ReferrersTable } from "./ReferralOverviewTables";
 
 const RANGES = [
   { value: "30", label: "Last 30 Days" },
