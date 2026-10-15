@@ -4,7 +4,7 @@ import {
   ACCESS_ACTIONS,
   type AccessPermissions,
   type AccessSnapshot,
-} from "../settings.access.types";
+} from "../types/settings.access.types";
 
 function permissions(
   sections: readonly string[],

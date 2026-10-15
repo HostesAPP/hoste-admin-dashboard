@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { UsersAccessPage } from "@/features/settings/components/settings.users.access";
+import { UsersAccessPage } from "@/features/settings/components/SettingsUsersAccess";
 
 export const metadata: Metadata = { title: "Users & Access | Hosté Admin" };
 

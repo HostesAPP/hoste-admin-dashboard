@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ACCESS_ACTIONS, ACCESS_SECTIONS } from "../settings.access.types";
+import { ACCESS_ACTIONS, ACCESS_SECTIONS } from "../types/settings.access.types";
 
 export const accessPermissionsSchema = z.record(
   z.enum(ACCESS_SECTIONS),

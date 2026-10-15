@@ -4,7 +4,7 @@ import type {
   SystemOperation,
   SystemSettings,
   SystemSettingsAdapter,
-} from "../settings.system.types";
+} from "../types/settings.system.types";
 
 export function useSystemSettings(adapter: SystemSettingsAdapter) {
   const client = useQueryClient();

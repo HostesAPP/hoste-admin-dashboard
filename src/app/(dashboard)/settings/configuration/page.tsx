@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SettingsConfiguration } from "@/features/settings/components/settings.configuration";
+import { SettingsConfiguration } from "@/features/settings/components/SettingsConfiguration";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function ConfigurationPage() {

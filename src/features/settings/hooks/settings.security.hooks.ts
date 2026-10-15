@@ -4,7 +4,7 @@ import type {
   SecuritySettings,
   SecuritySettingsAdapter,
   SecuritySettingsSnapshot,
-} from "../settings.security.types";
+} from "../types/settings.security.types";
 
 export function useSecuritySettings(adapter: SecuritySettingsAdapter) {
   const client = useQueryClient();

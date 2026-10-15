@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PlatformContentSettingsPage } from "@/features/settings/components/settings.platform.content";
+import { PlatformContentSettingsPage } from "@/features/settings/components/SettingsPlatformContent";
 
 export const metadata: Metadata = {
   title: "Platform Content Settings | Hosté Admin",

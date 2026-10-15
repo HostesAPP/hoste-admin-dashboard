@@ -1,7 +1,7 @@
 import type {
   NotificationSettings,
   NotificationSettingsSnapshot,
-} from "../settings.notifications.types";
+} from "../types/settings.notifications.types";
 
 const events = (
   id: string,
