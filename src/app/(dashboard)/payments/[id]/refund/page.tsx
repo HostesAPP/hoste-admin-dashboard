@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { RefundPage } from "@/features/payments/components/refund.page";
+import { RefundPage } from "@/features/payments/components/RefundPage";
 import { mockRefundAdapter } from "@/features/payments/refund.adapter";
 export const metadata: Metadata = {
   title: "Issue Refund | Hosté Admin Dashboard",

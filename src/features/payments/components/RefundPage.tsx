@@ -28,7 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { mockRefundAdapter } from "../refund.adapter";
-import { RefundReviewDialog, RefundReceiptDialog } from "./refund.dialogs";
+import { RefundReviewDialog, RefundReceiptDialog } from "./RefundDialogs";
 import { createRefundSchema } from "../schemas/refund.schema";
 import type {
   RefundAdapter,
