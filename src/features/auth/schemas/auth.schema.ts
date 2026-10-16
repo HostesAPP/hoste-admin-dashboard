@@ -35,7 +35,17 @@ export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export const resetPasswordSchema = z
   .object({
-    password: z
+    email: z
+      .string()
+      .trim()
+      .min(1, "Email address is required")
+      .email("Please enter a valid email address"),
+    otp: z
+      .string()
+      .min(6, "Please enter all 6 digits of the reset code")
+      .max(6, "Reset code must be 6 digits")
+      .regex(/^\d{6}$/, "Reset code must contain only numbers"),
+    newPassword: z
       .string()
       .min(8, "Password must be at least 8 characters")
       .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
@@ -44,9 +54,36 @@ export const resetPasswordSchema = z
       .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
     confirmPassword: z.string().min(1, "Please confirm your new password"),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+export const verifyResetOtpSchema = z.object({
+  otp: z
+    .string()
+    .min(6, "Please enter all 6 digits of the verification code")
+    .max(6, "Code must be 6 digits")
+    .regex(/^\d{6}$/, "Verification code must contain only numbers"),
+});
+
+export type VerifyResetOtpFormValues = z.infer<typeof verifyResetOtpSchema>;
+
+export const newPasswordSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number")
+      .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+    confirmPassword: z.string().min(1, "Please confirm your new password"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type NewPasswordFormValues = z.infer<typeof newPasswordSchema>;

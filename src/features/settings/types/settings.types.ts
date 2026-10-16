@@ -11,3 +11,22 @@ export interface PlatformSettings {
   smsNotificationsEnabled: boolean;
   autoApproveVerifiedProfiles: boolean;
 }
+
+export interface SettingsCategory {
+  id:
+    | "general"
+    | "access"
+    | "hoste"
+    | "bookings"
+    | "payments"
+    | "notifications"
+    | "content"
+    | "security"
+    | "system";
+  title: string;
+  description: string;
+  items: string[];
+  summary: string;
+  tone: "primary" | "secondary";
+  href: string;
+}

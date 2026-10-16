@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { ResetPasswordForm } from "@/features/auth";
 
@@ -7,5 +8,16 @@ export const metadata: Metadata = {
 };
 
 export default function ResetPasswordPage() {
-  return <ResetPasswordForm />;
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full text-center py-10 text-xs text-muted-foreground">
+          Loading...
+        </div>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
+  );
 }
+

@@ -1,4 +1,4 @@
-import {  Bell } from "lucide-react";
+import { Bell } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 interface PageHeaderLayoutProps {
@@ -26,7 +26,7 @@ export const PageHeaderLayout = ({ title, description, children }: PageHeaderLay
       <div className="flex items-center gap-6">
         {/* notification icon */}
         <div className="p-2 hover:bg-muted rounded-lg text-muted-foreground cursor-pointer transition-colors duration-200">
-          <Bell size={20}/>
+          <Bell size={20} />
         </div>
         {/* user profile */}
         <div className="flex items-center gap-3">

@@ -1,4 +1,4 @@
-import { Referral, ReferralStats } from "../referrals.types";
+import { Referral, ReferralStats } from "../types/referrals.types";
 
 export const MOCK_REFERRAL_STATS: ReferralStats = {
   totalReferrals: 842,
