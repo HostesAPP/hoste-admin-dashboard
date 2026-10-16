@@ -3,7 +3,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, CheckCircle2, Database, Info, Save } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  ClipboardList,
+  Info,
+  Save,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -184,7 +190,7 @@ function SystemSettingsForm({
   const link = (label: string, href: string) => (
     <Link
       href={href}
-      className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+      className="inline-flex min-w-0 items-center justify-center gap-1 rounded-md bg-muted px-2 py-2 text-[10px] font-semibold hover:bg-muted/70 focus-visible:outline-ring"
     >
       {label}
       <ArrowRight className="size-3" />
@@ -232,7 +238,7 @@ function SystemSettingsForm({
     <div className="min-w-[1024px] tracking-normal">
       <SettingsHeader search={search} onSearch={setSearch} />
       <FormProvider {...form}>
-        <form onSubmit={save} className="space-y-5 p-8 [&_section]:rounded-lg">
+        <form onSubmit={save} className="space-y-5 p-6 [&_section]:rounded-lg">
           <header className="flex items-center justify-between gap-5">
             <div>
               <p className="text-xs text-muted-foreground">
@@ -278,16 +284,20 @@ function SystemSettingsForm({
                     {stat.value}
                   </span>
                 ) : (
-                  <p className="mt-2 text-base font-bold">{stat.value}</p>
+                  <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <p className="text-base font-bold">{stat.value}</p>
+                    <p
+                      className={`text-[10px] ${index === 1 || index === 3 || index === 4 ? "font-semibold text-secondary" : "text-muted-foreground"}`}
+                    >
+                      {stat.detail}
+                    </p>
+                  </div>
                 )}
-                <p className="mt-1 text-[10px] text-muted-foreground">
-                  {stat.detail}
-                </p>
               </div>
             ))}
           </div>
           <div className="grid grid-cols-[minmax(0,3fr)_minmax(340px,2fr)] items-start gap-5">
-            <div className="space-y-5">
+            <div className="min-w-0 space-y-5">
               {section(
                 "Platform Status & Maintenance Control",
                 <div className="space-y-3">
@@ -426,7 +436,7 @@ function SystemSettingsForm({
                   {snapshot.integrations.map((integration) => (
                     <div
                       key={integration.id}
-                      className="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-3"
+                      className="flex items-center gap-2 rounded-md border border-border bg-muted/30 p-2.5 [&_button]:px-2 [&_button]:text-[11px] [&_a]:px-2 [&_a]:text-[11px]"
                     >
                       <span
                         className={`flex size-8 shrink-0 items-center justify-center rounded-md text-xs font-bold ${integration.tone === "primary" ? "bg-primary text-primary-foreground" : integration.tone === "secondary" ? "bg-secondary text-secondary-foreground" : "bg-foreground text-background"}`}
@@ -556,7 +566,7 @@ function SystemSettingsForm({
                 </div>,
               )}
             </div>
-            <div className="space-y-5">
+            <div className="min-w-0 space-y-5">
               {matches("System Quick Actions") && (
                 <section className="bg-foreground p-5 text-background">
                   <h2 className="text-sm font-semibold">
@@ -565,7 +575,7 @@ function SystemSettingsForm({
                   <p className="mt-1 text-[11px] opacity-70">
                     Immediate platform operations
                   </p>
-                  <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div className="mt-4 grid grid-cols-2 gap-2 [&_button]:h-auto [&_button]:min-h-8 [&_button]:whitespace-normal [&_button]:px-2 [&_button]:py-2 [&_button]:text-[11px]">
                     <Button
                       variant="secondary"
                       className="border border-background/20 bg-background/10 text-background hover:bg-background/20"
@@ -611,15 +621,17 @@ function SystemSettingsForm({
                       <p className="text-[10px] text-muted-foreground">
                         LAST SUCCESSFUL BACKUP
                       </p>
-                      <p className="mt-1 text-xs font-semibold">
-                        {lastBackup.date}
-                      </p>
+                      <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-xs font-semibold">
+                          {lastBackup.date}
+                        </p>
+                        <span className="rounded-full bg-secondary/10 px-2 py-1 text-[10px] font-semibold text-secondary">
+                          {lastBackup.status}
+                        </span>
+                      </div>
                       <p className="mt-1 text-[10px] text-muted-foreground">
                         Size: {lastBackup.size} · Type: {lastBackup.type}
                       </p>
-                      <span className="mt-2 inline-block rounded-full bg-secondary/10 px-2 py-1 text-[10px] text-secondary">
-                        {lastBackup.status}
-                      </span>
                     </div>
                   ) : (
                     <p className="text-xs text-muted-foreground">
@@ -627,7 +639,7 @@ function SystemSettingsForm({
                     </p>
                   )}
                   {number("backupRetentionDays", "Keep Backups For (Days)")}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 [&_button]:px-2 [&_button]:text-[11px]">
                     <Button
                       size="sm"
                       disabled={disabled}
@@ -663,7 +675,7 @@ function SystemSettingsForm({
                     "maintenancePlan.enabled",
                     "Scheduled Maintenance Enabled",
                   )}
-                  <div className="grid gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     <SystemTextField
                       name="maintenancePlan.startUtc"
                       label="Start Date & Time (UTC)"
@@ -731,7 +743,7 @@ function SystemSettingsForm({
                       </div>
                     ))}
                   </dl>
-                  <div className="flex flex-wrap gap-4">
+                  <div className="grid grid-cols-3 gap-2">
                     {link("System Logs", "/audit-logs")}
                     {link("Error Logs", "/audit-logs")}
                     {link("Audit Trail", "/audit-logs")}
@@ -742,16 +754,29 @@ function SystemSettingsForm({
                   <SystemHealthInfo health={snapshot.health} />
                 </div>,
               )}
-              {section(
-                "Audit Log",
-                <div className="space-y-4">
-                  <Database className="size-6 text-primary" />
+              {matches("Audit Log") && (
+                <section className="space-y-3 rounded-lg border border-border bg-card p-5">
+                  <span className="inline-flex rounded-md bg-primary/10 p-2 text-primary">
+                    <ClipboardList className="size-5" />
+                  </span>
+                  <h2 className="text-sm font-semibold">Audit Log</h2>
                   <p className="text-xs leading-5 text-muted-foreground">
-                    View administrative activity, configuration changes, and
-                    platform events.
+                    View and monitor a complete record of important
+                    administrative activities and changes made across the
+                    platform.
                   </p>
-                  {link("View Audit Log", "/audit-logs")}
-                </div>,
+                  <p className="text-[11px] leading-4 text-muted-foreground">
+                    Admin activities, user actions, configuration changes, login
+                    and access events, and the date and time of each action.
+                  </p>
+                  <Link
+                    href="/audit-logs"
+                    className="flex items-center justify-between gap-3 border-t border-border pt-3 text-xs font-semibold text-primary hover:underline"
+                  >
+                    View Audit Log
+                    <ArrowRight className="size-3.5" />
+                  </Link>
+                </section>
               )}
             </div>
           </div>
@@ -898,7 +923,10 @@ function Notice({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex gap-2 rounded-md border border-warning-border bg-warning-surface p-3 text-[11px] leading-4">
       <Info className="size-4 shrink-0 text-primary" />
-      <p>{children}</p>
+      <div>
+        <p className="font-semibold text-primary">Operational Notice:</p>
+        <p>{children}</p>
+      </div>
     </div>
   );
 }
