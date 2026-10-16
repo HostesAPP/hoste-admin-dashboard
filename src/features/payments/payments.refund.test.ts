@@ -7,16 +7,42 @@ import { createRefundReceiptHtml } from "./refund.receipt";
 import { createRefundReceiptPdf } from "./refund.receipt.pdf";
 import { readFileSync } from "node:fs";
 import { PDFDocument } from "pdf-lib";
-import {
-  MOCK_REFUND_CONTEXTS,
-  MOCK_TRANSACTIONS,
-} from "./data/transactions.data";
+import { MOCK_BOOKINGS } from "../bookings/data/bookings.data";
+import { MOCK_TRANSACTIONS } from "./data/transactions.data";
+import { MOCK_REFUNDS } from "./data/payments.data";
+import { MOCK_REFUND_AVAILABLE_AMOUNTS } from "./data/refunds.data";
 const filters = {
   search: "",
   date: "LAST_30_DAYS",
   status: "ALL",
   method: "ALL",
 } as const;
+test("every mock transaction links to an existing booking", () => {
+  for (const transaction of MOCK_TRANSACTIONS) {
+    const booking = MOCK_BOOKINGS.find((item) => item.id === transaction.bookingId);
+    assert.ok(booking);
+    assert.equal(transaction.bookingReference, booking.bookingCode);
+  }
+});
+test("refund contexts resolve existing payments, bookings, and history without separate fixtures", async () => {
+  const adapter = createMockRefundAdapter();
+  for (const transaction of MOCK_TRANSACTIONS) {
+    const context = await adapter.load(transaction.payment.id);
+    const booking = MOCK_BOOKINGS.find((item) => item.id === transaction.bookingId)!;
+    assert.ok(context);
+    assert.deepEqual(context.transaction, transaction);
+    assert.equal(context.booking?.title, booking.eventName);
+    assert.equal(context.booking?.date, booking.eventDate);
+    assert.equal(context.booking?.status, booking.status);
+    assert.equal(context.booking?.location, booking.location);
+    assert.equal(context.booking?.hostCount, null);
+    assert.equal(context.booking?.imageUrl, null);
+    assert.equal(context.availableAmount, MOCK_REFUND_AVAILABLE_AMOUNTS[transaction.payment.id]);
+    const history = MOCK_REFUNDS.filter((refund) => refund.paymentId === transaction.payment.id);
+    assert.deepEqual(context.recentRefunds.map((refund) => refund.id), history.map((refund) => refund.id));
+    assert.ok(context.recentRefunds.every((refund) => refund.status === null));
+  }
+});
 test("preview receipts preserve confirmed values and escape untrusted content", async () => {
   const adapter = createMockRefundAdapter();
   const result = await adapter.review("pay-101", {
@@ -139,5 +165,5 @@ test("refund adapter rejects missing, unavailable, and over-limit payments", asy
     adapter.quote("pay-101", { ...draft, amount: "105001" }),
     /exceeds/,
   );
-  assert.equal(MOCK_REFUND_CONTEXTS[0].recentRefunds[0].id, "ref-301");
+  assert.equal((await adapter.load("pay-101"))!.recentRefunds[0].id, "ref-301");
 });

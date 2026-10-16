@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   Banknote,
@@ -56,6 +57,7 @@ export function PaymentTable({
   error?: string;
   onReload?: () => void;
 }) {
+  const router = useRouter();
   const [hiddenRows, setHiddenRows] = useState<Set<string>>(() => new Set());
   const toggleRow = (id: string) => {
     setHiddenRows((previous) => {
@@ -130,26 +132,35 @@ export function PaymentTable({
               ({
                 payment,
                 customerEmail,
+                bookingId,
                 bookingReference,
                 method,
                 canRefund,
                 canRetry,
               }) => {
                 const hidden = hiddenRows.has(payment.id);
+                const bookingPaymentUrl = bookingId
+                  ? `/bookings/${encodeURIComponent(bookingId)}/payments`
+                  : null;
                 return (
                 <TableRow
                   key={payment.id}
-                  className="h-[68px] hover:bg-muted/30"
+                  className={`h-[68px] hover:bg-muted/30 ${bookingPaymentUrl ? "cursor-pointer" : ""}`}
+                  onClick={(event) => {
+                    if (!bookingPaymentUrl || (event.target as HTMLElement).closest("a, button")) return;
+                    router.push(bookingPaymentUrl);
+                  }}
                 >
                   <TableCell className="px-3 font-semibold text-primary">
-                    {hidden ? "****" : (
+                    {bookingPaymentUrl ? (
                     <Link
-                      href={`/payments/${payment.id}`}
+                      href={bookingPaymentUrl}
+                      aria-label={hidden ? "Open booking payment details" : `Open booking payment details for ${payment.referenceId}`}
                       className="break-all hover:underline"
                     >
-                      {payment.referenceId}
+                      {hidden ? "****" : payment.referenceId}
                     </Link>
-                    )}
+                    ) : hidden ? "****" : payment.referenceId}
                   </TableCell>
                   <TableCell className="px-3">
                     {hidden ? "****" : <>
@@ -196,7 +207,7 @@ export function PaymentTable({
                       timeZone: "UTC",
                     })}
                   </TableCell>
-                  <TableCell className="px-2">
+                  <TableCell className="px-2" onClick={(event) => event.stopPropagation()}>
                     <div className="flex justify-end gap-1">
                       <Button
                         size="icon"

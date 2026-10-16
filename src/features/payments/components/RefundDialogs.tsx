@@ -75,7 +75,7 @@ export function RefundReviewDialog({
               {booking ? (
                 <div className="flex gap-3">
                   <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
-                    {imageFailed ? (
+                    {imageFailed || !booking.imageUrl ? (
                       <ImageIcon className="size-5" />
                     ) : (
                       <Image
@@ -94,13 +94,13 @@ export function RefundReviewDialog({
                     <p className="mt-1 text-[11px] text-muted-foreground">
                       {new Date(booking.date).toLocaleString("en-US", {
                         dateStyle: "medium",
-                        timeStyle: "short",
+                        ...(booking.date.includes("T") ? { timeStyle: "short" as const } : {}),
                         timeZone: "UTC",
                       })}{" "}
-                      UTC
+                      {booking.date.includes("T") ? "UTC" : ""}
                     </p>
                     <p className="mt-1 text-[11px] text-muted-foreground">
-                      {booking.location} · {booking.hostCount} Hostés
+                      {booking.location}{booking.hostCount !== null ? ` · ${booking.hostCount} Hostés` : ""}
                     </p>
                     <div className="mt-3 grid grid-cols-2 gap-3">
                       <Detail label="Booking ID" value={booking.reference} />
