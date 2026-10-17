@@ -1,11 +1,14 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   Banknote,
   ChevronLeft,
   ChevronRight,
   CreditCard,
   Eye,
+  EyeOff,
   Loader2,
   RefreshCw,
 } from "lucide-react";
@@ -54,6 +57,16 @@ export function PaymentTable({
   error?: string;
   onReload?: () => void;
 }) {
+  const router = useRouter();
+  const [hiddenRows, setHiddenRows] = useState<Set<string>>(() => new Set());
+  const toggleRow = (id: string) => {
+    setHiddenRows((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
   const pages = Math.max(1, Math.ceil(total / pageSize));
   return (
     <div className="mt-5 overflow-hidden rounded-lg border border-border bg-card">
@@ -119,38 +132,54 @@ export function PaymentTable({
               ({
                 payment,
                 customerEmail,
+                bookingId,
                 bookingReference,
                 method,
                 canRefund,
                 canRetry,
-              }) => (
+              }) => {
+                const hidden = hiddenRows.has(payment.id);
+                const bookingPaymentUrl = bookingId
+                  ? `/bookings/${encodeURIComponent(bookingId)}/payments`
+                  : null;
+                return (
                 <TableRow
                   key={payment.id}
-                  className="h-[68px] hover:bg-muted/30"
+                  className={`h-[68px] hover:bg-muted/30 ${bookingPaymentUrl ? "cursor-pointer" : ""}`}
+                  onClick={(event) => {
+                    if (!bookingPaymentUrl || (event.target as HTMLElement).closest("a, button")) return;
+                    router.push(bookingPaymentUrl);
+                  }}
                 >
                   <TableCell className="px-3 font-semibold text-primary">
+                    {bookingPaymentUrl ? (
                     <Link
-                      href={`/payments/${payment.id}`}
+                      href={bookingPaymentUrl}
+                      aria-label={hidden ? "Open booking payment details" : `Open booking payment details for ${payment.referenceId}`}
                       className="break-all hover:underline"
                     >
-                      {payment.referenceId}
+                      {hidden ? "****" : payment.referenceId}
                     </Link>
+                    ) : hidden ? "****" : payment.referenceId}
                   </TableCell>
                   <TableCell className="px-3">
+                    {hidden ? "****" : <>
                     <p className="break-words font-semibold">
                       {payment.payerProfileName}
                     </p>
                     <p title={customerEmail ?? undefined} className="mt-1 truncate text-[10px] text-muted-foreground">
                       {customerEmail ?? "—"}
                     </p>
+                    </>}
                   </TableCell>
                   <TableCell className="break-all px-3 text-muted-foreground">
-                    {bookingReference ?? "—"}
+                    {hidden ? "****" : bookingReference ?? "—"}
                   </TableCell>
                   <TableCell className="px-3 font-semibold">
-                    {formatPaymentAmount(payment.grossAmount)}
+                    {hidden ? "****" : formatPaymentAmount(payment.grossAmount)}
                   </TableCell>
                   <TableCell className="px-3 text-muted-foreground">
+                    {hidden ? "****" : (
                     <span className="inline-flex items-center gap-1.5">
                       {method === "BANK_TRANSFER" ? (
                         <Banknote className="size-3.5 shrink-0" />
@@ -159,36 +188,40 @@ export function PaymentTable({
                       )}
                       {PAYMENT_METHOD_LABELS[method]}
                     </span>
+                    )}
                   </TableCell>
                   <TableCell className="px-3">
+                    {hidden ? "****" : (
                     <span
                       className={`inline-block rounded-full px-2 py-1 text-[10px] font-semibold ${payment.status === "Successful" ? "bg-secondary/10 text-secondary" : payment.status === "Pending" ? "bg-yellow/15 text-warning" : payment.status === "Failed" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}
                     >
                       {payment.status}
                     </span>
+                    )}
                   </TableCell>
                   <TableCell className="px-3 text-[11px] text-muted-foreground">
-                    {new Date(payment.createdAt).toLocaleDateString("en-US", {
+                    {hidden ? "****" : new Date(payment.createdAt).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
                       timeZone: "UTC",
                     })}
                   </TableCell>
-                  <TableCell className="px-2">
+                  <TableCell className="px-2" onClick={(event) => event.stopPropagation()}>
                     <div className="flex justify-end gap-1">
                       <Button
                         size="icon"
                         variant="ghost"
-                        nativeButton={false}
                         className="size-6"
-                        aria-label={`View ${payment.referenceId}`}
-                        title="View transaction"
-                        render={<Link href={`/payments/${payment.id}`} />}
+                        aria-label={hidden ? "Show transaction row" : `Hide transaction row ${payment.referenceId}`}
+                        aria-pressed={hidden}
+                        title={hidden ? "Show transaction row" : "Hide transaction row"}
+                        onClick={() => toggleRow(payment.id)}
                       >
-                        <Eye className="size-3" />
+                        {hidden ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
                       </Button>
                       <span
+                        className={hidden ? "invisible" : undefined}
                         title={canRetry ? "Retry payment" : "Retry unavailable"}
                       >
                         <Button
@@ -233,7 +266,8 @@ export function PaymentTable({
                     </div>
                   </TableCell>
                 </TableRow>
-              ),
+                );
+              },
             )
           )}
         </TableBody>

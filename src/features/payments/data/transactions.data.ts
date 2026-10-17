@@ -1,14 +1,13 @@
-import { MOCK_PAYMENTS, MOCK_REFUNDS } from "./payments.data";
-import type {
-  PaymentTransaction,
-  RefundContext,
-} from "../types/transactions.types";
+import { MOCK_PAYMENTS } from "./payments.data";
+import { MOCK_BOOKINGS } from "../../bookings/data/bookings.data";
+import type { PaymentTransaction } from "../types/transactions.types";
 
 export const MOCK_TRANSACTIONS: PaymentTransaction[] = [
   {
     payment: MOCK_PAYMENTS[0],
     customerEmail: "bookings@luxeevents.example",
-    bookingReference: MOCK_PAYMENTS[0].engagementId ?? null,
+    bookingId: MOCK_BOOKINGS[0].id,
+    bookingReference: MOCK_BOOKINGS[0].bookingCode,
     method: "CREDIT_CARD",
     canRefund: true,
     canRetry: false,
@@ -16,7 +15,8 @@ export const MOCK_TRANSACTIONS: PaymentTransaction[] = [
   {
     payment: MOCK_PAYMENTS[1],
     customerEmail: "amara@example.com",
-    bookingReference: null,
+    bookingId: MOCK_BOOKINGS[1].id,
+    bookingReference: MOCK_BOOKINGS[1].bookingCode,
     method: "BANK_TRANSFER",
     canRefund: true,
     canRetry: false,
@@ -24,7 +24,8 @@ export const MOCK_TRANSACTIONS: PaymentTransaction[] = [
   {
     payment: MOCK_PAYMENTS[2],
     customerEmail: "accounts@brandhotel.example",
-    bookingReference: MOCK_PAYMENTS[2].engagementId ?? null,
+    bookingId: MOCK_BOOKINGS[2].id,
+    bookingReference: MOCK_BOOKINGS[2].bookingCode,
     method: "CREDIT_CARD",
     canRefund: false,
     canRetry: true,
@@ -66,7 +67,7 @@ export const MOCK_TRANSACTIONS: PaymentTransaction[] = [
       method: "PAYPAL" as const,
       date: "2026-09-15T10:00:00Z",
     },
-  ].map((item) => ({
+  ].map((item, index) => ({
     payment: {
       id: item.id,
       referenceId: item.referenceId,
@@ -79,52 +80,11 @@ export const MOCK_TRANSACTIONS: PaymentTransaction[] = [
       createdAt: item.date,
     },
     customerEmail: `${item.payerProfileName.toLowerCase().replaceAll(" ", ".")}@example.com`,
-    bookingReference: null,
+    bookingId: MOCK_BOOKINGS[index + 3].id,
+    bookingReference: MOCK_BOOKINGS[index + 3].bookingCode,
     method: item.method,
     canRefund: item.status === "Successful",
     canRetry: false,
   })),
 ];
 export const MOCK_TRANSACTION_PERIOD_END = "2026-09-18";
-export const MOCK_REFUND_CONTEXTS: RefundContext[] = MOCK_TRANSACTIONS.map(
-  (transaction) => ({
-    transaction,
-    // Mock eligibility supplied by the adapter, not a frontend refund calculation.
-    availableAmount:
-      transaction.payment.id === "pay-101"
-        ? 105000
-        : transaction.canRefund
-          ? transaction.payment.grossAmount
-          : 0,
-    booking:
-      transaction.payment.id === "pay-101"
-        ? {
-            reference: transaction.bookingReference!,
-            title: "Wedding Ceremony",
-            status: "Completed",
-            date: "2026-09-18T16:00:00Z",
-            location: "Banquet Hall, Lekki, Lagos",
-            hostCount: 8,
-            imageUrl:
-              "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=240&q=80",
-          }
-        : null,
-    reasons: [
-      { value: "customer-request", label: "Customer request" },
-      { value: "booking-cancellation", label: "Booking cancellation" },
-      { value: "payment-issue", label: "Payment issue" },
-      { value: "other", label: "Other" },
-    ],
-    policy:
-      "Refunds are processed within 1–3 business days. The customer will be notified once the refund has been processed.",
-    recentRefunds: MOCK_REFUNDS.filter(
-      (refund) => refund.paymentId === transaction.payment.id,
-    ).map((refund) => ({
-      id: refund.id,
-      reference: refund.referenceId,
-      amount: refund.amount,
-      date: refund.createdAt,
-      status: "Completed",
-    })),
-  }),
-);

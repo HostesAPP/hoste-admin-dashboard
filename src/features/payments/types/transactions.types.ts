@@ -4,6 +4,7 @@ import type { PaymentItem } from "./payments.types";
 export interface PaymentTransaction {
   payment: PaymentItem;
   customerEmail: string | null;
+  bookingId: string | null;
   bookingReference: string | null;
   method: "CREDIT_CARD" | "BANK_TRANSFER" | "PAYPAL";
   canRefund: boolean;
@@ -18,8 +19,8 @@ export interface RefundContext {
     status: string;
     date: string;
     location: string;
-    hostCount: number;
-    imageUrl: string;
+    hostCount: number | null;
+    imageUrl: string | null;
   } | null;
   reasons: { value: string; label: string }[];
   policy: string;
@@ -28,7 +29,7 @@ export interface RefundContext {
     reference: string;
     amount: number;
     date: string;
-    status: string;
+    status: string | null;
   }[];
 }
 export interface RefundDraft {
