@@ -6,6 +6,8 @@ import { ArrowRight, Bell, Download, Search } from "lucide-react";
 import { toast } from "sonner";
 import { ReferralActivity } from "./ReferralActivity";
 import { ReferralPayouts } from "./ReferralPayouts";
+import { ReferralEarnings } from "./referral.earnings";
+import type { EarningsData } from "../types/earnings.types";
 import { RewardsApprovals } from "./RewardsApprovals";
 import { ReferrersDirectory } from "./ReferrersDirectory";
 import { reviewMockReward } from "../data/rewards.data";
@@ -71,6 +73,7 @@ interface ReferralsOverviewProps {
   rewardsSnapshot: RewardsSnapshot;
   rewardReferrers: RewardReferrer[];
   payoutData: PayoutsData;
+  earningsData: EarningsData;
 }
 
 export function ReferralsOverview({
@@ -88,6 +91,7 @@ export function ReferralsOverview({
   rewardsSnapshot,
   rewardReferrers,
   payoutData,
+  earningsData,
 }: ReferralsOverviewProps) {
   const [search, setSearch] = useState("");
   const [range, setRange] = useState<ReferralRange>("30");
@@ -232,6 +236,10 @@ export function ReferralsOverview({
         onTabChange={setTab}
       />
     );
+  }
+
+  if (tab === "Referral Earnings") {
+    return <ReferralEarnings initialData={earningsData} referrers={directoryRows} onTabChange={setTab} />;
   }
 
   return (

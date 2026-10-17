@@ -6,6 +6,7 @@ const TABS: ReferralTab[] = [
   "Referrers",
   "Rewards & Approvals",
   "Payouts",
+  "Referral Earnings",
 ];
 
 export function ReferralTabs({

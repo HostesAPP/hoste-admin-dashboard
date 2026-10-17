@@ -1,5 +1,6 @@
 import { ReferralsOverview } from "@/features/referrals/components/ReferralsOverview";
 import { Toaster } from "@/components/ui/sonner";
+import { MOCK_EARNINGS_DATA } from "@/features/referrals/data/earnings.data";
 import { MOCK_PAYOUTS_DATA } from "@/features/referrals/data/payouts.data";
 import {
   MOCK_REWARD_REFERRERS,
@@ -42,6 +43,7 @@ export function ReviewPage() {
         rewardsSnapshot={MOCK_REWARDS_SNAPSHOT}
         rewardReferrers={MOCK_REWARD_REFERRERS}
         payoutData={MOCK_PAYOUTS_DATA}
+        earningsData={MOCK_EARNINGS_DATA}
       />
     </>
   );

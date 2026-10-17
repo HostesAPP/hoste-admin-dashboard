@@ -4,6 +4,7 @@ export type ReferralTab =
   | "Referral Activity"
   | "Referrers"
   | "Rewards & Approvals"
+  | "Referral Earnings"
   | "Payouts";
 export type ReferralRange = "30" | "7" | "1";
 export type ReferralMetric =
