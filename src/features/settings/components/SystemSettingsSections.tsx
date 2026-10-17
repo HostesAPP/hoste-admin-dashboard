@@ -77,7 +77,7 @@ export function SystemTextField({
       control={control}
       name={name}
       render={({ field, fieldState }) => (
-        <label className="block space-y-1.5 text-xs">
+        <label className="block min-w-0 space-y-1.5 text-xs">
           <span className="font-semibold">{label}</span>
           <Input
             {...field}
@@ -90,7 +90,7 @@ export function SystemTextField({
             readOnly={readOnly}
             disabled={disabled}
             aria-invalid={!!fieldState.error}
-            className={`h-9 text-xs ${readOnly ? "bg-muted/40" : ""}`}
+            className={`h-9 min-w-0 w-full text-xs ${type === "datetime-local" ? "px-2 text-[11px]" : ""} ${readOnly ? "bg-muted/40" : ""}`}
           />
           {fieldState.error && (
             <span role="alert" className="block text-destructive">
@@ -210,12 +210,14 @@ export function SystemHealthInfo({
       {health.map((item) => (
         <div key={item.label} className="grid grid-cols-2 gap-4">
           <dt className="text-muted-foreground">{item.label}</dt>
-          <dd
-            className={
-              item.healthy ? "font-semibold text-secondary" : "font-semibold"
-            }
-          >
-            {item.value}
+          <dd className="min-w-0 break-words font-semibold">
+            {item.healthy ? (
+              <span className="inline-flex rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] text-secondary">
+                {item.value}
+              </span>
+            ) : (
+              item.value
+            )}
           </dd>
         </div>
       ))}
