@@ -7,7 +7,7 @@ import NotificationSentModal from "@/features/notifications/components/modals/No
 interface SendTestNotificationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSend?: (recipient: string) => void | Promise<void>;
+  onSend: (recipient: string) => void | Promise<void>;
 }
 
 export default function SendTestNotificationModal({
@@ -21,6 +21,14 @@ export default function SendTestNotificationModal({
   const [error, setError] = useState("");
 
   if (!isOpen && !isSentModalOpen) return null;
+
+  const handleClose = () => {
+    if (isSending) return;
+
+    setError("");
+    setRecipient("");
+    onClose();
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -36,29 +44,8 @@ export default function SendTestNotificationModal({
     setError("");
 
     try {
-      if (onSend) {
-        // The parent function should make the API request.
-        await onSend(trimmedRecipient);
-      } else {
-        // Change this endpoint to match your backend API route.
-        const response = await fetch("/api/notifications/test", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            recipient: trimmedRecipient,
-          }),
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          throw new Error(
-            data.message || data.error || "Failed to send test notification.",
-          );
-        }
-      }
+      // The parent handles the API request and must throw on failure.
+      await onSend(trimmedRecipient);
 
       setRecipient("");
       onClose();
@@ -67,7 +54,7 @@ export default function SendTestNotificationModal({
       setError(
         err instanceof Error
           ? err.message
-          : "Something went wrong. Please try again.",
+          : "Failed to send test notification. Please try again.",
       );
     } finally {
       setIsSending(false);
@@ -79,7 +66,7 @@ export default function SendTestNotificationModal({
       {isOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={onClose}
+          onClick={handleClose}
         >
           <div
             role="dialog"
@@ -99,7 +86,7 @@ export default function SendTestNotificationModal({
 
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={isSending}
                 className="rounded-full p-1 text-[#94a3b8] transition hover:bg-[#f1f5f9] hover:text-[#64748b] disabled:opacity-50"
                 aria-label="Close modal"
@@ -137,7 +124,6 @@ export default function SendTestNotificationModal({
                 className="mt-4 h-[74px] w-full rounded-[17px] border-2 border-[#D5D9E0] px-5 text-[17px] text-[#171D2B] placeholder:text-[#9AA3B3] outline-none transition focus:border-[#006837] focus:ring-1 focus:ring-[#006837] disabled:bg-gray-50"
               />
 
-              {/* Server error */}
               {error && (
                 <p
                   role="alert"
@@ -151,7 +137,7 @@ export default function SendTestNotificationModal({
               <div className="mt-16 flex items-center gap-5">
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleClose}
                   disabled={isSending}
                   className="h-[79px] flex-1 rounded-[17px] border-2 border-[#D5D9E0] text-[17px] font-medium text-[#4A5363] transition hover:bg-gray-50 disabled:opacity-50"
                 >
@@ -174,7 +160,6 @@ export default function SendTestNotificationModal({
         </div>
       )}
 
-      {/* Success modal opens only after a successful request */}
       <NotificationSentModal
         isOpen={isSentModalOpen}
         onClose={() => setIsSentModalOpen(false)}
