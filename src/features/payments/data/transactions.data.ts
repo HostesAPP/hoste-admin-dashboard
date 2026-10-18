@@ -1,90 +1,23 @@
-import { MOCK_PAYMENTS } from "./payments.data";
-import { MOCK_BOOKINGS } from "../../bookings/data/bookings.data";
+import { BOOKINGS_DATA } from "../../bookings/data/bookings.data";
 import type { PaymentTransaction } from "../types/transactions.types";
 
-export const MOCK_TRANSACTIONS: PaymentTransaction[] = [
-  {
-    payment: MOCK_PAYMENTS[0],
-    customerEmail: "bookings@luxeevents.example",
-    bookingId: MOCK_BOOKINGS[0].id,
-    bookingReference: MOCK_BOOKINGS[0].bookingCode,
-    method: "CREDIT_CARD",
-    canRefund: true,
-    canRetry: false,
+// Project the shared booking fixtures rather than maintain a second payment dataset.
+export const MOCK_TRANSACTIONS: PaymentTransaction[] = BOOKINGS_DATA.map(
+  (booking) => ({
+    payment: booking.paymentDetails,
+    customerEmail: booking.customerEmail,
+    bookingId: booking.id,
+    bookingReference: booking.reference,
+    method: booking.paymentMethod,
+    canRefund: booking.paymentDetails.status === "Successful",
+    canRetry: booking.paymentDetails.status === "Failed",
+  }),
+);
+
+export const MOCK_TRANSACTION_PERIOD_END = BOOKINGS_DATA.reduce(
+  (latest, booking) => {
+    const date = booking.paymentDetails.createdAt.slice(0, 10);
+    return date > latest ? date : latest;
   },
-  {
-    payment: MOCK_PAYMENTS[1],
-    customerEmail: "amara@example.com",
-    bookingId: MOCK_BOOKINGS[1].id,
-    bookingReference: MOCK_BOOKINGS[1].bookingCode,
-    method: "BANK_TRANSFER",
-    canRefund: true,
-    canRetry: false,
-  },
-  {
-    payment: MOCK_PAYMENTS[2],
-    customerEmail: "accounts@brandhotel.example",
-    bookingId: MOCK_BOOKINGS[2].id,
-    bookingReference: MOCK_BOOKINGS[2].bookingCode,
-    method: "CREDIT_CARD",
-    canRefund: false,
-    canRetry: true,
-  },
-  ...[
-    {
-      id: "pay-104",
-      referenceId: "PAY-260918-0013",
-      payerProfileName: "Arlene McCoy",
-      grossAmount: 84200,
-      status: "Successful" as const,
-      method: "PAYPAL" as const,
-      date: "2026-09-18T09:00:00Z",
-    },
-    {
-      id: "pay-105",
-      referenceId: "PAY-260917-0014",
-      payerProfileName: "Robert Fox",
-      grossAmount: 21400,
-      status: "Pending" as const,
-      method: "BANK_TRANSFER" as const,
-      date: "2026-09-17T14:00:00Z",
-    },
-    {
-      id: "pay-106",
-      referenceId: "PAY-260916-0015",
-      payerProfileName: "Esther Howard",
-      grossAmount: 450000,
-      status: "Successful" as const,
-      method: "CREDIT_CARD" as const,
-      date: "2026-09-16T11:00:00Z",
-    },
-    {
-      id: "pay-107",
-      referenceId: "PAY-260915-0016",
-      payerProfileName: "Devon Lane",
-      grossAmount: 196000,
-      status: "Successful" as const,
-      method: "PAYPAL" as const,
-      date: "2026-09-15T10:00:00Z",
-    },
-  ].map((item, index) => ({
-    payment: {
-      id: item.id,
-      referenceId: item.referenceId,
-      paymentType: "Verification" as const,
-      payerProfileName: item.payerProfileName,
-      grossAmount: item.grossAmount,
-      serviceFee: 0,
-      processingFee: 0,
-      status: item.status,
-      createdAt: item.date,
-    },
-    customerEmail: `${item.payerProfileName.toLowerCase().replaceAll(" ", ".")}@example.com`,
-    bookingId: MOCK_BOOKINGS[index + 3].id,
-    bookingReference: MOCK_BOOKINGS[index + 3].bookingCode,
-    method: item.method,
-    canRefund: item.status === "Successful",
-    canRetry: false,
-  })),
-];
-export const MOCK_TRANSACTION_PERIOD_END = "2026-09-18";
+  "",
+);

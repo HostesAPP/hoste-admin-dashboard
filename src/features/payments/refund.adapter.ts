@@ -13,11 +13,13 @@ import type {
   RefundDraft,
 } from "./types/transactions.types";
 export function createMockRefundAdapter(): RefundAdapter {
-  const getContext = (paymentId: string): RefundContext | null => {
+  const getContext = (id: string): RefundContext | null => {
+    const routeId = id.replace(/^#/, "");
     const transaction = MOCK_TRANSACTIONS.find(
-      (item) => item.payment.id === paymentId,
+      (item) => item.payment.id === routeId || item.bookingId === routeId,
     );
     if (!transaction) return null;
+    const paymentId = transaction.payment.id;
     const booking = MOCK_BOOKINGS.find(
       (item) => item.id === transaction.bookingId,
     );
@@ -40,12 +42,12 @@ export function createMockRefundAdapter(): RefundAdapter {
       recentRefunds: MOCK_REFUNDS.filter(
         (refund) => refund.paymentId === paymentId,
       ).map((refund) => ({
-          id: refund.id,
-          reference: refund.referenceId,
-          amount: refund.amount,
-          date: refund.createdAt,
-          status: null,
-        })),
+        id: refund.id,
+        reference: refund.referenceId,
+        amount: refund.amount,
+        date: refund.createdAt,
+        status: null,
+      })),
     };
   };
   const validate = (paymentId: string, draft: RefundDraft) => {
