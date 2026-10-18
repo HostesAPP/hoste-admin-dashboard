@@ -25,12 +25,15 @@ export function ReferrersSelect({
         if (next && options.some((item) => item.value === next)) onChange(next);
       }}
     >
-      <SelectTrigger aria-label={label} className="h-8 bg-card text-[11px]">
-        <SelectValue>
+      <SelectTrigger
+        aria-label={label}
+        className="h-9 min-w-32 max-w-full gap-3 bg-card px-3 text-[11px]"
+      >
+        <SelectValue className="min-w-0 truncate">
           {options.find((item) => item.value === value)?.label}
         </SelectValue>
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent align="start" alignItemWithTrigger={false} sideOffset={6}>
         {options.map((item) => (
           <SelectItem key={item.value} value={item.value}>
             {item.label}

@@ -79,7 +79,7 @@ export function ReferralActivityFiltersBar({
   ];
   return (
     <div className="space-y-3 px-5 pb-3">
-      <div className="flex items-center gap-2">
+      <div className="grid grid-cols-[minmax(240px,1fr)_160px_140px_150px] items-center gap-3">
         <div className="relative min-w-0 flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -105,10 +105,12 @@ export function ReferralActivityFiltersBar({
                   aria-label={`Filter by ${filter.label.toLowerCase()}`}
                   ref={field.ref}
                   onBlur={field.onBlur}
-                  className="h-9 min-w-28 bg-card text-[11px]"
+                  className="h-9 w-full min-w-0 gap-3 bg-card px-3 text-[11px]"
                 >
-                  <span className="text-muted-foreground">{filter.label}:</span>
-                  <SelectValue>
+                  <SelectValue className="min-w-0 truncate">
+                    <span className="text-muted-foreground">
+                      {filter.label}:
+                    </span>
                     {
                       filter.options.find(
                         (option) => option.value === field.value,
@@ -116,7 +118,11 @@ export function ReferralActivityFiltersBar({
                     }
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                  align="start"
+                  alignItemWithTrigger={false}
+                  sideOffset={6}
+                >
                   {filter.options.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -152,7 +158,9 @@ export function ReferralActivityFiltersBar({
               onClick={() => setValue("search", "")}
               className="inline-flex items-center gap-2 rounded-full border border-border px-2 py-1"
             >
-              <span className="max-w-48 truncate" title={filters.search}>Search: {filters.search}</span>
+              <span className="max-w-48 truncate" title={filters.search}>
+                Search: {filters.search}
+              </span>
               <X className="size-2.5 shrink-0" />
             </button>
           )}

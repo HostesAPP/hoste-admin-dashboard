@@ -300,14 +300,14 @@ export function ReferralPayouts({
               Track referral rewards from payable status through successful
               payout.
             </p>
-            <div className="my-4 flex items-center gap-2">
-              <div className="relative w-72">
+            <div className="my-4 flex flex-wrap items-center gap-3">
+              <div className="relative min-w-60 flex-1">
                 <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   {...register("search", { onChange: resetPage })}
                   aria-label="Search payouts"
                   placeholder="Search referrer, payout ID or transaction ref..."
-                  className="h-8 bg-muted/20 pl-9 text-[11px]"
+                  className="h-9 bg-muted/20 pl-9 text-[11px]"
                 />
               </div>
               {renderFilter("status")}
