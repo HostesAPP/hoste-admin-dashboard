@@ -1,4 +1,5 @@
 import type { PaymentItem } from "@/features/payments/types/payments.types";
+import type { Booking, BookingKPIs } from "../bookings.types";
 
 export interface BookingRow {
   id: string;
@@ -261,3 +262,55 @@ export const BOOKINGS_DATA: BookingWithPayment[] = [
     },
   },
 ];
+
+/**
+ * Adapt the existing booking records to the Booking type used by useBookings.
+ * Keep BOOKINGS_DATA unchanged for screens that rely on paymentDetails.
+ */
+export const MOCK_BOOKINGS: Booking[] = BOOKINGS_DATA.map((item) => ({
+  id: item.id,
+  bookingCode: item.reference,
+  customerName: item.client,
+  customerEmail: item.customerEmail,
+  hostName: item.hosteAssigned,
+  brandName: item.client,
+  eventName: item.event,
+  eventCategory: item.type ?? "Event",
+  eventDate: item.date,
+  location: item.location,
+  guestCount: 0,
+  status: item.status,
+  totalAmount: Number((item.amount ?? "0").replace(/[₦,\s]/g, "")),
+  currency: "NGN",
+  paymentStatus:
+    item.payment === "Paid"
+      ? "Paid"
+      : item.payment === "Unpaid"
+        ? "Failed"
+        : "Pending",
+  payoutStatus: "Pending",
+  createdAt: item.paymentDetails.createdAt,
+}));
+
+export const MOCK_BOOKINGS_KPIS: BookingKPIs = {
+  totalBookings: MOCK_BOOKINGS.length,
+  confirmedBookings: MOCK_BOOKINGS.filter(
+    (booking) => booking.status === "Confirmed",
+  ).length,
+  ongoingBookings: MOCK_BOOKINGS.filter(
+    (booking) => booking.status === "Ongoing",
+  ).length,
+  completedBookings: MOCK_BOOKINGS.filter(
+    (booking) => booking.status === "Completed",
+  ).length,
+  cancelledBookings: MOCK_BOOKINGS.filter(
+    (booking) => booking.status === "Cancelled",
+  ).length,
+  disputedBookings: MOCK_BOOKINGS.filter(
+    (booking) => booking.status === "Disputed",
+  ).length,
+  totalRevenue: MOCK_BOOKINGS.reduce(
+    (total, booking) => total + booking.totalAmount,
+    0,
+  ),
+};
