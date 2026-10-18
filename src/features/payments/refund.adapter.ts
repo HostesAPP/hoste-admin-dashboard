@@ -9,10 +9,20 @@ export function createMockRefundAdapter(
   contexts: readonly RefundContext[] = MOCK_REFUND_CONTEXTS,
 ): RefundAdapter {
   const snapshots = structuredClone(contexts);
-  const validate = (paymentId: string, draft: RefundDraft) => {
-    const context = snapshots.find(
-      (item) => item.transaction.payment.id === paymentId,
+  const findContext = (paymentId: string) => {
+    return (
+      snapshots.find(
+        (item) =>
+          item.transaction.payment.id === paymentId ||
+          item.transaction.payment.referenceId === paymentId,
+      ) ??
+      (paymentId.startsWith("TRX-") || paymentId.startsWith("pay-")
+        ? snapshots[0]
+        : undefined)
     );
+  };
+  const validate = (paymentId: string, draft: RefundDraft) => {
+    const context = findContext(paymentId);
     if (!context) throw new Error("Payment was not found.");
     if (!context.transaction.canRefund)
       throw new Error("This payment is not eligible for a refund.");
@@ -23,10 +33,8 @@ export function createMockRefundAdapter(
   };
   return {
     async load(paymentId) {
-      return structuredClone(
-        snapshots.find((item) => item.transaction.payment.id === paymentId) ??
-          null,
-      );
+      const found = findContext(paymentId);
+      return structuredClone(found ?? null);
     },
     async quote(paymentId, draft) {
       const validated = validate(paymentId, draft);
@@ -39,9 +47,7 @@ export function createMockRefundAdapter(
     },
     async review(paymentId, draft) {
       const validated = validate(paymentId, draft);
-      const context = snapshots.find(
-        (item) => item.transaction.payment.id === paymentId,
-      )!;
+      const context = findContext(paymentId)!;
       return {
         message: "Refund reviewed in this preview. No money was refunded.",
         receipt: {

@@ -19,7 +19,7 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({
       </h2>
 
       <div className="w-full overflow-x-auto rounded-xl border border-border/80 bg-card shadow-soft">
-        <table className="w-full text-left border-collapse min-w-[850px]">
+        <table className="w-full text-left border-collapse min-w-212.5">
           <thead>
             <tr className="border-b border-border/80 bg-muted/30 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
               <th className="py-3.5 px-4">REPORT NAME</th>

@@ -10,39 +10,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Calendar } from "lucide-react";
 import { StatusBadge } from "@/components/shared";
 import { formatDate } from "@/lib/utils";
-import { getGroupEngagements, type Group } from "@/features/groups";
-
-const DEFAULT_BOOKINGS = [
-  {
-    id: "BK-10482",
-    customer: "Accra Events Ltd",
-    date: "Aug 28, 2026",
-    amount: "250,000",
-    status: "Confirmed",
-  },
-  {
-    id: "BK-10450",
-    customer: "GoldCoast Hospitality",
-    date: "Aug 22, 2026",
-    amount: "180,000",
-    status: "Completed",
-  },
-];
+import type { Group } from "../../types/groups.types";
 
 export const RecentGroupBookings = ({ group }: { group?: Group }) => {
-  const engagements = group?.id ? getGroupEngagements(group.id) : [];
-  const bookings = engagements && engagements.length > 0
-    ? engagements.map((eng) => ({
-        id: eng.referenceId || eng.id,
-        customer: eng.title || "Event Booking",
-        date: eng.startDate ? formatDate(eng.startDate) : "Aug 28, 2026",
-        amount: eng.totalAmount ? eng.totalAmount.toLocaleString() : "250,000",
-        status: eng.status || "Confirmed",
-      }))
-    : DEFAULT_BOOKINGS;
+  // If the group object contains real bookings/engagements from the backend
+  const bookings = Array.isArray(group?.engagements)
+    ? (group.engagements as Array<{
+        id: string;
+        referenceId?: string;
+        title?: string;
+        startDate?: string;
+        totalAmount?: number;
+        status?: string;
+      }>)
+    : [];
+
   return (
     <section className="rounded-xl border border-border bg-card shadow-xs overflow-hidden">
       {/* Header */}
@@ -51,7 +36,7 @@ export const RecentGroupBookings = ({ group }: { group?: Group }) => {
           Recent Group Bookings
         </h3>
         <Link
-          href={`/bookings`}
+          href={`/engagements?groupId=${group?.id || ""}`}
           className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
         >
           <span>View All Bookings</span>
@@ -68,7 +53,7 @@ export const RecentGroupBookings = ({ group }: { group?: Group }) => {
                 Booking ID
               </TableHead>
               <TableHead className="font-semibold text-xs text-muted-foreground uppercase tracking-wider py-3">
-                Brand / Customer
+                Title / Details
               </TableHead>
               <TableHead className="font-semibold text-xs text-muted-foreground uppercase tracking-wider py-3">
                 Date
@@ -83,25 +68,36 @@ export const RecentGroupBookings = ({ group }: { group?: Group }) => {
           </TableHeader>
 
           <TableBody>
-            {bookings.map((booking) => (
-              <TableRow key={booking.id} className="hover:bg-muted/30 border-b border-border/70">
-                <TableCell className="py-3.5 px-5 font-bold text-xs text-primary">
-                  {booking.id}
-                </TableCell>
-                <TableCell className="py-3.5 text-xs font-medium text-foreground">
-                  {booking.customer}
-                </TableCell>
-                <TableCell className="py-3.5 text-xs text-muted-foreground">
-                  {booking.date}
-                </TableCell>
-                <TableCell className="py-3.5 text-xs font-bold text-foreground">
-                  ₦{booking.amount}
-                </TableCell>
-                <TableCell className="py-3.5 text-right pr-6">
-                  <StatusBadge status={booking.status} />
+            {bookings.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center gap-1.5">
+                    <Calendar className="w-5 h-5 text-muted-foreground/60" />
+                    <p className="text-xs font-medium">No recent bookings recorded for this group</p>
+                  </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              bookings.map((booking) => (
+                <TableRow key={booking.id} className="hover:bg-muted/30 border-b border-border/70">
+                  <TableCell className="py-3.5 px-5 font-bold text-xs text-primary">
+                    {booking.referenceId || booking.id}
+                  </TableCell>
+                  <TableCell className="py-3.5 text-xs font-medium text-foreground">
+                    {booking.title || "Group Engagement"}
+                  </TableCell>
+                  <TableCell className="py-3.5 text-xs text-muted-foreground">
+                    {booking.startDate ? formatDate(booking.startDate) : "—"}
+                  </TableCell>
+                  <TableCell className="py-3.5 text-xs font-bold text-foreground">
+                    {booking.totalAmount != null ? `₦${booking.totalAmount.toLocaleString()}` : "—"}
+                  </TableCell>
+                  <TableCell className="py-3.5 text-right pr-6">
+                    <StatusBadge status={booking.status || "Accepted"} />
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

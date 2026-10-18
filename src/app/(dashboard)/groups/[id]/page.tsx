@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { EllipsisVertical, AlertCircle, RotateCcw } from "lucide-react";
@@ -27,20 +26,14 @@ import {
   GroupInformation,
   GroupLeaderCard,
   GroupDetailsMembers,
-  GroupPerformanceCard,
-  GroupActivityCard,
   RecentGroupBookings,
-  GroupManagementControls,
-  SuspendGroupDialog,
   GroupDetailsSkeleton,
 } from "@/features/groups";
 import { useGroup } from "@/features/groups/hooks/groups.hooks";
 
 export default function GroupDetailPage() {
-  const [suspendOpen, setSuspendOpen] = useState(false);
   const params = useParams();
-  const rawGroupId = params?.id as string;
-  const groupId = rawGroupId || "GRP-001";
+  const groupId = (params?.id as string) || "";
 
   const { data: currentGroup, isLoading, isError, refetch } = useGroup(groupId);
 
@@ -119,15 +112,15 @@ export default function GroupDetailPage() {
             <StatusBadge status={currentGroup.status || "Active"} />
           </div>
 
-          {/* Top Actions */}
+          {/* Top Actions (View-Only for V1) */}
           <div className="flex items-center gap-2.5">
-            {/* Suspend Group Outline Button */}
             <Button
               variant="outline"
-              onClick={() => setSuspendOpen(true)}
-              className="border-destructive/30 text-destructive hover:bg-destructive/10 text-xs sm:text-sm font-semibold h-9 px-4 cursor-pointer"
+              className="text-xs sm:text-sm font-semibold h-9 px-4 cursor-pointer"
             >
-              Suspend Group
+              <Link href={`/groups/${currentGroup.id}/members`}>
+                View All Members
+              </Link>
             </Button>
 
             {/* Menu Dropdown */}
@@ -138,17 +131,17 @@ export default function GroupDetailPage() {
               <DropdownMenuContent className="w-52" align="end" sideOffset={8}>
                 <DropdownMenuGroup>
                   {[
-                    {
-                      text: "View Leader Profile",
-                      href: `/profiles/${currentGroup.leaderProfileId}`,
-                    },
+                    ...(currentGroup.leaderProfileId
+                      ? [
+                        {
+                          text: "View Leader Profile",
+                          href: `/profiles/${currentGroup.leaderProfileId}`,
+                        },
+                      ]
+                      : []),
                     {
                       text: "View All Members",
                       href: `/groups/${currentGroup.id}/members`,
-                    },
-                    {
-                      text: "View Activity Log",
-                      href: `/groups/${currentGroup.id}/activity`,
                     },
                   ].map((item) => (
                     <DropdownMenuItem
@@ -168,19 +161,12 @@ export default function GroupDetailPage() {
                   <DropdownMenuItem
                     className="cursor-pointer hover:bg-muted/60 text-xs px-3 py-2"
                     onClick={() => {
-                      navigator.clipboard.writeText(currentGroup.id);
-                      alert("Group ID copied to clipboard");
+                      if (typeof navigator !== "undefined" && navigator.clipboard) {
+                        navigator.clipboard.writeText(currentGroup.id);
+                      }
                     }}
                   >
                     Copy Group ID
-                  </DropdownMenuItem>
-
-                  {/* Suspend Group item */}
-                  <DropdownMenuItem
-                    className="cursor-pointer text-destructive focus:bg-destructive/10 text-xs px-3 py-2"
-                    onClick={() => setSuspendOpen(true)}
-                  >
-                    Suspend Group
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
@@ -188,13 +174,6 @@ export default function GroupDetailPage() {
           </div>
         </section>
       </div>
-
-      {/* Suspend Group Dialog */}
-      <SuspendGroupDialog
-        group={currentGroup}
-        open={suspendOpen}
-        onOpenChange={setSuspendOpen}
-      />
 
       {/* Main Content Area */}
       <main className="px-6 space-y-6">
@@ -205,28 +184,16 @@ export default function GroupDetailPage() {
         <GroupDetailsStat group={currentGroup} />
 
         {/* 3. Group Information & Group Leader (2-Columns) */}
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <GroupInformation group={currentGroup} />
           <GroupLeaderCard group={currentGroup} />
         </div>
 
-        {/* 4. Group Members Table */}
+        {/* 4. Group Members Table (Real integration with /groups/:id/members) */}
         <GroupDetailsMembers group={currentGroup} />
 
-        {/* 5. Group Performance & Group Activity (2-Columns) */}
-        <div className="grid grid-cols-2 gap-6">
-          <GroupPerformanceCard group={currentGroup} />
-          <GroupActivityCard group={currentGroup} />
-        </div>
-
-        {/* 6. Recent Group Bookings */}
+        {/* 5. Recent Group Bookings */}
         <RecentGroupBookings group={currentGroup} />
-
-        {/* 7. Group Management & Controls (Danger Zone) */}
-        <GroupManagementControls
-          group={currentGroup}
-          onOpenSuspend={() => setSuspendOpen(true)}
-        />
       </main>
     </div>
   );

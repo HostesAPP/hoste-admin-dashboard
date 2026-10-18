@@ -121,7 +121,7 @@ export function RevenuePerformanceChartCard({
         </div>
 
         {/* Timeframe Switcher */}
-        <div className="inline-flex items-center p-1 rounded-xl bg-muted/60 border border-border/60 self-start sm:self-auto">
+        <div className="inline-flex items-center p-1 rounded-xl bg-muted/60 border border-border/60 self-auto">
           {(["Daily", "Weekly", "Monthly"] as RevenueTimeframe[]).map((tab) => {
             const isActive = timeframe === tab;
             return (
@@ -129,11 +129,10 @@ export function RevenuePerformanceChartCard({
                 key={tab}
                 type="button"
                 onClick={() => setTimeframe(tab)}
-                className={`px-3.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  isActive
-                    ? "bg-foreground text-background shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`px-3.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${isActive
+                  ? "bg-foreground text-background shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 {tab}
               </button>
@@ -143,7 +142,7 @@ export function RevenuePerformanceChartCard({
       </div>
 
       {/* Chart Canvas */}
-      <div className="w-full h-64 sm:h-72">
+      <div className="w-full h-64">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={currentData}

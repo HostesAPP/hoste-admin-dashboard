@@ -1,16 +1,32 @@
 // groups types
-export type GroupStatus = "Active" | "Paused" | "Inactive";
+export type GroupStatus = "Active" | "Paused" | "Inactive" | "ACTIVE" | "PAUSED" | "INACTIVE" | string;
+
+export interface GroupLeaderInfo {
+  id?: string;
+  profileId?: string;
+  displayName?: string;
+  name?: string;
+  avatarUrl?: string;
+  email?: string;
+}
 
 export type Group = {
   id: string;
   name: string;
-  leaderProfileId: string;
-  category: string;
+  leaderProfileId?: string;
+  category?: string;
   status: GroupStatus;
-  createdAt: string;
-  updatedAt: string;
-  color: string;
-  description: string;
+  createdAt?: string;
+  updatedAt?: string;
+  color?: string;
+  description?: string;
+  memberCount?: number;
+  membersCount?: number;
+  bookingCount?: number;
+  bookingsCount?: number;
+  engagementsCount?: number;
+  leader?: GroupLeaderInfo;
+  [key: string]: unknown;
 };
 
 // group member types

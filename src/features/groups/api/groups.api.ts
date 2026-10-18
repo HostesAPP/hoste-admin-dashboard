@@ -1,7 +1,6 @@
 // features/groups/api/groups.api.ts
 
-import { GROUPS, GROUP_MEMBERS } from "../data/groups.data";
-import { getGroupMembers, getGroupLeader, getGroupEngagements } from "../lib/groups.utils";
+import { apiClient } from "@/lib/api-client";
 import type {
   Group,
   GroupMember,
@@ -14,296 +13,314 @@ import type {
   GroupMemberStatus,
 } from "../types/groups.types";
 
-// In-memory working copies of data for mock mutations
-let currentGroups: Group[] = [...GROUPS];
-let currentMembers: GroupMember[] = [...GROUP_MEMBERS];
+export interface GetGroupsApiResponse {
+  success?: boolean;
+  data?:
+    | Group[]
+    | {
+        groups?: Group[];
+        total?: number;
+        totalCount?: number;
+        totalPages?: number;
+        page?: number;
+        pageSize?: number;
+        limit?: number;
+        stats?: GroupStatsData;
+      };
+  meta?: {
+    total?: number;
+    totalCount?: number;
+    page?: number;
+    limit?: number;
+    pageSize?: number;
+    totalPages?: number;
+  };
+  groups?: Group[];
+  totalCount?: number;
+  totalPages?: number;
+  page?: number;
+  pageSize?: number;
+  stats?: GroupStatsData;
+}
 
-const delay = (ms: number = 80) => new Promise((resolve) => setTimeout(resolve, ms));
+interface GenericApiResponse<T> {
+  success?: boolean;
+  data?: T;
+  group?: T;
+  groups?: T extends (infer U)[] ? U[] : never;
+  meta?: {
+    total?: number;
+    totalCount?: number;
+    page?: number;
+    limit?: number;
+    pageSize?: number;
+    totalPages?: number;
+  };
+}
 
+/**
+ * Normalizes backend member responses into the frontend GroupMember contract
+ */
+function normalizeMember(m: Record<string, unknown>, groupId: string): GroupMember {
+  const profile = (m.profile as Record<string, unknown>) || {};
+  const isLeader =
+    m.isLeader === true ||
+    m.role === "Group Leader" ||
+    m.role === "LEADER" ||
+    m.role === "leader";
+
+  const normalizedRole: GroupMemberRole = isLeader
+    ? "Group Leader"
+    : m.role === "Co-Leader" || m.role === "CO_LEADER"
+    ? "Co-Leader"
+    : "Member";
+
+  const rawStatus = String(m.status || "Active").toLowerCase();
+  const normalizedStatus: GroupMemberStatus =
+    rawStatus === "active"
+      ? "Active"
+      : rawStatus === "pending"
+      ? "Pending"
+      : rawStatus === "suspended"
+      ? "Suspended"
+      : "Removed";
+
+  return {
+    id: String(m.id || m._id || profile.id || ""),
+    groupId: String(m.groupId || groupId),
+    profileId: (m.profileId || profile.id) as string | undefined,
+    userId: String(m.userId || profile.userId || m.profileId || m.id || ""),
+    name: String(m.name || profile.name || profile.displayName || profile.fullName || "Member"),
+    email: String(m.email || profile.email || ""),
+    avatarColor: (m.avatarColor as string) || "#EF5A22",
+    avatarUrl: (m.avatarUrl || profile.avatarUrl) as string | undefined,
+    role: normalizedRole,
+    status: normalizedStatus,
+    dateJoined: String(m.dateJoined || m.joinedAt || m.createdAt || new Date().toISOString()),
+    lastActivity: String(m.lastActivity || m.updatedAt || "Recent"),
+    isLeader,
+  };
+}
+
+/**
+ * 1. List all groups for Admin / Staff Dashboard
+ * GET /api/v1/groups (Staff)
+ */
 export async function fetchGroups(params: GroupFilterParams = {}): Promise<GroupsListResponse> {
-  await delay(120);
+  const queryParams = new URLSearchParams();
 
-  const {
-    search = "",
-    status = "All",
-    category = "All Categories",
-    memberCount = "Any",
-    page = 1,
-    pageSize = 10,
-  } = params;
+  if (params.page) queryParams.set("page", String(params.page));
+  if (params.pageSize) queryParams.set("limit", String(params.pageSize));
+  if (params.search?.trim()) queryParams.set("search", params.search.trim());
+  if (params.status && params.status !== "All") queryParams.set("status", params.status);
+  if (params.category && params.category !== "All Categories") queryParams.set("category", params.category);
+  if (params.sortBy) queryParams.set("sortBy", params.sortBy);
+  if (params.sortOrder) queryParams.set("sortOrder", params.sortOrder);
 
-  let filtered = [...currentGroups];
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
+  const response = await apiClient<GetGroupsApiResponse>(`/groups${queryString}`, {
+    method: "GET",
+  });
 
-  // Search filter
-  if (search.trim()) {
-    const q = search.toLowerCase().trim();
-    filtered = filtered.filter((group) => {
-      const leader = getGroupLeader(group.leaderProfileId);
-      return (
-        group.name.toLowerCase().includes(q) ||
-        group.id.toLowerCase().includes(q) ||
-        group.category.toLowerCase().includes(q) ||
-        (leader && leader.displayName.toLowerCase().includes(q))
-      );
-    });
+  // Extract groups array from various backend response formats
+  let rawGroups: Group[] = [];
+  if (Array.isArray(response)) {
+    rawGroups = response;
+  } else if (Array.isArray(response?.data)) {
+    rawGroups = response.data;
+  } else if (response?.data && typeof response.data === "object" && Array.isArray(response.data.groups)) {
+    rawGroups = response.data.groups;
+  } else if (Array.isArray(response?.groups)) {
+    rawGroups = response.groups;
   }
 
-  // Status filter
-  if (status && status !== "All") {
-    filtered = filtered.filter(
-      (group) => group.status.toLowerCase() === status.toLowerCase()
-    );
-  }
+  // Calculate or extract pagination metadata
+  const totalCount =
+    (typeof response?.data === "object" && !Array.isArray(response.data) && response.data?.total) ||
+    (typeof response?.data === "object" && !Array.isArray(response.data) && response.data?.totalCount) ||
+    response?.meta?.total ||
+    response?.meta?.totalCount ||
+    response?.totalCount ||
+    rawGroups.length;
 
-  // Category filter
-  if (category && category !== "All Categories") {
-    filtered = filtered.filter(
-      (group) => group.category.toLowerCase() === category.toLowerCase()
-    );
-  }
+  const pageSize = params.pageSize || response?.meta?.limit || response?.meta?.pageSize || 10;
+  const totalPages =
+    (typeof response?.data === "object" && !Array.isArray(response.data) && response.data?.totalPages) ||
+    response?.meta?.totalPages ||
+    response?.totalPages ||
+    Math.max(1, Math.ceil(totalCount / pageSize));
 
-  // Member count filter
-  if (memberCount && memberCount !== "Any") {
-    filtered = filtered.filter((group) => {
-      const count = getGroupMembers(group.id).length;
-      if (memberCount === "1-20") return count >= 1 && count <= 20;
-      if (memberCount === "21-50") return count >= 21 && count <= 50;
-      if (memberCount === "51-100") return count >= 51 && count <= 100;
-      if (memberCount === "100+") return count > 100;
-      return true;
-    });
-  }
+  const page = params.page || response?.meta?.page || 1;
 
-  const totalCount = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const validPage = Math.min(Math.max(1, page), totalPages);
-  const startIndex = (validPage - 1) * pageSize;
-  const paginatedGroups = filtered.slice(startIndex, startIndex + pageSize);
+  // Stats calculation: Only use backend-provided stats or derive verified aggregate from metadata
+  const backendStats =
+    (typeof response?.data === "object" && !Array.isArray(response.data) && response.data?.stats) ||
+    response?.stats;
 
-  const stats: GroupStatsData = {
+  const stats: GroupStatsData = backendStats || {
     totalGroups: {
       title: "01 — Total Groups",
-      value: currentGroups.length,
+      value: totalCount,
       footerText: "All groups on Hosté",
-      rate: 12,
+      rate: 0,
     },
     activeGroups: {
       title: "02 — Active Groups",
-      value: currentGroups.filter((g) => g.status === "Active").length,
-      footerText: "Currently active",
-      rate: 8,
+      value: rawGroups.filter((g) => g.status?.toUpperCase() === "ACTIVE" || g.status === "Active").length,
+      footerText: "Currently active on page",
+      rate: 0,
     },
     totalMembers: {
       title: "03 — Total Members",
-      value: currentMembers.length,
-      footerText: "Members across all groups",
-      rate: 15,
+      value: rawGroups.reduce((acc, g) => acc + (Number(g.memberCount || g.membersCount) || 0), 0),
+      footerText: "Members on page",
+      rate: 0,
     },
     suspendedGroups: {
       title: "04 — Suspended / Inactive",
-      value: currentGroups.filter((g) => g.status !== "Active").length,
-      footerText: "Groups requiring attention",
+      value: rawGroups.filter((g) => g.status?.toUpperCase() !== "ACTIVE" && g.status !== "Active").length,
+      footerText: "Groups requiring attention on page",
       rate: 0,
     },
   };
 
   return {
-    groups: paginatedGroups,
+    groups: rawGroups,
     totalCount,
     totalPages,
-    page: validPage,
+    page,
     pageSize,
     stats,
   };
 }
 
+/**
+ * 2. Get one group by ID
+ * GET /api/v1/groups/:groupId (Any authenticated user)
+ */
 export async function fetchGroupById(groupId: string): Promise<Group | null> {
-  await delay(80);
-  const found = currentGroups.find((g) => g.id.toLowerCase() === groupId.toLowerCase());
-  return found || currentGroups[0] || null;
+  const response = await apiClient<GenericApiResponse<Group>>(`/groups/${groupId}`, {
+    method: "GET",
+  });
+
+  if (!response) return null;
+  const group =
+    response.data && typeof response.data === "object" && !Array.isArray(response.data)
+      ? response.data
+      : response.group || response;
+
+  return group as Group;
 }
 
-export async function fetchGroupStats(): Promise<GroupStatsData> {
-  await delay(60);
-  return {
-    totalGroups: {
-      title: "01 — Total Groups",
-      value: currentGroups.length,
-      footerText: "All groups on Hosté",
-      rate: 12,
-    },
-    activeGroups: {
-      title: "02 — Active Groups",
-      value: currentGroups.filter((g) => g.status === "Active").length,
-      footerText: "Currently active",
-      rate: 8,
-    },
-    totalMembers: {
-      title: "03 — Total Members",
-      value: currentMembers.length,
-      footerText: "Members across all groups",
-      rate: 15,
-    },
-    suspendedGroups: {
-      title: "04 — Suspended / Inactive",
-      value: currentGroups.filter((g) => g.status !== "Active").length,
-      footerText: "Groups requiring attention",
-      rate: 0,
-    },
-  };
-}
-
+/**
+ * 3. List members with server-side pagination, searching, and filtering
+ * GET /api/v1/groups/:groupId/members (Any authenticated user)
+ */
 export async function fetchGroupMembers(
   groupId: string,
   params: GroupMemberFilterParams = {}
 ): Promise<GroupMembersResponse> {
-  await delay(90);
+  const queryParams = new URLSearchParams();
 
-  const { search = "", role = "All", status = "All", page = 1, pageSize = 10 } = params;
+  if (params.page) queryParams.set("page", String(params.page));
+  if (params.pageSize) queryParams.set("limit", String(params.pageSize));
+  if (params.search?.trim()) queryParams.set("search", params.search.trim());
+  if (params.role && params.role !== "All") queryParams.set("role", params.role);
+  if (params.status && params.status !== "All") queryParams.set("status", params.status);
+  if (params.joined && params.joined !== "Any Date") queryParams.set("joined", params.joined);
 
-  let members = currentMembers.filter(
-    (m) => m.groupId.toLowerCase() === groupId.toLowerCase()
-  );
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
+  const response = await apiClient<Record<string, unknown>>(`/groups/${groupId}/members${queryString}`, {
+    method: "GET",
+  });
 
-  // If none match specific ID, fallback to GRP-001 members so mock doesn't break
-  if (members.length === 0) {
-    members = currentMembers.filter((m) => m.groupId === "GRP-001");
+  let rawMembers: Record<string, unknown>[] = [];
+  if (Array.isArray(response)) {
+    rawMembers = response as Record<string, unknown>[];
+  } else if (Array.isArray(response?.data)) {
+    rawMembers = response.data as Record<string, unknown>[];
+  } else if (
+    response?.data &&
+    typeof response.data === "object" &&
+    Array.isArray((response.data as Record<string, unknown>).members)
+  ) {
+    rawMembers = (response.data as { members: Record<string, unknown>[] }).members;
+  } else if (Array.isArray(response?.members)) {
+    rawMembers = response.members as Record<string, unknown>[];
   }
 
-  if (search.trim()) {
-    const q = search.toLowerCase().trim();
-    members = members.filter(
-      (m) =>
-        m.name.toLowerCase().includes(q) ||
-        m.email.toLowerCase().includes(q) ||
-        m.userId.toLowerCase().includes(q)
-    );
-  }
+  const responseDataObj =
+    typeof response?.data === "object" && !Array.isArray(response.data)
+      ? (response.data as Record<string, unknown>)
+      : undefined;
 
-  if (role && role !== "All") {
-    members = members.filter((m) => m.role === role);
-  }
+  const responseMetaObj =
+    typeof response?.meta === "object" && !Array.isArray(response.meta)
+      ? (response.meta as Record<string, unknown>)
+      : undefined;
 
-  if (status && status !== "All") {
-    members = members.filter((m) => m.status === status);
-  }
+  const totalCount =
+    (typeof responseDataObj?.total === "number" && responseDataObj.total) ||
+    (typeof responseDataObj?.totalCount === "number" && responseDataObj.totalCount) ||
+    (typeof responseMetaObj?.total === "number" && responseMetaObj.total) ||
+    (typeof responseMetaObj?.totalCount === "number" && responseMetaObj.totalCount) ||
+    (typeof response?.totalCount === "number" && response.totalCount) ||
+    rawMembers.length;
 
-  const totalCount = members.length;
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const validPage = Math.min(Math.max(1, page), totalPages);
-  const startIndex = (validPage - 1) * pageSize;
-  const paginatedMembers = members.slice(startIndex, startIndex + pageSize);
+  const pageSize =
+    params.pageSize ||
+    (typeof responseMetaObj?.limit === "number" && responseMetaObj.limit) ||
+    (typeof responseMetaObj?.pageSize === "number" && responseMetaObj.pageSize) ||
+    10;
+
+  const totalPages =
+    (typeof responseDataObj?.totalPages === "number" && responseDataObj.totalPages) ||
+    (typeof responseMetaObj?.totalPages === "number" && responseMetaObj.totalPages) ||
+    (typeof response?.totalPages === "number" && response.totalPages) ||
+    Math.max(1, Math.ceil(totalCount / pageSize));
+
+  const page =
+    params.page ||
+    (typeof responseMetaObj?.page === "number" && responseMetaObj.page) ||
+    1;
+
+  const members = rawMembers.map((m) => normalizeMember(m, groupId));
 
   return {
-    members: paginatedMembers,
+    members,
     totalCount,
     totalPages,
-    page: validPage,
+    page,
     pageSize,
   };
 }
 
-export async function suspendGroup(groupId: string, reason?: string): Promise<Group> {
-  await delay(150);
-  currentGroups = currentGroups.map((g) =>
-    g.id.toLowerCase() === groupId.toLowerCase()
-      ? { ...g, status: "Paused" as const, updatedAt: new Date().toISOString() }
-      : g
-  );
-  const updated = currentGroups.find((g) => g.id.toLowerCase() === groupId.toLowerCase());
-  if (!updated) throw new Error("Group not found");
-  return updated;
-}
+/**
+ * 4. Groups led by acting profile
+ * GET /api/v1/groups/mine (Active profile)
+ */
+export async function fetchMyGroups(): Promise<Group[]> {
+  const response = await apiClient<GenericApiResponse<Group[]>>("/groups/mine", {
+    method: "GET",
+  });
 
-export async function restoreGroup(groupId: string): Promise<Group> {
-  await delay(150);
-  currentGroups = currentGroups.map((g) =>
-    g.id.toLowerCase() === groupId.toLowerCase()
-      ? { ...g, status: "Active" as const, updatedAt: new Date().toISOString() }
-      : g
-  );
-  const updated = currentGroups.find((g) => g.id.toLowerCase() === groupId.toLowerCase());
-  if (!updated) throw new Error("Group not found");
-  return updated;
-}
-
-export async function addGroupMember(
-  groupId: string,
-  data: {
-    name: string;
-    email: string;
-    role: GroupMemberRole;
-    status: GroupMemberStatus;
+  if (Array.isArray(response)) return response;
+  if (Array.isArray(response?.data)) return response.data;
+  if (
+    response?.data &&
+    typeof response.data === "object" &&
+    "groups" in response.data &&
+    Array.isArray((response.data as Record<string, unknown>).groups)
+  ) {
+    return (response.data as { groups: Group[] }).groups;
   }
-): Promise<GroupMember> {
-  await delay(150);
-  const newMember: GroupMember = {
-    id: `mem-${Date.now()}`,
-    groupId,
-    userId: `USR-${Math.floor(10000 + Math.random() * 90000)}`,
-    name: data.name,
-    email: data.email,
-    role: data.role,
-    status: data.status,
-    dateJoined: new Date().toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }),
-    lastActivity: "Just now",
-    avatarColor: ["#EF5A22", "#0284C7", "#10B981", "#8B5CF6", "#F59E0B"][
-      Math.floor(Math.random() * 5)
-    ],
-    isLeader: data.role === "Group Leader",
-  };
-  currentMembers = [newMember, ...currentMembers];
-  return newMember;
+  return (response?.groups as Group[]) || [];
 }
 
-export async function changeGroupMemberRole(
-  groupId: string,
-  memberId: string,
-  newRole: GroupMemberRole
-): Promise<GroupMember> {
-  await delay(120);
-  let updatedMember: GroupMember | null = null;
-  currentMembers = currentMembers.map((m) => {
-    if (m.id === memberId) {
-      updatedMember = {
-        ...m,
-        role: newRole,
-        isLeader: newRole === "Group Leader",
-      };
-      return updatedMember;
-    }
-    if (newRole === "Group Leader" && (m.role === "Group Leader" || m.isLeader)) {
-      return { ...m, role: "Member" as const, isLeader: false };
-    }
-    return m;
-  });
-  if (!updatedMember) throw new Error("Member not found");
-  return updatedMember;
-}
-
-export async function removeGroupMember(groupId: string, memberId: string): Promise<boolean> {
-  await delay(120);
-  currentMembers = currentMembers.filter((m) => m.id !== memberId);
-  return true;
-}
-
-export async function transferGroupLeader(
-  groupId: string,
-  newLeaderMemberId: string
-): Promise<boolean> {
-  await delay(150);
-  currentMembers = currentMembers.map((m) => {
-    if (m.id === newLeaderMemberId) {
-      return { ...m, role: "Group Leader" as const, isLeader: true };
-    }
-    if (m.role === "Group Leader" || m.isLeader) {
-      return { ...m, role: "Member" as const, isLeader: false };
-    }
-    return m;
-  });
-  return true;
+/**
+ * Overview group statistics
+ */
+export async function fetchGroupStats(): Promise<GroupStatsData> {
+  const list = await fetchGroups({ pageSize: 100 });
+  return list.stats;
 }

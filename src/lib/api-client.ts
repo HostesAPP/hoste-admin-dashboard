@@ -24,6 +24,9 @@ async function executeTokenRefresh(): Promise<string | null> {
 
   if (!refreshToken) {
     clearAuth();
+    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/sign-in")) {
+      redirect("/sign-in");
+    }
     return null;
   }
 
@@ -42,10 +45,12 @@ async function executeTokenRefresh(): Promise<string | null> {
 
     const data: RefreshTokenResponse = await response.json().catch(() => null);
 
-    if (!response.ok || !data?.data?.accessToken) {
+    console.log("refresh-token response:", data);
+
+    if (!response.ok || !data?.data?.accessToken || !data?.data?.refreshToken) {
       clearAuth();
       if (typeof window !== "undefined" && !window.location.pathname.startsWith("/sign-in")) {
-        redirect("/sign-in")
+        redirect("/sign-in");
       }
       return null;
     }
@@ -55,11 +60,14 @@ async function executeTokenRefresh(): Promise<string | null> {
 
     setTokens(newAccessToken, newRefreshToken);
     return newAccessToken;
-  } catch {
+  } catch (error) {
     clearAuth();
     if (typeof window !== "undefined" && !window.location.pathname.startsWith("/sign-in")) {
-      redirect("/sign-in")
+      redirect("/sign-in");
     }
+
+    console.error("Token refresh failed:", error);
+
     return null;
   } finally {
     activeRefreshPromise = null;
@@ -77,9 +85,16 @@ export async function apiClient<T>(
     headers.set("Content-Type", "application/json");
   }
 
-  // Automatically attach access token from Zustand memory if present
+  const isAuthEndpoint =
+    endpoint.includes("/auth/refresh-token") ||
+    endpoint.includes("/auth/staff/login") ||
+    endpoint.includes("/auth/staff/verify-otp") ||
+    endpoint.includes("/auth/forgot-password") ||
+    endpoint.includes("/auth/reset-password");
+
+  // Automatically attach access token from Zustand memory if present (except for public auth endpoints)
   const accessToken = useAuthStore.getState().accessToken;
-  if (accessToken && !headers.has("Authorization")) {
+  if (accessToken && !headers.has("Authorization") && !isAuthEndpoint) {
     headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
@@ -88,13 +103,6 @@ export async function apiClient<T>(
     headers,
     credentials: "include", // Enables sending/receiving HttpOnly cookies (e.g., refresh token)
   });
-
-  const isAuthEndpoint =
-    endpoint.includes("/auth/refresh-token") ||
-    endpoint.includes("/auth/staff/login") ||
-    endpoint.includes("/auth/staff/verify-otp") ||
-    endpoint.includes("/auth/forgot-password") ||
-    endpoint.includes("/auth/reset-password");
 
   // Intercept 401 Unauthorized for token refresh & retry
   if (response.status === 401 && !isAuthEndpoint) {
@@ -123,8 +131,8 @@ export async function apiClient<T>(
       if (!retryResponse.ok) {
         throw new ApiError(
           retryData?.message ||
-            retryData?.error?.message ||
-            `Request failed with status ${retryResponse.status}`,
+          retryData?.error?.message ||
+          `Request failed with status ${retryResponse.status}`,
           retryResponse.status,
           retryData?.code || retryData?.error?.code
         );
@@ -139,8 +147,8 @@ export async function apiClient<T>(
   if (!response.ok) {
     throw new ApiError(
       data?.message ||
-        data?.error?.message ||
-        `Request failed with status ${response.status}`,
+      data?.error?.message ||
+      `Request failed with status ${response.status}`,
       response.status,
       data?.code || data?.error?.code
     );

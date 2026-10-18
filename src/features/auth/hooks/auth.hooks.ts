@@ -97,6 +97,8 @@ export function useResetPassword() {
   });
 }
 
+import { queryClient } from "@/lib/query-client";
+
 export function useLogout() {
   const clearAuth = useAuthStore((state) => state.clearAuth);
 
@@ -104,6 +106,7 @@ export function useLogout() {
     mutationFn: logout,
     onSettled: () => {
       clearAuth();
+      queryClient.clear();
       toast.success("Signed out successfully.");
       redirect("/sign-in");
     },

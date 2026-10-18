@@ -92,6 +92,7 @@ export interface RevenueFinancialBreakdown {
 
 export interface RevenueTransactionDetails {
   transactionId: string;
+  paymentId?: string;
   bookingId: string;
   paymentReference: string;
   transactionDateTime: string;

@@ -128,3 +128,18 @@ export interface VerificationDocumentInfo {
   adminNotes: AdminNoteItem[];
   activityTrail: ActivityTrailItem[];
 }
+
+export interface UserProfile {
+  id: string;
+  userId?: string;
+  profileType: ProfileType | string;
+  displayName: string;
+  status: ProfileStatus | string;
+  verificationStatus: VerificationStatus | string;
+  attributes?: Record<string, unknown>;
+}
+
+export interface GetMyProfilesResponse {
+  success: boolean;
+  data: UserProfile[];
+}

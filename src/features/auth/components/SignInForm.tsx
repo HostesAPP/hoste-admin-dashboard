@@ -59,7 +59,7 @@ export function SignInForm() {
         // Store access token and user in Zustand memory
         const authData = extractAuthData(response);
         if (authData) {
-          setAuth(authData.accessToken, authData.user);
+          setAuth(authData.accessToken, authData.user, authData.refreshToken);
         }
 
         toast.success("Welcome back! Signed in successfully.");

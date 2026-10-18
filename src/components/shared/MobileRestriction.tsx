@@ -3,17 +3,20 @@
 
 import React from "react";
 import { ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function MobileRestrictionPage({
   children,
 }: {
   children: React.ReactNode;
 }) {
+
+  const hosteWebsiteUrl = process.env.HOSTE_WEBSITE_URL;
+
   return (
     <>
-      {/* Mobile / Tablet Restriction Screen (viewports < 1024px) */}
-      <div className="flex lg:hidden min-h-screen w-full bg-background text-foreground flex-col items-center justify-between p-6 sm:p-8 select-none">
+      {/* Mobile / Tablet Restriction Screen (viewports < 1280px) */}
+      <div className="flex xl:hidden min-h-screen w-full bg-background text-foreground flex-col items-center justify-between p-6 sm:p-8 select-none">
         {/* Top Spacer / Header Container */}
         <div className="w-full max-w-sm flex flex-col items-center pt-2 sm:pt-4">
           {/* Brand Header */}
@@ -307,17 +310,13 @@ export function MobileRestrictionPage({
 
           {/* Got it Action Button */}
           <div className="w-full mt-6 sm:mt-8">
-            <Button
-              type="button"
-              onClick={() => {
-                if (typeof window !== "undefined") {
-                  window.location.reload();
-                }
-              }}
-              className="w-full h-11 sm:h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl text-sm sm:text-base shadow-sm transition-all cursor-pointer"
+            <Link
+              href={hosteWebsiteUrl || "https://bookhostes.com"}
+              target="_blank"
+              className="flex items-center justify-center py-3 w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl text-base shadow-sm transition-all cursor-pointer"
             >
               Got it
-            </Button>
+            </Link>
           </div>
         </div>
 
@@ -346,8 +345,8 @@ export function MobileRestrictionPage({
         </div>
       </div>
 
-      {/* Desktop Dashboard View (viewports >= 1024px) */}
-      <div className="hidden lg:flex min-h-full flex-col">{children}</div>
+      {/* Desktop Dashboard View (viewports >= 1280px) */}
+      <div className="hidden xl:flex min-h-full flex-col">{children}</div>
     </>
   );
 }

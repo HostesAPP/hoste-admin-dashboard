@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -8,7 +7,6 @@ import {
   AlertCircle,
   FolderSearch,
   RotateCcw,
-  CheckCircle2,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -37,14 +35,7 @@ import {
 } from "@/components/ui/pagination";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { cn, formatDate } from "@/lib/utils";
-import {
-  getGroupEngagements,
-  getGroupMembers,
-  getGroupLeader,
-  Group,
-  SuspendGroupDialog,
-} from "@/features/groups";
-import { useRestoreGroup } from "@/features/groups/hooks/groups.hooks";
+import type { Group } from "../../types/groups.types";
 
 interface GroupsTableProps {
   groups?: Group[];
@@ -73,14 +64,6 @@ export const GroupsTable = ({
   onResetFilters,
   hasActiveFilters = false,
 }: GroupsTableProps) => {
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-  const [suspendOpen, setSuspendOpen] = useState(false);
-  const restoreGroupMutation = useRestoreGroup();
-
-  const handleRestore = (group: Group) => {
-    restoreGroupMutation.mutate(group.id);
-  };
-
   // 1. Loading Skeleton State
   if (isLoading) {
     return (
@@ -200,9 +183,43 @@ export const GroupsTable = ({
           </TableHeader>
           <TableBody>
             {groups.map((group) => {
-              const groupLeader = getGroupLeader(group.leaderProfileId);
-              const totalMembers = getGroupMembers(group.id).length;
-              const engagements = getGroupEngagements(group.id).length;
+              const groupLeaderName =
+                group.leader?.displayName ||
+                group.leader?.name ||
+                (group.leaderProfileId ? `Leader (${group.leaderProfileId.slice(0, 8)}...)` : null) ||
+                "Unassigned";
+
+              const leaderAvatarUrl = group.leader?.avatarUrl;
+
+              const totalMembers =
+                group.memberCount ??
+                group.membersCount ??
+                (Array.isArray(group.members) ? group.members.length : "—");
+
+              const engagements =
+                group.bookingCount ??
+                group.bookingsCount ??
+                group.engagementsCount ??
+                "—";
+
+              const normalizedStatus =
+                group.status?.toUpperCase() === "ACTIVE"
+                  ? "Active"
+                  : group.status?.toUpperCase() === "PAUSED"
+                  ? "Paused"
+                  : group.status?.toUpperCase() === "INACTIVE"
+                  ? "Inactive"
+                  : group.status || "Active";
+
+              const leaderInitials = groupLeaderName !== "Unassigned"
+                ? groupLeaderName
+                    .split(" ")
+                    .filter(Boolean)
+                    .map((n) => n[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()
+                : "GL";
 
               return (
                 <TableRow key={group.id} className="hover:bg-muted/40 transition-colors">
@@ -224,47 +241,67 @@ export const GroupsTable = ({
                       </div>
                       {/* group name & id */}
                       <div className="flex flex-col">
-                        <span className="font-bold text-sm text-foreground hover:text-primary transition-colors">
-                          <Link href={`/groups/${group.id}`}>{group.name}</Link>
-                        </span>
-                        <span className="text-[11px] text-muted-foreground tracking-wider">
+                        <Link
+                          href={`/groups/${group.id}`}
+                          className="font-bold text-sm text-foreground hover:text-primary transition-colors"
+                        >
+                          {group.name}
+                        </Link>
+                        <span className="text-xs text-muted-foreground">
                           {group.id}
                         </span>
                       </div>
                     </div>
                   </TableCell>
+
+                  {/* group leader */}
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Avatar className="w-7 h-7 border border-border/60">
-                        <AvatarImage src="" alt={groupLeader?.displayName} />
-                        <AvatarFallback className="text-[10px] bg-secondary/10 text-secondary font-bold">
-                          {groupLeader?.displayName
-                            ? groupLeader.displayName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
-                            : "GL"}
+                      <Avatar className="w-8 h-8 border border-border">
+                        {leaderAvatarUrl && <AvatarImage src={leaderAvatarUrl} alt={groupLeaderName} />}
+                        <AvatarFallback className="text-xs font-bold bg-primary/10 text-primary">
+                          {leaderInitials}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-xs font-medium text-foreground">
-                        {groupLeader?.displayName || "Unassigned"}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-xs text-foreground">
+                          {groupLeaderName}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {group.leaderProfileId ? "Group Leader" : "Pending"}
+                        </span>
+                      </div>
                     </div>
                   </TableCell>
+
+                  {/* total members */}
                   <TableCell className="text-xs font-semibold text-foreground">
                     {totalMembers}
                   </TableCell>
+
+                  {/* total engagements / bookings */}
                   <TableCell className="text-xs font-semibold text-foreground">
                     {engagements}
                   </TableCell>
+
+                  {/* category */}
                   <TableCell>
-                    <span className="text-xs px-2.5 py-1 rounded-md bg-muted/60 text-muted-foreground font-medium">
-                      {group.category}
+                    <span className="text-xs font-medium text-foreground bg-muted/60 px-2.5 py-1 rounded-md border border-border/50">
+                      {group.category || "General"}
                     </span>
                   </TableCell>
+
+                  {/* created at */}
                   <TableCell className="text-xs text-muted-foreground">
-                    {formatDate(group.createdAt)}
+                    {group.createdAt ? formatDate(group.createdAt) : "—"}
                   </TableCell>
+
+                  {/* status badge */}
                   <TableCell>
-                    <StatusBadge status={group.status} />
+                    <StatusBadge status={normalizedStatus} />
                   </TableCell>
+
+                  {/* view details / actions (View-Only for V1) */}
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {/* view details button */}
@@ -283,8 +320,10 @@ export const GroupsTable = ({
                         <DropdownMenuContent className="w-44 rounded-xl border-border" align="end" sideOffset={6}>
                           <DropdownMenuGroup>
                             {[
-                              { text: "View Group", href: `/groups/${group.id}` },
-                              { text: "View Leader", href: `/profiles/${group.leaderProfileId}` },
+                              { text: "View Details", href: `/groups/${group.id}` },
+                              ...(group.leaderProfileId
+                                ? [{ text: "View Leader Profile", href: `/profiles/${group.leaderProfileId}` }]
+                                : []),
                               { text: "View Members", href: `/groups/${group.id}/members` },
                             ].map((item) => (
                               <DropdownMenuItem key={item.text} className="p-0 text-xs">
@@ -293,25 +332,6 @@ export const GroupsTable = ({
                                 </Link>
                               </DropdownMenuItem>
                             ))}
-                            {group.status !== "Active" ? (
-                              <DropdownMenuItem
-                                className="cursor-pointer text-success focus:bg-success/10 text-xs px-3 py-2 flex items-center gap-1.5"
-                                onClick={() => handleRestore(group)}
-                              >
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                Restore Group
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem
-                                className="cursor-pointer text-destructive focus:bg-destructive/10 text-xs px-3 py-2"
-                                onClick={() => {
-                                  setSelectedGroup(group);
-                                  setSuspendOpen(true);
-                                }}
-                              >
-                                Suspend Group
-                              </DropdownMenuItem>
-                            )}
                           </DropdownMenuGroup>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -323,15 +343,6 @@ export const GroupsTable = ({
           </TableBody>
         </Table>
       </div>
-
-      {/* Suspend Group Dialog */}
-      {selectedGroup && (
-        <SuspendGroupDialog
-          group={selectedGroup}
-          open={suspendOpen}
-          onOpenChange={setSuspendOpen}
-        />
-      )}
 
       {/* Pagination */}
       {totalPages > 0 && (

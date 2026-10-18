@@ -160,7 +160,7 @@ export function VerifyOtpForm({ email: initialEmail }: VerifyOtpFormProps) {
         onSuccess: (response) => {
           const authData = extractAuthData(response as unknown as LoginResponse);
           if (authData) {
-            useAuthStore.getState().setAuth(authData.accessToken, authData.user);
+            useAuthStore.getState().setAuth(authData.accessToken, authData.user, authData.refreshToken);
           }
           toast.success("Identity verified! Welcome to Hosté Admin.");
           router.push("/");

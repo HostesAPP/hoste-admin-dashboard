@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -9,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -30,19 +31,18 @@ import {
   Crown,
   ChevronDown,
   User,
-  Shield,
-  UserMinus,
 } from "lucide-react";
-import type { GroupMember } from "@/features/groups";
+import type { GroupMember } from "../../types/groups.types";
 import { StatusBadge } from "@/components/shared";
+import { formatDate } from "@/lib/utils";
 
 export type GroupMembersTableProps = {
   members: GroupMember[];
   selectedMemberIds: string[];
   onToggleSelectMember: (id: string) => void;
   onSelectAll: (all: boolean) => void;
-  onOpenChangeRole: (member: GroupMember) => void;
-  onOpenRemoveMember: (member: GroupMember) => void;
+  onOpenChangeRole?: (member: GroupMember) => void;
+  onOpenRemoveMember?: (member: GroupMember) => void;
   onViewProfile?: (member: GroupMember) => void;
   currentPage: number;
   onPageChange: (page: number) => void;
@@ -57,8 +57,6 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
   selectedMemberIds,
   onToggleSelectMember,
   onSelectAll,
-  onOpenChangeRole,
-  onOpenRemoveMember,
   onViewProfile,
   currentPage,
   onPageChange,
@@ -70,43 +68,60 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
   const allCurrentPageSelected =
     members.length > 0 &&
     members.every((m) => selectedMemberIds.includes(m.id));
+  const someCurrentPageSelected =
+    members.some((m) => selectedMemberIds.includes(m.id)) &&
+    !allCurrentPageSelected;
 
-  const totalPages = Math.ceil(totalMembersCount / rowsPerPage) || 1;
-  const startRange = (currentPage - 1) * rowsPerPage + 1;
-  const endRange = Math.min(currentPage * rowsPerPage, totalMembersCount);
+  const totalPages = Math.max(1, Math.ceil(totalMembersCount / rowsPerPage));
+  const startRecord = (currentPage - 1) * rowsPerPage + 1;
+  const endRecord = Math.min(currentPage * rowsPerPage, totalMembersCount);
 
   return (
-    <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
+    <div className="rounded-xl border border-border bg-card shadow-xs overflow-hidden">
+      {/* Table Container */}
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border">
+            <TableRow className="bg-muted/30 hover:bg-muted/30 border-b border-border">
+              {/* Checkbox Column */}
               <TableHead className="w-12 px-4 py-3.5">
                 <Checkbox
                   checked={allCurrentPageSelected}
-                  onCheckedChange={(checked) => onSelectAll(!!checked)}
-                  aria-label="Select all members"
+                  ref={(node) => {
+                    if (node) {
+                      node.indeterminate = someCurrentPageSelected;
+                    }
+                  }}
+                  onCheckedChange={(checked) => onSelectAll(Boolean(checked))}
+                  aria-label="Select all members on current page"
                 />
               </TableHead>
+
               <TableHead className="font-semibold text-xs text-muted-foreground uppercase tracking-wider py-3.5">
                 Member
               </TableHead>
+
               <TableHead className="font-semibold text-xs text-muted-foreground uppercase tracking-wider py-3.5">
-                User ID & Email
+                Email / User ID
               </TableHead>
+
               <TableHead className="font-semibold text-xs text-muted-foreground uppercase tracking-wider py-3.5">
                 Role
               </TableHead>
+
               <TableHead className="font-semibold text-xs text-muted-foreground uppercase tracking-wider py-3.5">
                 Status
               </TableHead>
+
               <TableHead className="font-semibold text-xs text-muted-foreground uppercase tracking-wider py-3.5">
                 Date Joined
               </TableHead>
+
               <TableHead className="font-semibold text-xs text-muted-foreground uppercase tracking-wider py-3.5">
                 Last Activity
               </TableHead>
-              <TableHead className="font-semibold text-xs text-muted-foreground uppercase tracking-wider text-right pr-6 py-3.5">
+
+              <TableHead className="font-semibold text-xs text-muted-foreground uppercase tracking-wider py-3.5 text-right pr-6">
                 Actions
               </TableHead>
             </TableRow>
@@ -116,10 +131,10 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
             {isLoading ? (
               [1, 2, 3, 4, 5].map((i) => (
                 <TableRow key={i} className="animate-pulse">
-                  <TableCell className="px-4 py-4">
-                    <div className="w-4 h-4 bg-muted rounded" />
+                  <TableCell className="px-4 py-3.5">
+                    <div className="w-4 h-4 rounded bg-muted" />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-3.5">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-muted" />
                       <div className="h-4 w-28 bg-muted rounded" />
@@ -127,24 +142,24 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      <div className="h-3 w-16 bg-muted rounded" />
                       <div className="h-3.5 w-32 bg-muted rounded" />
+                      <div className="h-3 w-16 bg-muted rounded" />
                     </div>
                   </TableCell>
-                  <TableCell><div className="h-6 w-20 bg-muted rounded-full" /></TableCell>
-                  <TableCell><div className="h-6 w-16 bg-muted rounded-full" /></TableCell>
-                  <TableCell><div className="h-3.5 w-24 bg-muted rounded" /></TableCell>
+                  <TableCell><div className="h-4 w-16 bg-muted rounded" /></TableCell>
+                  <TableCell><div className="h-5 w-14 bg-muted rounded-full" /></TableCell>
                   <TableCell><div className="h-3.5 w-20 bg-muted rounded" /></TableCell>
-                  <TableCell><div className="h-8 w-8 bg-muted rounded-lg ml-auto" /></TableCell>
+                  <TableCell><div className="h-3.5 w-16 bg-muted rounded" /></TableCell>
+                  <TableCell className="text-right pr-6"><div className="h-8 w-8 bg-muted rounded ml-auto" /></TableCell>
                 </TableRow>
               ))
             ) : members.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={8}
-                  className="h-36 text-center text-muted-foreground text-sm"
+                  className="h-48 text-center text-muted-foreground text-sm"
                 >
-                  No members found matching your search or filters.
+                  No members found in this group matching the filter criteria.
                 </TableCell>
               </TableRow>
             ) : (
@@ -156,10 +171,11 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
                 return (
                   <TableRow
                     key={member.id}
-                    className={`transition-colors border-b border-border/70 ${isSelected
-                      ? "bg-primary/10 hover:bg-primary/15"
-                      : "hover:bg-muted/30"
-                      }`}
+                    className={`transition-colors border-b border-border/70 ${
+                      isSelected
+                        ? "bg-primary/10 hover:bg-primary/15"
+                        : "hover:bg-muted/30"
+                    }`}
                   >
                     {/* Checkbox */}
                     <TableCell className="px-4 py-3.5">
@@ -181,7 +197,8 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
                             <Crown className="w-3.5 h-3.5 fill-warning text-warning" />
                           </span>
                         )}
-                        <Avatar className="w-9 h-9 shrink-0">
+                        <Avatar className="w-9 h-9 shrink-0 border border-border">
+                          {member.avatarUrl && <AvatarImage src={member.avatarUrl} alt={member.name} />}
                           <AvatarFallback
                             style={{
                               backgroundColor: member.avatarColor
@@ -193,16 +210,17 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
                           >
                             {member.name
                               .split(" ")
+                              .filter(Boolean)
                               .map((n) => n[0])
                               .join("")
-                              .slice(0, 2)}
+                              .slice(0, 2)
+                              .toUpperCase() || "M"}
                           </AvatarFallback>
                         </Avatar>
                         <span
-                          className={`text-sm font-semibold ${isSelected
-                            ? "text-primary"
-                            : "text-foreground"
-                            }`}
+                          className={`text-sm font-semibold ${
+                            isSelected ? "text-primary" : "text-foreground"
+                          }`}
                         >
                           {member.name}
                         </span>
@@ -213,7 +231,7 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
                     <TableCell className="py-3.5">
                       <div className="flex flex-col">
                         <span className="text-sm text-foreground/90 font-medium">
-                          {member.email}
+                          {member.email || "No email"}
                         </span>
                         <span className="text-xs text-muted-foreground tracking-wide mt-0.5">
                           {member.userId}
@@ -245,12 +263,12 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
 
                     {/* Date Joined */}
                     <TableCell className="py-3.5 text-sm text-muted-foreground">
-                      {member.dateJoined}
+                      {member.dateJoined ? formatDate(member.dateJoined) : "—"}
                     </TableCell>
 
                     {/* Last Activity */}
                     <TableCell className="py-3.5 text-sm text-muted-foreground">
-                      {member.lastActivity}
+                      {member.lastActivity || "—"}
                     </TableCell>
 
                     {/* Actions Menu */}
@@ -268,24 +286,17 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
                             className="cursor-pointer text-xs py-2 gap-2"
                           >
                             <User className="w-3.5 h-3.5 text-muted-foreground" />
-                            <span>View Profile</span>
+                            <span>View Details</span>
                           </DropdownMenuItem>
 
-                          <DropdownMenuItem
-                            onClick={() => onOpenChangeRole(member)}
-                            className="cursor-pointer text-xs py-2 gap-2"
-                          >
-                            <Shield className="w-3.5 h-3.5 text-muted-foreground" />
-                            <span>Change Role</span>
-                          </DropdownMenuItem>
-
-                          <DropdownMenuItem
-                            onClick={() => onOpenRemoveMember(member)}
-                            className="cursor-pointer text-xs py-2 gap-2 text-destructive focus:bg-destructive/10"
-                          >
-                            <UserMinus className="w-3.5 h-3.5" />
-                            <span>Remove Member</span>
-                          </DropdownMenuItem>
+                          {member.profileId && (
+                            <DropdownMenuItem className="cursor-pointer text-xs py-2 gap-2">
+                              <Link href={`/profiles/${member.profileId}`}>
+                                <User className="w-3.5 h-3.5 text-primary" />
+                                <span>Go to Profile</span>
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -298,40 +309,34 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
       </div>
 
       {/* Table Footer & Pagination */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3.5 border-t border-border bg-card">
-        {/* Showing entries & rows per page */}
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-border bg-card">
+        {/* Rows Per Page Selector */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Show:</span>
+          <div className="relative">
+            <select
+              value={rowsPerPage}
+              onChange={(e) => onRowsPerPageChange(Number(e.target.value))}
+              className="appearance-none bg-background border border-border rounded-md px-2.5 py-1 pr-7 text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+            >
+              {[10, 20, 50, 100].map((pageSize) => (
+                <option key={pageSize} value={pageSize}>
+                  {pageSize} per page
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          </div>
           <span>
-            Showing {totalMembersCount === 0 ? 0 : startRange}-{endRange} of{" "}
+            Showing {totalMembersCount > 0 ? startRecord : 0} to {endRecord} of{" "}
             {totalMembersCount} members
           </span>
-
-          <div className="flex items-center gap-1.5">
-            <span>Rows per page:</span>
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1 rounded border border-input bg-background text-foreground font-medium hover:bg-muted/50 transition-colors cursor-pointer">
-                <span>{rowsPerPage}</span>
-                <ChevronDown className="w-3 h-3 text-muted-foreground" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-18">
-                {[5, 10, 20, 50].map((num) => (
-                  <DropdownMenuItem
-                    key={num}
-                    onClick={() => onRowsPerPageChange(num)}
-                    className="cursor-pointer text-xs justify-center font-medium"
-                  >
-                    {num}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
         </div>
 
         {/* Pagination Controls */}
-        <div className="flex items-center gap-1">
-          <Pagination className="mx-0 w-auto">
-            <PaginationContent className="gap-12">
+        {totalPages > 1 && (
+          <Pagination className="w-auto mx-0">
+            <PaginationContent className="gap-1">
               <PaginationItem>
                 <PaginationPrevious
                   href="#"
@@ -339,56 +344,47 @@ export const GroupMembersTable: React.FC<GroupMembersTableProps> = ({
                     e.preventDefault();
                     if (currentPage > 1) onPageChange(currentPage - 1);
                   }}
-                  className={`${currentPage <= 1
-                    ? "pointer-events-none opacity-40"
-                    : "hover:bg-muted"
-                    }`}
+                  className={`h-8 px-2.5 text-xs rounded-md cursor-pointer ${
+                    currentPage <= 1 ? "pointer-events-none opacity-40" : ""
+                  }`}
                 />
               </PaginationItem>
 
-
-              <PaginationItem className="space-x-1">
-                {Array.from({ length: totalPages }).map((_, i) => {
-                  const pageNum = i + 1;
-                  const isActive = pageNum === currentPage;
-                  return (
-                    <PaginationLink
-                      href="#"
-                      key={pageNum}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        onPageChange(pageNum);
-                      }}
-                      className={`h-8 w-8 p-0 text-xs font-semibold rounded-md transition-all ${isActive
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90 border-transparent"
-                        : "border border-border hover:bg-muted text-foreground"
-                        }`}
-                      isActive={isActive}
-                    >
-                      {pageNum}
-                    </PaginationLink>
-                  );
-                })}
-
-              </PaginationItem>
+              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((page) => (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onPageChange(page);
+                    }}
+                    isActive={page === currentPage}
+                    className={`h-8 w-8 text-xs rounded-md cursor-pointer ${
+                      page === currentPage
+                        ? "bg-primary text-primary-foreground font-bold shadow-xs"
+                        : "hover:bg-muted"
+                    }`}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
 
               <PaginationItem>
                 <PaginationNext
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    if (currentPage < totalPages)
-                      onPageChange(currentPage + 1);
+                    if (currentPage < totalPages) onPageChange(currentPage + 1);
                   }}
-                  className={`${currentPage >= totalPages
-                    ? "pointer-events-none opacity-40"
-                    : "hover:bg-muted"
-                    }`}
+                  className={`h-8 px-2.5 text-xs rounded-md cursor-pointer ${
+                    currentPage >= totalPages ? "pointer-events-none opacity-40" : ""
+                  }`}
                 />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
-        </div>
+        )}
       </div>
     </div>
   );
