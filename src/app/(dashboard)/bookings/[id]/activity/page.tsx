@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   SlidersHorizontal,
   Search,
@@ -11,9 +12,12 @@ import {
   User,
   Lock,
   ChevronDown,
+  ArrowLeft,
 } from "lucide-react";
 
 export default function BookingActivityPage() {
+  const router = useRouter();
+
   const [selectedType, setSelectedType] = useState("All Activity");
   const [selectedDate, setSelectedDate] = useState("All Time");
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,7 +52,10 @@ export default function BookingActivityPage() {
         </div>
 
         <div className="flex items-center space-x-4">
-          <button className="flex items-center space-x-2 rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-gray-50">
+          <button
+            type="button"
+            className="flex items-center space-x-2 rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-gray-50"
+          >
             <SlidersHorizontal className="h-3.5 w-3.5 text-gray-500" />
             <span>Filter</span>
           </button>
@@ -58,6 +65,8 @@ export default function BookingActivityPage() {
             <input
               type="text"
               placeholder="Search anything..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full rounded-lg bg-[#F3F4F6] py-1.5 pl-9 pr-4 text-xs text-slate-800 placeholder-gray-400 focus:outline-none"
             />
           </div>
@@ -75,7 +84,7 @@ export default function BookingActivityPage() {
               alt="John Admin Avatar"
               width={32}
               height={32}
-              className="w-8 h-8 rounded-full object-cover"
+              className="h-8 w-8 rounded-full object-cover"
             />
 
             <div className="leading-tight">
@@ -87,6 +96,19 @@ export default function BookingActivityPage() {
       </header>
 
       <main className="mx-auto max-w-[1400px] space-y-6 p-8">
+        {/* Back to Booking Navigation Button */}
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="flex items-center space-x-2 rounded border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-gray-50"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Back to Booking</span>
+          </button>
+        </div>
+
+        {/* Booking Summary */}
         <div className="grid grid-cols-6 divide-x divide-gray-100 border border-gray-200 bg-white p-5 shadow-sm">
           <div className="px-2">
             <p className="text-[10px] font-medium text-gray-400">Booking</p>
@@ -133,6 +155,7 @@ export default function BookingActivityPage() {
           </div>
         </div>
 
+        {/* Activity Filters */}
         <div className="flex items-center space-x-3">
           <div className="relative w-48">
             <select
@@ -178,9 +201,12 @@ export default function BookingActivityPage() {
           </div>
         </div>
 
+        {/* Activity Timeline */}
         <div className="min-h-[500px] border border-gray-200 bg-white p-8 shadow-sm">
           <div className="relative space-y-9 pl-24">
             <div className="absolute bottom-3 left-[88px] top-3 w-[1.5px] bg-gray-200" />
+
+            {/* Booking Completed */}
             <div className="relative flex items-start">
               <span className="absolute -left-20 top-0.5 text-xs font-medium text-gray-400">
                 9:00 AM
@@ -205,7 +231,6 @@ export default function BookingActivityPage() {
                   <span className="bg-[#F3F4F6] px-2.5 py-0.5 text-[10px] font-medium text-slate-600">
                     Operations Admin
                   </span>
-
                   <span className="text-[11px] text-gray-400">
                     August 28, 2026
                   </span>
@@ -213,6 +238,7 @@ export default function BookingActivityPage() {
               </div>
             </div>
 
+            {/* Booking Details Updated */}
             <div className="relative flex items-start">
               <span className="absolute -left-20 top-0.5 text-xs font-medium text-gray-400">
                 2:15 PM
@@ -231,14 +257,13 @@ export default function BookingActivityPage() {
 
                 <p className="text-xs text-slate-600">
                   “Event location was changed from Victoria Island to Eko Hotel
-                  & Suites.“
+                  &amp; Suites.”
                 </p>
 
                 <div className="flex items-center space-x-3">
                   <span className="bg-[#F3F4F6] px-2.5 py-0.5 text-[10px] font-medium text-slate-600">
                     James Odigie - Admin
                   </span>
-
                   <span className="text-[11px] text-gray-400">
                     August 22, 2026
                   </span>
@@ -266,13 +291,14 @@ export default function BookingActivityPage() {
                       New Value
                     </p>
                     <p className="mt-1 font-bold text-[#006837]">
-                      Eko Hotel & Suites
+                      Eko Hotel &amp; Suites
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* Booking Confirmed */}
             <div className="relative flex items-start">
               <span className="absolute -left-20 top-0.5 text-xs font-medium text-gray-400">
                 11:12 AM
@@ -298,7 +324,6 @@ export default function BookingActivityPage() {
                   <span className="bg-[#F3F4F6] px-2.5 py-0.5 text-[10px] font-medium text-slate-600">
                     Operations Admin
                   </span>
-
                   <span className="text-[11px] text-gray-400">
                     August 21, 2026
                   </span>
@@ -306,6 +331,7 @@ export default function BookingActivityPage() {
               </div>
             </div>
 
+            {/* Hostés Assigned */}
             <div className="relative flex items-start">
               <span className="absolute -left-20 top-0.5 text-xs font-medium text-gray-400">
                 11:05 AM
@@ -330,18 +356,20 @@ export default function BookingActivityPage() {
                   <span className="bg-[#F3F4F6] px-2.5 py-0.5 text-[10px] font-medium text-slate-600">
                     Operations Admin
                   </span>
-
                   <span className="text-[11px] text-gray-400">
                     August 21, 2026
                   </span>
-
-                  <button className="border border-[#EF5A22] px-2.5 py-0.5 text-[10px] font-bold text-[#EF5A22] transition hover:bg-orange-50">
+                  <button
+                    type="button"
+                    className="border border-[#EF5A22] px-2.5 py-0.5 text-[10px] font-bold text-[#EF5A22] transition hover:bg-orange-50"
+                  >
                     View Assigned Hostés
                   </button>
                 </div>
               </div>
             </div>
 
+            {/* Payment Moved to Escrow */}
             <div className="relative flex items-start">
               <span className="absolute -left-20 top-0.5 text-xs font-medium text-gray-400">
                 10:25 AM
@@ -366,7 +394,6 @@ export default function BookingActivityPage() {
                   <span className="bg-[#F3F4F6] px-2.5 py-0.5 text-[10px] font-medium text-slate-600">
                     System
                   </span>
-
                   <span className="text-[11px] text-gray-400">
                     August 21, 2026
                   </span>
