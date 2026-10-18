@@ -1,4 +1,6 @@
 // Presentation snapshots for the supplied earnings/configuration designs, not API contracts.
+export type EarnStatus = "PENDING" | "PAID";
+export type Sort = "Newest" | "Oldest";
 export interface ReferralEarning {
   id: string;
   referrerId: string;
@@ -33,6 +35,15 @@ export interface EarningsData {
   chart: { date: string; earned: number; paid: number }[];
   configuration: ReferralConfiguration;
   canManage: boolean;
+}
+
+export interface EarningsParams {
+  period: number;
+  referrerProfileId?: string;
+  payoutStatus?: EarnStatus;
+  sort?: Sort;
+  page?: number;
+  pageSize?: number;
 }
 
 export interface EarningsAdapter {

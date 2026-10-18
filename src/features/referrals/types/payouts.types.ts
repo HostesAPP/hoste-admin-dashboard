@@ -1,5 +1,7 @@
 // View models for the supplied referral payout design, not API contracts.
 export type ReferralPayoutStatus = "Paid" | "Pending" | "Processing" | "Failed";
+export type PayoutStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+export type Sort = "Newest" | "Oldest";
 
 export interface ReferralPayout {
   id: string;
@@ -53,4 +55,14 @@ export interface PayoutsData {
   rewards: PayoutRewardRecord[];
   timeline: PayoutEvent[];
   audit: PayoutEvent[];
+}
+
+export interface PayoutParams {
+  period: number;
+  referrerProfileId?: string;
+  referredProfileId?: string;
+  payoutStatus?: PayoutStatus;
+  sort?: Sort;
+  page?: number;
+  pageSize?: number;
 }
