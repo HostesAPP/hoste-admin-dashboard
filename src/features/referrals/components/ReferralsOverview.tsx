@@ -239,7 +239,13 @@ export function ReferralsOverview({
   }
 
   if (tab === "Referral Earnings") {
-    return <ReferralEarnings initialData={earningsData} referrers={directoryRows} onTabChange={setTab} />;
+    return (
+      <ReferralEarnings
+        initialData={earningsData}
+        referrers={directoryRows}
+        onTabChange={setTab}
+      />
+    );
   }
 
   return (
@@ -300,13 +306,17 @@ export function ReferralsOverview({
             >
               <SelectTrigger
                 aria-label="Referral date range"
-                className="w-36 bg-card text-xs"
+                className="w-36 gap-3 bg-card px-3 text-xs"
               >
                 <SelectValue>
                   {RANGES.find((item) => item.value === range)?.label}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                align="start"
+                alignItemWithTrigger={false}
+                sideOffset={6}
+              >
                 {RANGES.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}

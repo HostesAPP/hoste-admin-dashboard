@@ -270,14 +270,14 @@ export function ReferralEarnings({
             Export
           </Button>
         </div>
-        <div className="my-4 grid grid-cols-[minmax(220px,2fr)_repeat(4,minmax(0,1fr))] items-center gap-2 px-5">
+        <div className="my-4 grid grid-cols-[minmax(220px,2fr)_repeat(4,minmax(128px,1fr))] items-center gap-3 px-5 [&_[data-slot=select-trigger]]:w-full">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               {...register("search", { onChange: () => setPage(1) })}
               aria-label="Search earning records"
               placeholder="Search referrer or referred person..."
-              className="h-8 pl-9 text-[11px]"
+              className="h-9 pl-9 text-[11px]"
             />
           </div>
           {renderFilter("status", "Earning status", [
