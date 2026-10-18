@@ -72,20 +72,14 @@ export const GroupLeaderCard = ({ group }: { group: Group }) => {
       {/* Action button */}
       <div className="pt-2">
         {profileHref ? (
-          <Button
-            asChild
-            variant="outline"
-            className="w-full text-xs h-9 justify-center gap-1.5 border-border hover:bg-muted font-semibold text-primary"
+          <Link
+            href={profileHref}
+            className="inline-flex items-center justify-center gap-1.5 w-full h-9 rounded-md border border-border bg-background shadow-xs hover:bg-muted hover:text-foreground text-xs font-semibold text-primary transition-all"
           >
-            <Link
-              href={profileHref}
-              className="inline-flex items-center gap-1.5 w-full justify-center"
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>View Leader Profile</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </Button>
+            <UserCheck className="w-3.5 h-3.5" />
+            <span>View Leader Profile</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         ) : (
           <Button
             variant="outline"

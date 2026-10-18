@@ -60,6 +60,11 @@ import {
   type TransactionsAdapter,
 } from "../transactions.adapter";
 import type { PaymentFilterSchema } from "../schemas/payment.filter";
+import {
+  PaymentsEmptyState,
+  PaymentsErrorState,
+  PaymentsLoadingState,
+} from "./payments.states";
 
 export default function PaymentsView({
   transactionsAdapter = mockTransactionsAdapter,
@@ -86,6 +91,23 @@ export default function PaymentsView({
     queryKey: ["payments", "transactions", filters, page],
     queryFn: () => transactionsAdapter.list(filters, page, 7),
   });
+  const hasFilters =
+    filters.search.trim() !== "" ||
+    filters.status !== "ALL" ||
+    filters.method !== "ALL" ||
+    filters.date !== "LAST_30_DAYS";
+  // A filtered zero-result response does not mean the platform has no payments.
+  const unfilteredTransactions = useQuery({
+    queryKey: ["payments", "transactions", "empty-check"],
+    queryFn: () => transactionsAdapter.list(
+      { search: "", date: "LAST_30_DAYS", status: "ALL", method: "ALL" },
+      1,
+      1,
+    ),
+    enabled: hasFilters && transactions.data?.total === 0,
+  });
+  const isEmpty = transactions.data?.total === 0 &&
+    (!hasFilters || unfilteredTransactions.data?.total === 0);
   const changeFilters = (changes: Partial<PaymentFilterSchema>) => {
     setFilters((previous) => ({ ...previous, ...changes }));
     if (changes.search !== undefined) setSearch(changes.search);
@@ -236,6 +258,14 @@ export default function PaymentsView({
       />
       <div className="page-content">
         <div className="container mx-auto px-6">
+          {transactions.isPending ? <PaymentsLoadingState /> : transactions.isError ? (
+            <PaymentsErrorState
+              message={transactions.error.message}
+              onRetry={() => void transactions.refetch()}
+              retrying={transactions.isFetching}
+            />
+          ) : (
+            <>
           <div className="heading-breadcrumbs pt-3 flex justify-between items-center">
             <div className="breadcrumbs">
               <span className="capitalize text-[12px] font-medium">
@@ -245,13 +275,15 @@ export default function PaymentsView({
                 payments overview
               </h4>
             </div>
-            <div className="gateway border bg-[#FFFFDC] rounded-3xl border-[#EBEB9B] flex items-center gap-3 px-3 py-1">
-              <div className="pulse size-1.5 rounded-full bg-[#006837] animate-pulse"></div>
-              <p className="text-[#006837] text-[12px] font-semibold">
+            <div className="gateway border bg-yellow/10 rounded-lg border-yellow/30 flex items-center gap-3 px-3 py-1">
+              <div className="pulse size-1.5 rounded-full bg-secondary animate-pulse"></div>
+              <p className="text-secondary text-[12px] font-semibold">
                 Gateway: Active
               </p>
             </div>
           </div>
+          {isEmpty ? <PaymentsEmptyState /> : (
+            <>
           <div className="stats-cards grid grid-cols-4 gap-4 mt-4">
             <Card>
               <CardContent className="p-4 flex justify-between">
@@ -342,10 +374,11 @@ export default function PaymentsView({
             onPageChange={setPage}
             onRetry={retry}
             retryingId={retryingId}
-            loading={transactions.isPending}
-            error={transactions.isError ? transactions.error.message : undefined}
-            onReload={() => void transactions.refetch()}
           />
+            </>
+          )}
+            </>
+          )}
         </div>
       </div>
     </>

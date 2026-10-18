@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,6 +54,7 @@ export function RefundPage({
   context: RefundContext;
   adapter?: RefundAdapter;
 }) {
+  const router = useRouter();
   const { transaction, booking } = context;
   const { payment } = transaction;
   const form = useForm<RefundDraft>({
@@ -127,9 +129,9 @@ export function RefundPage({
                 {refund.reference}
               </p>
               <span
-                className={`rounded-full px-2 py-1 text-[10px] font-semibold ${refund.status === "Completed" ? "bg-secondary/10 text-secondary" : "bg-destructive/10 text-destructive"}`}
+                className={`rounded-full px-2 py-1 text-[10px] font-semibold ${!refund.status ? "bg-muted text-muted-foreground" : refund.status === "Completed" ? "bg-secondary/10 text-secondary" : "bg-destructive/10 text-destructive"}`}
               >
-                {refund.status}
+                {refund.status ?? "Status unavailable"}
               </span>
             </div>
             <div className="flex items-center justify-between gap-2 text-xs">
@@ -193,9 +195,9 @@ export function RefundPage({
                 variant="outline"
                 size="icon"
                 className="size-8"
-                nativeButton={false}
-                aria-label="Back to payments"
-                render={<Link href="/payments" />}
+                type="button"
+                aria-label="Go back"
+                onClick={() => router.back()}
               >
                 <ArrowLeft className="size-4" />
               </Button>
@@ -234,7 +236,7 @@ export function RefundPage({
             {booking ? (
               <div className="flex items-center gap-4">
                 <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
-                  {imageFailed ? (
+                  {imageFailed || !booking.imageUrl ? (
                     <ImageIcon className="size-6 text-muted-foreground" />
                   ) : (
                     <Image
@@ -256,13 +258,13 @@ export function RefundPage({
                     </span>
                     <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                       <CalendarDays className="size-3.5 shrink-0" />
-                      {dateLabel(booking.date)} ·{" "}
-                      {new Date(booking.date).toLocaleTimeString("en-US", {
+                      {dateLabel(booking.date)}
+                      {booking.date.includes("T") && <> · {new Date(booking.date).toLocaleTimeString("en-US", {
                         hour: "numeric",
                         minute: "2-digit",
                         timeZone: "UTC",
                       })}{" "}
-                      UTC
+                      UTC</>}
                     </p>
                     <p className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                       <MapPin className="size-3.5 shrink-0" />
@@ -283,7 +285,7 @@ export function RefundPage({
                         Hostés
                       </dt>
                       <dd className="font-semibold text-secondary">
-                        {booking.hostCount} Hostés
+                        {booking.hostCount === null ? "Not provided" : `${booking.hostCount} Hostés`}
                       </dd>
                     </div>
                     <div>

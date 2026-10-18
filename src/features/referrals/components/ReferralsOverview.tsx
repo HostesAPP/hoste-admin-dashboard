@@ -6,6 +6,8 @@ import { ArrowRight, Bell, Download, Search } from "lucide-react";
 import { toast } from "sonner";
 import { ReferralActivity } from "./ReferralActivity";
 import { ReferralPayouts } from "./ReferralPayouts";
+import { ReferralEarnings } from "./referral.earnings";
+import type { EarningsData } from "../types/earnings.types";
 import { RewardsApprovals } from "./RewardsApprovals";
 import { ReferrersDirectory } from "./ReferrersDirectory";
 import { reviewMockReward } from "../data/rewards.data";
@@ -71,6 +73,7 @@ interface ReferralsOverviewProps {
   rewardsSnapshot: RewardsSnapshot;
   rewardReferrers: RewardReferrer[];
   payoutData: PayoutsData;
+  earningsData: EarningsData;
 }
 
 export function ReferralsOverview({
@@ -88,6 +91,7 @@ export function ReferralsOverview({
   rewardsSnapshot,
   rewardReferrers,
   payoutData,
+  earningsData,
 }: ReferralsOverviewProps) {
   const [search, setSearch] = useState("");
   const [range, setRange] = useState<ReferralRange>("30");
@@ -234,6 +238,16 @@ export function ReferralsOverview({
     );
   }
 
+  if (tab === "Referral Earnings") {
+    return (
+      <ReferralEarnings
+        initialData={earningsData}
+        referrers={directoryRows}
+        onTabChange={setTab}
+      />
+    );
+  }
+
   return (
     <div className="min-w-[1024px] tracking-normal">
       <header className="flex h-[72px] items-center justify-between gap-8 border-b border-border bg-card px-8">
@@ -292,13 +306,17 @@ export function ReferralsOverview({
             >
               <SelectTrigger
                 aria-label="Referral date range"
-                className="w-36 bg-card text-xs"
+                className="w-36 gap-3 bg-card px-3 text-xs"
               >
                 <SelectValue>
                   {RANGES.find((item) => item.value === range)?.label}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                align="start"
+                alignItemWithTrigger={false}
+                sideOffset={6}
+              >
                 {RANGES.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}

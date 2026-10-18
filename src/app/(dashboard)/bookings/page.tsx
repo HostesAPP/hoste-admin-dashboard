@@ -1,174 +1,231 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Search, Bell, ChevronDown, MoreVertical } from "lucide-react";
 import {
-  Search,
-  Bell,
-  ChevronDown,
-  MoreVertical,
-  SlidersHorizontal,
-  Download,
-} from "lucide-react";
+  BOOKINGS_DATA,
+  type BookingRow,
+} from "@/features/bookings/data/bookings.data";
 
-interface BookingRow {
-  id: string;
-  event: string;
-  client: string;
-  hosteAssigned: string;
-  date: string;
-  amount: string;
-  payment: "Paid" | "Unpaid" | "Pending";
-  status: "Confirmed" | "Pending" | "Completed" | "Cancelled";
-}
-
-const BOOKINGS_DATA: BookingRow[] = [
-  {
-    id: "#BK-10482",
-    event: "Luxury Corporate Dinner",
-    client: "ABC Events Ltd",
-    hosteAssigned: "Amaka Okafor + 7",
-    date: "Aug 28, 2026",
-    amount: "₦250,000",
-    payment: "Paid",
-    status: "Confirmed",
-  },
-  {
-    id: "#BK-10481",
-    event: "Wedding Reception",
-    client: "Sarah Events",
-    hosteAssigned: "Blessing Eze + 5",
-    date: "Aug 27, 2026",
-    amount: "₦180,000",
-    payment: "Paid",
-    status: "Pending",
-  },
-  {
-    id: "#BK-10480",
-    event: "Product Launch",
-    client: "XYZ Brand",
-    hosteAssigned: "Chiamaka Obi + 3",
-    date: "Aug 25, 2026",
-    amount: "₦120,000",
-    payment: "Paid",
-    status: "Completed",
-  },
-  {
-    id: "#BK-10479",
-    event: "Private Gala Night",
-    client: "Vanguard Group",
-    hosteAssigned: "Amaka Okafor + 11",
-    date: "Aug 24, 2026",
-    amount: "₦450,000",
-    payment: "Paid",
-    status: "Confirmed",
-  },
-  {
-    id: "#BK-10478",
-    event: "Annual Tech Summit",
-    client: "Qodebyte Labs",
-    hosteAssigned: "Grace Utomi + 4",
-    date: "Aug 22, 2026",
-    amount: "₦210,000",
-    payment: "Paid",
-    status: "Completed",
-  },
-  {
-    id: "#BK-10477",
-    event: "Fashion Week Afterparty",
-    client: "Style House",
-    hosteAssigned: "Blessing Eze + 8",
-    date: "Aug 20, 2026",
-    amount: "₦320,000",
-    payment: "Paid",
-    status: "Pending",
-  },
-  {
-    id: "#BK-10476",
-    event: "VIP Charity Luncheon",
-    client: "Grace Foundation",
-    hosteAssigned: "Amaka Okafor + 2",
-    date: "Aug 18, 2026",
-    amount: "₦95,000",
-    payment: "Paid",
-    status: "Completed",
-  },
+const TABS = [
+  "All Bookings",
+  "Pending (42)",
+  "Confirmed",
+  "Ongoing",
+  "Completed",
+  "Cancelled",
 ];
 
 export default function BookingsPage() {
   const [activeTab, setActiveTab] = useState("All Bookings");
   const [searchTerm, setSearchTerm] = useState("");
+  const [globalSearch, setGlobalSearch] = useState("");
+  const [dateFilter, setDateFilter] = useState("All");
+  const [paymentFilter, setPaymentFilter] = useState("All");
+  const [typeFilter, setTypeFilter] = useState("All Events");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const filteredBookings = useMemo(() => {
+    return BOOKINGS_DATA.filter((booking) => {
+      const statusMatch =
+        activeTab === "All Bookings"
+          ? true
+          : activeTab === "Pending (42)"
+            ? booking.status === "Pending"
+            : booking.status === activeTab;
+
+      const search = searchTerm.trim().toLowerCase();
+      const global = globalSearch.trim().toLowerCase();
+
+      const searchableText = [
+        booking.id,
+        booking.reference,
+        booking.event,
+        booking.client,
+        booking.hosteAssigned,
+        booking.location,
+        booking.customerEmail,
+      ];
+
+      const searchMatch =
+        !search ||
+        searchableText.some((value) => value?.toLowerCase().includes(search));
+
+      const globalMatch =
+        !global ||
+        searchableText.some((value) => value?.toLowerCase().includes(global));
+
+      const paymentMatch =
+        paymentFilter === "All" ||
+        booking.payment?.toLowerCase() === paymentFilter.toLowerCase();
+
+      const typeMatch =
+        typeFilter === "All Events" ||
+        booking.type?.toLowerCase() === typeFilter.toLowerCase() ||
+        booking.event.toLowerCase().includes(typeFilter.toLowerCase());
+
+      let dateMatch = true;
+
+      if (dateFilter !== "All") {
+        const target = dateFilter.toLowerCase();
+        const bookingDate = booking.date.toLowerCase();
+
+        if (target === "august 2026") {
+          dateMatch =
+            bookingDate.includes("2026-08") ||
+            bookingDate.includes("aug") ||
+            bookingDate.includes("august");
+        } else {
+          dateMatch = bookingDate.includes(target);
+        }
+      }
+
+      return (
+        statusMatch &&
+        searchMatch &&
+        globalMatch &&
+        paymentMatch &&
+        typeMatch &&
+        dateMatch
+      );
+    });
+  }, [
+    activeTab,
+    searchTerm,
+    globalSearch,
+    dateFilter,
+    paymentFilter,
+    typeFilter,
+  ]);
+
+  const clearFilters = () => {
+    setActiveTab("All Bookings");
+    setSearchTerm("");
+    setGlobalSearch("");
+    setDateFilter("All");
+    setPaymentFilter("All");
+    setTypeFilter("All Events");
+    setCurrentPage(1);
+  };
+
+  const exportBookings = () => {
+    const headers = [
+      "Booking ID",
+      "Event",
+      "Client",
+      "Hosté Assigned",
+      "Date",
+      "Amount",
+      "Payment",
+      "Status",
+    ];
+
+    const rows = filteredBookings.map((booking) => [
+      booking.id,
+      booking.event,
+      booking.client,
+      booking.hosteAssigned,
+      booking.date,
+      booking.amount,
+      booking.payment,
+      booking.status,
+    ]);
+
+    const csv = [headers, ...rows]
+      .map((row) =>
+        row
+          .map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`)
+          .join(","),
+      )
+      .join("\n");
+
+    const blob = new Blob(["\uFEFF" + csv], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "hoste-bookings.csv";
+    link.click();
+
+    URL.revokeObjectURL(url);
+  };
 
   const renderStatusBadge = (status: BookingRow["status"]) => {
-    switch (status) {
-      case "Confirmed":
-        return (
-          <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#E8F8EE] text-[#2BB168] border border-[#C6F0D6]">
-            Confirmed
-          </span>
-        );
-      case "Pending":
-        return (
-          <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#FFF8E6] text-[#D99000] border border-[#FFE7B3]">
-            Pending
-          </span>
-        );
-      case "Completed":
-        return (
-          <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#E8F8EE] text-[#2BB168] border border-[#C6F0D6]">
-            Completed
-          </span>
-        );
-      case "Cancelled":
-        return (
-          <span className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#FDE8E8] text-[#E02424] border border-[#FBD5D5]">
-            Cancelled
-          </span>
-        );
-    }
+    const styles: Record<BookingRow["status"], string> = {
+      Confirmed: "bg-success/10 text-success border-success/20",
+      Pending: "bg-warning-surface text-warning border-warning-border",
+      Completed: "bg-success/10 text-success border-success/20",
+      Ongoing: "bg-primary/10 text-primary border-primary/20",
+      Cancelled: "bg-destructive/10 text-destructive border-destructive/20",
+    };
+
+    return (
+      <span
+        className={`inline-flex items-center justify-center whitespace-nowrap border px-[7px] py-[3px] text-[10px] font-semibold leading-[12px] ${styles[status]}`}
+      >
+        {status}
+      </span>
+    );
   };
 
   return (
-    <div className="w-full bg-[#F9FAFB] min-h-screen text-slate-700 text-xs font-sans">
-      <header className="bg-white border-b border-gray-200 px-8 py-3.5 flex items-center justify-between">
+    <div className="min-h-screen w-full bg-background font-sans text-foreground">
+      {/* Header */}
+      <header className="flex h-[49px] items-center justify-between border-b border-border bg-card px-[22px]">
         <div>
-          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-[16px] font-bold leading-[19px] tracking-[-0.3px] text-foreground">
             Bookings
           </h1>
-          <p className="text-[11px] text-gray-400 font-normal">
+          <p className="mt-[1px] text-[10px] leading-[13px] text-muted-foreground">
             All bookings across platform
           </p>
         </div>
 
-        <div className="flex items-center space-x-5">
-          <div className="relative w-80">
-            <Search className="w-4 h-4 absolute left-3 top-2 text-gray-400" />
+        <div className="flex items-center gap-[17px]">
+          <div className="relative hidden w-[158px] sm:block">
+            <Search className="absolute left-[9px] top-1/2 h-[13px] w-[13px] -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
+              value={globalSearch}
+              onChange={(e) => {
+                setGlobalSearch(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Search anything..."
-              className="w-full pl-9 pr-4 py-1.5 bg-[#F3F4F6] text-xs rounded-md focus:outline-none placeholder-gray-400 text-slate-800"
+              aria-label="Search anything"
+              className="h-[25px] w-full rounded-[6px] bg-muted pl-[25px] pr-[8px] text-[10px] text-foreground outline-none placeholder:text-muted-foreground"
             />
           </div>
 
-          <div className="relative cursor-pointer">
-            <Bell className="w-5 h-5 text-gray-500" />
-            <span className="absolute -top-1.5 -right-1.5 bg-[#E0533C] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+          <button
+            type="button"
+            aria-label="Notifications"
+            className="relative flex h-7 w-6 items-center justify-center text-muted-foreground"
+          >
+            <Bell className="h-[16px] w-[16px]" />
+            <span className="absolute right-[-1px] top-[-1px] flex h-[12px] min-w-[12px] items-center justify-center rounded-full bg-primary px-[2px] text-[8px] font-bold leading-none text-primary-foreground">
               12
             </span>
-          </div>
+          </button>
 
-          <div className="flex items-center space-x-2.5 pl-3 border-l border-gray-200">
+          <div className="flex items-center gap-[6px]">
             <Image
               src="/Image/name.png"
-              alt="John Admin Avatar"
-              width={32}
-              height={32}
-              className="w-8 h-8 rounded-full object-cover"
+              alt="John Admin"
+              width={25}
+              height={25}
+              className="h-[24px] w-[24px] rounded-full border border-border object-cover"
             />
-            <div className="leading-tight">
-              <p className="text-xs font-bold text-slate-900">John Admin</p>
-              <p className="text-[10px] text-gray-400 font-normal">
+            <div className="leading-[13px]">
+              <p className="whitespace-nowrap text-[10px] font-bold text-foreground">
+                John Admin
+              </p>
+              <p className="whitespace-nowrap text-[9px] text-muted-foreground">
                 Super Admin
               </p>
             </div>
@@ -176,229 +233,373 @@ export default function BookingsPage() {
         </div>
       </header>
 
-      <main className="p-8 space-y-6 max-w-[1400px] mx-auto">
-        <div className="flex justify-end space-x-3">
-          <button className="flex items-center space-x-1.5 border border-gray-300 bg-white px-4 py-1.5 rounded-md text-slate-700 font-medium hover:bg-gray-50">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-gray-500" />
-            <span>Filter</span>
+      <main className="mx-auto max-w-[1400px] px-[20px] pb-[35px] pt-[8px]">
+        {/* Filter and Export */}
+        <div className="mb-[11px] flex h-[27px] items-center justify-end gap-[8px]">
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="flex h-[27px] items-center justify-center border border-border bg-card px-[16px] text-[11px] font-medium text-muted-foreground hover:bg-muted"
+          >
+            Filter
           </button>
-          <button className="flex items-center space-x-1.5 border border-gray-300 bg-white px-4 py-1.5 rounded-md text-slate-700 font-medium hover:bg-gray-50">
-            <Download className="w-3.5 h-3.5 text-gray-500" />
-            <span>Export</span>
+
+          <button
+            type="button"
+            onClick={exportBookings}
+            className="flex h-[27px] items-center justify-center border border-border bg-card px-[16px] text-[11px] font-medium text-muted-foreground hover:bg-muted"
+          >
+            Export
           </button>
         </div>
-        <div className="grid grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-between h-28 relative">
-            <span className="text-xs text-gray-400 font-normal">
+
+        {/* Summary Cards */}
+        <section className="mb-[25px] grid grid-cols-2 gap-[10px] lg:grid-cols-4">
+          <div className="flex h-[67px] flex-col justify-between border border-border bg-card px-[13px] py-[11px]">
+            <p className="text-[11px] leading-[13px] text-muted-foreground">
               Total Bookings
-            </span>
-            <div className="flex items-baseline justify-between mt-1">
-              <span className="text-2xl font-black text-slate-900">1,284</span>
-              <div className="text-right">
-                <span className="text-xs font-bold text-[#10B981]">+12%</span>
-                <p className="text-[10px] text-gray-400 leading-none">
-                  vs last mo
-                </p>
+            </p>
+            <div className="flex items-end justify-between">
+              <span className="text-[20px] font-bold leading-[22px] tracking-[-0.4px] text-foreground">
+                1,284
+              </span>
+              <div className="pb-[1px] text-right leading-[11px]">
+                <p className="text-[10px] font-bold text-success">+12%</p>
+                <p className="text-[9px] text-muted-foreground">vs last mo</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-between h-28">
-            <span className="text-xs text-gray-400 font-normal">
+          <div className="flex h-[67px] flex-col justify-between border border-border bg-card px-[13px] py-[11px]">
+            <p className="text-[11px] leading-[13px] text-muted-foreground">
               Pending Action
-            </span>
-            <div className="flex items-baseline justify-between mt-1">
-              <span className="text-2xl font-black text-[#D97706]">42</span>
-              <span className="text-[10px] text-gray-400 leading-tight text-right w-16">
-                Requires attention
+            </p>
+            <div className="flex items-end justify-between">
+              <span className="text-[20px] font-bold leading-[22px] tracking-[-0.4px] text-warning">
+                42
               </span>
+              <p className="w-[55px] pb-[1px] text-[9px] leading-[11px] text-muted-foreground">
+                Requires
+                <br />
+                attention
+              </p>
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-between h-28">
-            <span className="text-xs text-gray-400 font-normal">Confirmed</span>
-            <div className="flex items-baseline justify-between mt-1">
-              <span className="text-2xl font-black text-[#059669]">186</span>
-              <span className="text-[10px] text-gray-400 leading-tight text-right w-16">
-                Upcoming events
+          <div className="flex h-[67px] flex-col justify-between border border-border bg-card px-[13px] py-[11px]">
+            <p className="text-[11px] leading-[13px] text-muted-foreground">
+              Confirmed
+            </p>
+            <div className="flex items-end justify-between">
+              <span className="text-[20px] font-bold leading-[22px] tracking-[-0.4px] text-success">
+                186
               </span>
+              <p className="w-[55px] pb-[1px] text-[9px] leading-[11px] text-muted-foreground">
+                Upcoming
+                <br />
+                events
+              </p>
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-5 flex flex-col justify-between h-28">
-            <span className="text-xs text-gray-400 font-normal">Completed</span>
-            <div className="flex items-baseline justify-between mt-1">
-              <span className="text-2xl font-black text-slate-900">1,012</span>
-              <div className="text-right">
-                <span className="text-xs font-bold text-[#10B981]">98.4%</span>
-                <p className="text-[10px] text-gray-400 leading-none">
-                  fulfill rate
-                </p>
+          <div className="flex h-[67px] flex-col justify-between border border-border bg-card px-[13px] py-[11px]">
+            <p className="text-[11px] leading-[13px] text-muted-foreground">
+              Completed
+            </p>
+            <div className="flex items-end justify-between">
+              <span className="text-[20px] font-bold leading-[22px] tracking-[-0.4px] text-foreground">
+                1,012
+              </span>
+              <div className="pb-[1px] text-right leading-[11px]">
+                <p className="text-[10px] font-bold text-success">98.4%</p>
+                <p className="text-[9px] text-muted-foreground">fulfill rate</p>
               </div>
             </div>
           </div>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-5">
-          <div className="flex space-x-7 border-b border-gray-100 pb-3 text-xs font-semibold">
-            {[
-              "All Bookings",
-              "Pending (42)",
-              "Confirmed",
-              "Ongoing",
-              "Completed",
-              "Cancelled",
-            ].map((tab) => {
+        </section>
+
+        {/* Bookings Panel */}
+        <section className="border border-border bg-card">
+          {/* Tabs */}
+          <div className="flex h-[36px] items-stretch gap-[22px] overflow-x-auto border-b border-border px-[16px]">
+            {TABS.map((tab) => {
               const isActive = activeTab === tab;
+
               return (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`relative pb-3 -mb-3 transition-colors ${
+                  type="button"
+                  onClick={() => {
+                    setActiveTab(tab);
+                    setCurrentPage(1);
+                  }}
+                  className={`relative flex shrink-0 items-center whitespace-nowrap text-[11px] ${
                     isActive
-                      ? "text-slate-900 font-bold"
-                      : "text-gray-400 hover:text-gray-600"
+                      ? "font-bold text-foreground"
+                      : "font-normal text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {tab}
                   {isActive && (
-                    <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#EE6038] rounded-full" />
+                    <span className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-primary" />
                   )}
                 </button>
               );
             })}
           </div>
-          <div className="flex items-center justify-between space-x-3 pt-1">
-            <div className="relative flex-1">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-gray-400" />
+
+          {/* Search and Filters */}
+          <div className="flex flex-col gap-[9px] px-[16px] pb-[12px] pt-[12px] xl:flex-row xl:items-center xl:justify-between">
+            <div className="relative w-full xl:max-w-[303px]">
+              <Search className="absolute left-[8px] top-1/2 h-[13px] w-[13px] -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 placeholder="Search by booking ID, client, event or Hosté..."
-                className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-md text-xs placeholder-gray-400 focus:outline-none focus:border-gray-400 text-slate-700"
+                aria-label="Search bookings"
+                className="h-[28px] w-full border border-input bg-card pl-[25px] pr-[8px] text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
               />
             </div>
 
-            <div className="flex items-center space-x-2 text-xs">
-              <div className="flex items-center space-x-1.5 border border-gray-200 rounded-md px-3 py-1.5 text-slate-600 bg-white">
-                <span className="text-gray-700 font-medium">Date: All</span>
-                <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-1" />
+            <div className="flex flex-wrap items-center gap-[7px]">
+              <div className="relative">
+                <select
+                  aria-label="Filter by date"
+                  value={dateFilter}
+                  onChange={(e) => {
+                    setDateFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="h-[28px] min-w-[93px] appearance-none border border-input bg-card pl-[9px] pr-[23px] text-[10px] text-foreground outline-none"
+                >
+                  <option value="All">Date: All</option>
+                  <option value="August 2026">Date: August 2026</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-[7px] top-1/2 h-[11px] w-[11px] -translate-y-1/2 text-muted-foreground" />
               </div>
 
-              <div className="flex items-center space-x-1.5 border border-gray-200 rounded-md px-3 py-1.5 text-slate-600 bg-white">
-                <span className="text-gray-700 font-medium">Payment: Paid</span>
-                <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-1" />
+              <div className="relative">
+                <select
+                  aria-label="Filter by payment"
+                  value={paymentFilter}
+                  onChange={(e) => {
+                    setPaymentFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="h-[28px] min-w-[100px] appearance-none border border-input bg-card pl-[9px] pr-[23px] text-[10px] text-foreground outline-none"
+                >
+                  <option value="All">Payment: All</option>
+                  <option value="Paid">Payment: Paid</option>
+                  <option value="Unpaid">Payment: Unpaid</option>
+                  <option value="Pending">Payment: Pending</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-[7px] top-1/2 h-[11px] w-[11px] -translate-y-1/2 text-muted-foreground" />
               </div>
 
-              <div className="flex items-center space-x-1.5 border border-gray-200 rounded-md px-3 py-1.5 text-slate-600 bg-white">
-                <span className="text-gray-700 font-medium">
-                  Type: All Events
-                </span>
-                <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-1" />
+              <div className="relative">
+                <select
+                  aria-label="Filter by event type"
+                  value={typeFilter}
+                  onChange={(e) => {
+                    setTypeFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="h-[28px] min-w-[113px] appearance-none border border-input bg-card pl-[9px] pr-[23px] text-[10px] text-foreground outline-none"
+                >
+                  <option value="All Events">Type: All Events</option>
+                  <option value="Corporate">Type: Corporate</option>
+                  <option value="Wedding">Type: Wedding</option>
+                  <option value="Private">Type: Private</option>
+                  <option value="Entertainment">Type: Entertainment</option>
+                  <option value="Charity">Type: Charity</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-[7px] top-1/2 h-[11px] w-[11px] -translate-y-1/2 text-muted-foreground" />
               </div>
 
-              <button className="text-slate-600 font-bold px-2 hover:text-slate-900">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="whitespace-nowrap px-[4px] text-[10px] font-semibold text-muted-foreground hover:text-primary"
+              >
                 Clear Filters
               </button>
             </div>
           </div>
 
+          {/* Bookings Table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[800px] table-auto border-collapse text-left">
               <thead>
-                <tr className="border-b border-gray-100 text-[11px] font-bold text-gray-500 uppercase tracking-wide">
-                  <th className="py-3 px-2">Booking ID</th>
-                  <th className="py-3 px-2">Event</th>
-                  <th className="py-3 px-2">Client</th>
-                  <th className="py-3 px-2">Hosté Assigned</th>
-                  <th className="py-3 px-2">Date</th>
-                  <th className="py-3 px-2">Amount</th>
-                  <th className="py-3 px-2">Payment</th>
-                  <th className="py-3 px-2">Status</th>
-                  <th className="py-3 px-2">Actions</th>
-                  <th className="py-3 px-1"></th>
+                <tr className="h-[29px] border-y border-border bg-muted text-[10px] font-semibold text-muted-foreground">
+                  <th className="whitespace-nowrap px-[16px] font-semibold">
+                    Booking ID
+                  </th>
+                  <th className="whitespace-nowrap px-[8px] font-semibold">
+                    Event
+                  </th>
+                  <th className="whitespace-nowrap px-[8px] font-semibold">
+                    Client
+                  </th>
+                  <th className="whitespace-nowrap px-[8px] font-semibold">
+                    Hosté Assigned
+                  </th>
+                  <th className="whitespace-nowrap px-[8px] font-semibold">
+                    Date
+                  </th>
+                  <th className="whitespace-nowrap px-[8px] font-semibold">
+                    Amount
+                  </th>
+                  <th className="whitespace-nowrap px-[8px] font-semibold">
+                    Payment
+                  </th>
+                  <th className="whitespace-nowrap px-[8px] font-semibold">
+                    Status
+                  </th>
+                  <th className="whitespace-nowrap px-[8px] font-semibold">
+                    Actions
+                  </th>
+                  <th className="w-[24px] px-[7px]" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 text-xs text-slate-700">
-                {BOOKINGS_DATA.map((row) => {
-                  const rawId = row.id.replace("#", "");
-                  return (
-                    <tr
-                      key={row.id}
-                      className="hover:bg-slate-50/60 transition-colors"
+
+              <tbody className="divide-y divide-border">
+                {filteredBookings.length > 0 ? (
+                  filteredBookings.map((booking) => {
+                    const rawId = booking.id.replace("#", "");
+
+                    return (
+                      <tr
+                        key={booking.id}
+                        className="h-[40px] text-[11px] text-muted-foreground hover:bg-muted/50"
+                      >
+                        <td className="whitespace-nowrap px-[16px] font-bold text-foreground">
+                          {booking.id}
+                        </td>
+                        <td className="whitespace-nowrap px-[8px] font-bold text-foreground">
+                          {booking.event}
+                        </td>
+                        <td className="whitespace-nowrap px-[8px]">
+                          {booking.client}
+                        </td>
+                        <td className="whitespace-nowrap px-[8px]">
+                          {booking.hosteAssigned}
+                        </td>
+                        <td className="whitespace-nowrap px-[8px]">
+                          {booking.date}
+                        </td>
+                        <td className="whitespace-nowrap px-[8px] font-bold text-foreground">
+                          {booking.amount}
+                        </td>
+                        <td className="whitespace-nowrap px-[8px]">
+                          <span
+                            className={`inline-flex items-center justify-center px-[7px] py-[3px] text-[9px] font-semibold leading-[11px] ${
+                              booking.payment === "Paid"
+                                ? "bg-success/10 text-success"
+                                : "bg-warning-surface text-warning"
+                            }`}
+                          >
+                            {booking.payment}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-[8px]">
+                          {renderStatusBadge(booking.status)}
+                        </td>
+                        <td className="whitespace-nowrap px-[8px]">
+                          <Link
+                            href={`/bookings/${rawId}`}
+                            className="text-[11px] font-bold text-primary hover:underline"
+                          >
+                            View Booking
+                          </Link>
+                        </td>
+                        <td className="px-[7px] text-right">
+                          <MoreVertical className="inline-block h-[14px] w-[14px] text-muted-foreground" />
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={10}
+                      className="h-[100px] px-4 text-center text-[12px] text-muted-foreground"
                     >
-                      <td className="py-3.5 px-2 font-bold text-slate-900">
-                        {row.id}
-                      </td>
-                      <td className="py-3.5 px-2 font-extrabold text-slate-900">
-                        {row.event}
-                      </td>
-                      <td className="py-3.5 px-2 text-slate-500">
-                        {row.client}
-                      </td>
-                      <td className="py-3.5 px-2 text-slate-500">
-                        {row.hosteAssigned}
-                      </td>
-                      <td className="py-3.5 px-2 text-slate-500">{row.date}</td>
-                      <td className="py-3.5 px-2 font-black text-slate-900">
-                        {row.amount}
-                      </td>
-                      <td className="py-3.5 px-2">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#ECFDF5] text-[#10B981]">
-                          {row.payment}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-2">
-                        {renderStatusBadge(row.status)}
-                      </td>
-                      <td className="py-3.5 px-2">
-                        <Link
-                          href={`/bookings/${rawId}`}
-                          className="text-[#EF5A36] font-bold hover:underline"
-                        >
-                          View Booking
-                        </Link>
-                      </td>
-                      <td className="py-3.5 px-1 text-right">
-                        <button className="p-1 text-gray-400 hover:text-gray-600">
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                      No bookings found.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
 
-          <div className="pt-3 flex items-center justify-between text-xs text-gray-400 border-t border-gray-100">
-            <div>
-              Showing <span className="font-bold text-slate-800">1–10</span> of{" "}
-              <span className="font-bold text-slate-800">1,284</span> bookings
-            </div>
-            <div className="flex items-center space-x-1.5 text-xs">
-              <button className="px-3 py-1 border border-gray-200 rounded text-gray-500 hover:bg-gray-50">
+          {/* Pagination */}
+          <div className="flex min-h-[47px] flex-wrap items-center justify-between gap-[12px] border-t border-border px-[16px] py-[9px]">
+            <p className="text-[10px] text-muted-foreground">
+              Showing{" "}
+              <span className="font-bold text-foreground">
+                {filteredBookings.length > 0 ? "1–10" : "0"}
+              </span>{" "}
+              of{" "}
+              <span className="font-bold text-foreground">
+                {filteredBookings.length === BOOKINGS_DATA.length
+                  ? "1,284"
+                  : filteredBookings.length}
+              </span>{" "}
+              bookings
+            </p>
+
+            <div className="flex items-center gap-[4px] text-[10px]">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                disabled={currentPage === 1}
+                className="h-[23px] border border-border px-[12px] text-muted-foreground hover:bg-muted disabled:opacity-60"
+              >
                 Previous
               </button>
-              <button className="w-6 h-6 rounded bg-[#EE6038] text-white font-bold flex items-center justify-center text-xs">
-                1
-              </button>
-              <button className="w-6 h-6 rounded hover:bg-gray-100 text-gray-600 font-medium flex items-center justify-center text-xs">
-                2
-              </button>
-              <button className="w-6 h-6 rounded hover:bg-gray-100 text-gray-600 font-medium flex items-center justify-center text-xs">
-                3
-              </button>
-              <span className="px-1 text-gray-400">...</span>
-              <button className="w-6 h-6 rounded hover:bg-gray-100 text-gray-600 font-medium flex items-center justify-center text-xs">
+
+              {[1, 2, 3].map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`flex h-[23px] min-w-[21px] items-center justify-center border ${
+                    currentPage === page
+                      ? "border-primary bg-primary font-bold text-primary-foreground"
+                      : "border-border text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <span className="px-[3px] text-muted-foreground">...</span>
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage(129)}
+                className="flex h-[23px] min-w-[29px] items-center justify-center border border-border text-muted-foreground hover:bg-muted"
+              >
                 129
               </button>
-              <button className="px-3 py-1 border border-gray-200 rounded text-gray-500 hover:bg-gray-50">
+
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((page) => Math.min(129, page + 1))
+                }
+                disabled={currentPage === 129}
+                className="h-[23px] border border-border px-[12px] text-muted-foreground hover:bg-muted disabled:opacity-60"
+              >
                 Next
               </button>
             </div>
           </div>
-        </div>
+        </section>
       </main>
     </div>
   );

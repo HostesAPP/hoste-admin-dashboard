@@ -13,7 +13,8 @@ export async function createRefundReceiptPdf(
   theme: ReceiptTheme,
 ) {
   const { PDFDocument, rgb } = await import("pdf-lib");
-  const { default: fontkit } = await import("@pdf-lib/fontkit");
+  const fontkitModule = await import("@pdf-lib/fontkit");
+  const fontkit = (fontkitModule).default || fontkitModule;
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
   const regular = await doc.embedFont(fonts.regular, { subset: true });

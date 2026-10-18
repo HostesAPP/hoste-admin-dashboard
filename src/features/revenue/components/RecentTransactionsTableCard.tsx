@@ -27,13 +27,13 @@ export function RecentTransactionsTableCard({
         <table className="w-full text-left text-xs">
           <thead>
             <tr className="text-[11px] text-muted-foreground border-b border-border/60">
-              <th className="pb-3 pr-10 font-semibold tracking-wider">Transaction ID</th>
-              <th className="pb-3 pr-10 font-semibold tracking-wider">Booking ID</th>
-              <th className="pb-3 pr-10 font-semibold tracking-wider">Customer</th>
-              <th className="pb-3 pr-10 font-semibold tracking-wider">Booking Value</th>
-              <th className="pb-3 pr-10 font-semibold tracking-wider">Hosté Revenue</th>
-              <th className="pb-3 pr-10 font-semibold tracking-wider">Status</th>
-              <th className="pb-3 pr-10 font-semibold tracking-wider">Date</th>
+              <th className="pb-3 pr-5 font-semibold tracking-wider">Transaction ID</th>
+              <th className="pb-3 pr-5 font-semibold tracking-wider">Booking ID</th>
+              <th className="pb-3 pr-5 font-semibold tracking-wider">Customer</th>
+              <th className="pb-3 pr-5 font-semibold tracking-wider">Booking Value</th>
+              <th className="pb-3 pr-5 font-semibold tracking-wider">Hosté Revenue</th>
+              <th className="pb-3 pr-5 font-semibold tracking-wider">Status</th>
+              <th className="pb-3 pr-5 font-semibold tracking-wider">Date</th>
               <th className="pb-3 font-semibold tracking-wider text-right">Action</th>
             </tr>
           </thead>
@@ -63,10 +63,10 @@ export function RecentTransactionsTableCard({
                   key={tx.id}
                   className="hover:bg-muted/30 transition-colors group"
                 >
-                  <td className="py-3.5 pr-10 font-bold text-foreground">
+                  <td className="py-3.5 pr-5 font-bold text-foreground">
                     {tx.transactionCode}
                   </td>
-                  <td className="py-3.5 pr-10 font-medium text-foreground">
+                  <td className="py-3.5 pr-5 font-medium text-foreground">
                     <Link
                       href={`/bookings/${tx.bookingCode}`}
                       className="hover:text-primary transition-colors"
@@ -74,21 +74,21 @@ export function RecentTransactionsTableCard({
                       {tx.bookingCode}
                     </Link>
                   </td>
-                  <td className="py-3.5 pr-10 text-foreground font-medium">
+                  <td className="py-3.5 pr-5 text-foreground font-medium">
                     {tx.customerName}
                   </td>
-                  <td className="py-3.5 pr-10 text-foreground">
+                  <td className="py-3.5 pr-5 text-foreground">
                     {tx.bookingValue}
                   </td>
-                  <td className="py-3.5 pr-10 font-bold text-foreground">
+                  <td className="py-3.5 pr-5 font-bold text-foreground">
                     {tx.hosteRevenue}
                   </td>
-                  <td className="py-3.5 pr-10">
+                  <td className="py-3.5 pr-5">
                     <span className="block items-center px-2 py-0.5 rounded-sm text-[10px] font-semibold bg-secondary/10 text-secondary border border-secondary/20 w-fit">
                       {tx.status}
                     </span>
                   </td>
-                  <td className="py-3.5 pr-10 text-muted-foreground text-[11px]">
+                  <td className="py-3.5 pr-5 text-muted-foreground text-[11px]">
                     {tx.date}
                   </td>
                   <td className="py-3.5 text-right">

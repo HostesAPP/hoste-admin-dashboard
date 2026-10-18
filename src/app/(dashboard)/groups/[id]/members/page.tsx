@@ -93,6 +93,13 @@ export default function GroupMembersPage() {
     downloadAnchor.remove();
   };
 
+  const hasActiveFilters = Boolean(
+    searchQuery ||
+    selectedRole !== "All" ||
+    selectedStatus !== "All" ||
+    selectedJoined !== "Any Date"
+  );
+
   return (
     <div className="p-6 space-y-6">
       {/* Top Header */}
@@ -124,6 +131,9 @@ export default function GroupMembersPage() {
           setCurrentPage(1);
         }}
         onResetFilters={handleResetFilters}
+        hasActiveFilters={hasActiveFilters}
+        selectedCount={selectedMemberIds.length}
+        onClearSelection={() => setSelectedMemberIds([])}
       />
 
       {/* Real Data Members Table */}
