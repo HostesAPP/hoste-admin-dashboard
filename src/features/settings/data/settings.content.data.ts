@@ -2,7 +2,7 @@ import type {
   ContentControlGroup,
   ContentDocument,
   ContentSettingsSnapshot,
-} from "../settings.content.types";
+} from "../types/settings.content.types";
 
 export const CONTENT_CONTROL_GROUPS: ContentControlGroup[] = [
   {

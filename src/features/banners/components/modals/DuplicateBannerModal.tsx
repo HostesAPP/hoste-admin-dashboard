@@ -1,0 +1,93 @@
+"use client";
+
+import React from "react";
+import { Copy } from "lucide-react";
+
+interface DuplicateBannerModalProps {
+  isOpen: boolean;
+  draftName?: string;
+  placements?: string;
+  audience?: string;
+  onClose: () => void;
+  onConfirm: () => void;
+}
+
+export default function DuplicateBannerModal({
+  isOpen,
+  draftName = "Find the Right Hosté for Your Next Event (Copy)",
+  placements = "Homepage, Customer Dashboard",
+  audience = "Customers",
+  onClose,
+  onConfirm,
+}: DuplicateBannerModalProps): React.ReactElement | null {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#424548]/80 p-[16px] antialiased font-[Arial,sans-serif]">
+      <div className="w-full max-w-[460px] rounded-[16px] bg-white shadow-2xl overflow-hidden text-[#1A1A1A]">
+        {/* Modal Header */}
+        <div className="flex items-center gap-[12px] border-b border-[#f0f1f4] px-[24px] py-[18px]">
+          <div className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full bg-[#fffbeb] text-[#d97706]">
+            <Copy size={16} className="text-[#ea580c]" />
+          </div>
+          <div>
+            <h3 className="text-[16px] font-bold leading-[20px] tracking-[-0.2px] text-[#1A1A1A]">
+              Duplicate Banner
+            </h3>
+            <p className="text-[11px] text-[#858b98] font-normal mt-[1px]">
+              Create Draft Copy
+            </p>
+          </div>
+        </div>
+
+        {/* Modal Body */}
+        <div className="px-[24px] py-[20px] space-y-[16px]">
+          <p className="text-[11px] leading-[16px] text-[#555b68]">
+            Create a new draft campaign using this banner&apos;s content,
+            uploaded hero visual, and configuration settings?
+          </p>
+
+          {/* New Draft Info Container */}
+          <div className="rounded-[10px] border border-[#eef0f3] bg-[#f8f9fa] p-[14px] space-y-[4px]">
+            <span className="text-[9px] font-bold text-[#858b98] uppercase tracking-wider block">
+              NEW DRAFT NAME:
+            </span>
+            <strong className="text-[12px] font-bold text-[#1A1A1A] block">
+              {draftName}
+            </strong>
+            <div className="text-[11px] text-[#858b98] pt-[2px] space-y-[2px]">
+              <div>
+                Placements:{" "}
+                <strong className="text-[#1A1A1A] font-bold">
+                  {placements}
+                </strong>
+              </div>
+              <div>
+                Audience:{" "}
+                <strong className="text-[#1A1A1A] font-bold">{audience}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal Footer / Actions */}
+        <div className="flex items-center justify-end gap-[10px] bg-white px-[24px] pb-[20px] pt-[8px]">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-[36px] rounded-[8px] bg-[#f1f2f5] px-[20px] text-[11px] font-bold text-[#424854] hover:bg-[#e5e7eb] transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="h-[36px] rounded-[8px] bg-[#e5531b] px-[20px] text-[11px] font-bold text-white hover:bg-[#c94311] transition shadow-sm"
+          >
+            Duplicate Banner
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

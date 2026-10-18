@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { HosteManagementPage } from "@/features/settings/components/settings.hoste.management";
+import { HosteManagementPage } from "@/features/settings/components/SettingsHosteManagement";
 
 export const metadata: Metadata = { title: "Hosté Management | Hosté Admin" };
 

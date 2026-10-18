@@ -105,3 +105,22 @@ export interface ResetPasswordResponse {
   message: string;
 }
 
+export interface RefreshTokenRequest {
+  refreshToken: string;
+  accessToken?: string;
+}
+
+export interface RefreshTokenData {
+  accessToken: string;
+  refreshToken: string;
+  tokenType?: string;
+  expiresIn?: number;
+}
+
+export interface RefreshTokenResponse {
+  success: boolean;
+  message?: string;
+  data: RefreshTokenData;
+}
+
+

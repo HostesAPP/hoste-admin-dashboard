@@ -5,7 +5,7 @@ import type {
   PayoutEvent,
   PayoutRewardRecord,
   PayoutsData,
-} from "../payouts.types";
+} from "../types/payouts.types";
 
 export const MOCK_PAYOUT_SUMMARY: ReferralPayoutSummary = {
   periodEnd: "2026-09-02",
