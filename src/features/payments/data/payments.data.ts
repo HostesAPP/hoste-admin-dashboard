@@ -1,44 +1,9 @@
 import { PaymentItem, PayoutItem, RefundItem } from "../types/payments.types";
+import { BOOKINGS_DATA } from "../../bookings/data/bookings.data";
 
-export const MOCK_PAYMENTS: PaymentItem[] = [
-  {
-    id: "pay-101",
-    referenceId: "PAY-260918-0012",
-    paymentType: "Engagement",
-    engagementId: "ENG-260918-9901",
-    grossAmount: 150000,
-    serviceFee: 15000, // 10%
-    processingFee: 2250, // 1.5% gateway cost
-    status: "Successful",
-    retryChainCount: 1,
-    payerProfileName: "Luxe Event Planners",
-    createdAt: "2026-09-18T10:00:00Z",
-  },
-  {
-    id: "pay-102",
-    referenceId: "PAY-260917-8821",
-    paymentType: "Verification",
-    grossAmount: 5000,
-    serviceFee: 5000,
-    processingFee: 75,
-    status: "Successful",
-    payerProfileName: "Amara Okonkwo",
-    createdAt: "2026-09-17T14:30:00Z",
-  },
-  {
-    id: "pay-103",
-    referenceId: "PAY-260915-4411",
-    paymentType: "Engagement",
-    engagementId: "ENG-260912-8819",
-    grossAmount: 200000,
-    serviceFee: 20000, // 10%
-    processingFee: 3000,
-    status: "Failed",
-    retryChainCount: 3,
-    payerProfileName: "Brand Hotel Corporate",
-    createdAt: "2026-09-15T09:12:00Z",
-  },
-];
+export const MOCK_PAYMENTS: PaymentItem[] = BOOKINGS_DATA.map(
+  (booking) => booking.paymentDetails,
+);
 
 export const MOCK_PAYOUTS: PayoutItem[] = [
   {
@@ -81,12 +46,12 @@ export const MOCK_REFUNDS: RefundItem[] = [
   {
     id: "ref-301",
     referenceId: "REF-260917-009",
-    paymentId: "pay-101",
-    engagementId: "ENG-260910-101",
+    paymentId: BOOKINGS_DATA[0].paymentDetails.id,
     amount: 45000,
     destination: "Original Payment Method",
     processingFee: 0,
-    description: "Admin manual refund following client 48h cancellation tier approval.",
+    description:
+      "Admin manual refund following client 48h cancellation tier approval.",
     initiatedByStaffId: "sprof-finance-01",
     createdAt: "2026-09-17T16:05:00Z",
   },

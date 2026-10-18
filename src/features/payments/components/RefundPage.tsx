@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,6 +54,7 @@ export function RefundPage({
   context: RefundContext;
   adapter?: RefundAdapter;
 }) {
+  const router = useRouter();
   const { transaction, booking } = context;
   const { payment } = transaction;
   const form = useForm<RefundDraft>({
@@ -193,9 +195,9 @@ export function RefundPage({
                 variant="outline"
                 size="icon"
                 className="size-8"
-                nativeButton={false}
-                aria-label="Back to payments"
-                render={<Link href="/payments" />}
+                type="button"
+                aria-label="Go back"
+                onClick={() => router.back()}
               >
                 <ArrowLeft className="size-4" />
               </Button>

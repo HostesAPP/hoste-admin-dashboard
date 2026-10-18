@@ -1,4 +1,5 @@
 import type { PaymentItem } from "@/features/payments/types/payments.types";
+import type { PaymentTransaction } from "@/features/payments/types/transactions.types";
 import type { Booking, BookingKPIs } from "../bookings.types";
 
 export interface BookingRow {
@@ -17,6 +18,7 @@ export interface BookingRow {
 }
 
 export type BookingWithPayment = BookingRow & {
+  paymentMethod: PaymentTransaction["method"];
   paymentDetails: PaymentItem;
 };
 
@@ -24,6 +26,7 @@ export const BOOKINGS_DATA: BookingWithPayment[] = [
   {
     id: "BK-10482",
     reference: "#BK-10482",
+    paymentMethod: "CREDIT_CARD",
     event: "Luxury Corporate Dinner",
     client: "ABC Events Ltd",
     customerEmail: "bookings@abcevents.example",
@@ -48,6 +51,7 @@ export const BOOKINGS_DATA: BookingWithPayment[] = [
   {
     id: "BK-10481",
     reference: "#BK-10481",
+    paymentMethod: "CREDIT_CARD",
     event: "Wedding Reception",
     client: "Sarah Events",
     customerEmail: "bookings@sarahevents.example",
@@ -72,6 +76,7 @@ export const BOOKINGS_DATA: BookingWithPayment[] = [
   {
     id: "BK-10480",
     reference: "#BK-10480",
+    paymentMethod: "CREDIT_CARD",
     event: "Product Launch",
     client: "XYZ Brand",
     customerEmail: "events@xyzbrand.example",
@@ -96,6 +101,7 @@ export const BOOKINGS_DATA: BookingWithPayment[] = [
   {
     id: "BK-10479",
     reference: "#BK-10479",
+    paymentMethod: "CREDIT_CARD",
     event: "Private Gala Night",
     client: "Vanguard Group",
     customerEmail: "events@vanguardgroup.example",
@@ -120,6 +126,7 @@ export const BOOKINGS_DATA: BookingWithPayment[] = [
   {
     id: "BK-10478",
     reference: "#BK-10478",
+    paymentMethod: "CREDIT_CARD",
     event: "Annual Tech Summit",
     client: "Qodebyte Labs",
     customerEmail: "events@qodebytelabs.example",
@@ -144,6 +151,7 @@ export const BOOKINGS_DATA: BookingWithPayment[] = [
   {
     id: "BK-10477",
     reference: "#BK-10477",
+    paymentMethod: "CREDIT_CARD",
     event: "Fashion Week Afterparty",
     client: "Style House",
     customerEmail: "bookings@stylehouse.example",
@@ -168,6 +176,7 @@ export const BOOKINGS_DATA: BookingWithPayment[] = [
   {
     id: "BK-10476",
     reference: "#BK-10476",
+    paymentMethod: "CREDIT_CARD",
     event: "VIP Charity Luncheon",
     client: "Grace Foundation",
     customerEmail: "events@gracefoundation.example",
@@ -192,6 +201,7 @@ export const BOOKINGS_DATA: BookingWithPayment[] = [
   {
     id: "BK-10475",
     reference: "#BK-10475",
+    paymentMethod: "CREDIT_CARD",
     event: "Business Networking Mixer",
     client: "Nexus Partners",
     customerEmail: "events@nexuspartners.example",
@@ -216,6 +226,7 @@ export const BOOKINGS_DATA: BookingWithPayment[] = [
   {
     id: "BK-10474",
     reference: "#BK-10474",
+    paymentMethod: "CREDIT_CARD",
     event: "Brand Anniversary Celebration",
     client: "Bloom Africa",
     customerEmail: "events@bloomafrica.example",
@@ -240,6 +251,7 @@ export const BOOKINGS_DATA: BookingWithPayment[] = [
   {
     id: "BK-10473",
     reference: "#BK-10473",
+    paymentMethod: "CREDIT_CARD",
     event: "Executive Retreat",
     client: "Summit Holdings",
     customerEmail: "bookings@summitholdings.example",

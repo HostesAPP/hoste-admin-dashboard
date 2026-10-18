@@ -2,13 +2,16 @@ import type { RefundContext } from "../types/transactions.types";
 
 // Preview-only eligibility snapshots; production balances must come from the backend.
 export const MOCK_REFUND_AVAILABLE_AMOUNTS: Readonly<Record<string, number>> = {
-  "pay-101": 105000,
-  "pay-102": 5000,
-  "pay-103": 0,
-  "pay-104": 84200,
-  "pay-105": 0,
-  "pay-106": 450000,
-  "pay-107": 196000,
+  "pay-bk-10482": 205000,
+  "pay-bk-10481": 180000,
+  "pay-bk-10480": 120000,
+  "pay-bk-10479": 450000,
+  "pay-bk-10478": 210000,
+  "pay-bk-10477": 320000,
+  "pay-bk-10476": 95000,
+  "pay-bk-10475": 150000,
+  "pay-bk-10474": 275000,
+  "pay-bk-10473": 380000,
 };
 
 export const MOCK_REFUND_REASONS: RefundContext["reasons"] = [
