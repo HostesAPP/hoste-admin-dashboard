@@ -2,7 +2,7 @@ import type {
   ActivityPromoter,
   ActivityReferral,
   ActivitySummary,
-} from "../referrals.activity.types";
+} from "../types/referrals.activity.types";
 
 export const MOCK_ACTIVITY_SUMMARY: ActivitySummary = {
   periodEnd: "2026-08-31",

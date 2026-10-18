@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   BookingsSettings,
   BookingsSettingsAdapter,
-} from "../settings.bookings.types";
+} from "../types/settings.bookings.types";
 
 export function useBookingsSettings(adapter: BookingsSettingsAdapter) {
   const client = useQueryClient();

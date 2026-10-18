@@ -3,9 +3,11 @@ import type { User } from "./types/auth.types";
 
 export interface AuthState {
   accessToken: string | null;
+  refreshToken: string | null;
   user: User | null;
   isAuthenticated: boolean;
-  setAuth: (accessToken: string, user: User) => void;
+  setAuth: (accessToken: string | User, user?: User | string, refreshToken?: string) => void;
+  setTokens: (accessToken: string, refreshToken?: string) => void;
   setAccessToken: (accessToken: string | null) => void;
   setUser: (user: User | null) => void;
   clearAuth: () => void;
@@ -13,14 +15,16 @@ export interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
+  refreshToken: null,
   user: null,
   isAuthenticated: false,
 
-  setAuth: (arg1: string | User, arg2?: string | User) => {
+  setAuth: (arg1: string | User, arg2?: string | User, arg3?: string) => {
     let accessToken: string | null = null;
     let user: User | null = null;
+    const refreshToken: string | null = arg3 || null;
 
-    // Handle both setAuth(accessToken, user) and legacy setAuth(user, accessToken)
+    // Handle setAuth(accessToken, user, refreshToken) and setAuth(user, accessToken, refreshToken)
     if (typeof arg1 === "string") {
       accessToken = arg1;
       user = (arg2 as User) || null;
@@ -29,11 +33,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       accessToken = typeof arg2 === "string" ? arg2 : null;
     }
 
-    set({
+    set((state) => ({
       accessToken,
+      refreshToken: refreshToken || state.refreshToken,
       user,
       isAuthenticated: Boolean(accessToken && user),
-    });
+    }));
 
     if (typeof document !== "undefined" && user) {
       document.cookie = `auth_role=${encodeURIComponent(
@@ -43,6 +48,14 @@ export const useAuthStore = create<AuthState>((set) => ({
         JSON.stringify(user)
       )}; path=/; SameSite=Lax`;
     }
+  },
+
+  setTokens: (accessToken: string, refreshToken?: string) => {
+    set((state) => ({
+      accessToken,
+      refreshToken: refreshToken !== undefined ? refreshToken : state.refreshToken,
+      isAuthenticated: Boolean(accessToken && state.user),
+    }));
   },
 
   setAccessToken: (accessToken: string | null) => {
@@ -76,6 +89,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   clearAuth: () => {
     set({
       accessToken: null,
+      refreshToken: null,
       user: null,
       isAuthenticated: false,
     });
@@ -85,4 +99,5 @@ export const useAuthStore = create<AuthState>((set) => ({
       document.cookie = "auth_user=; path=/; max-age=0; SameSite=Lax";
     }
   },
-}));
+}));
+

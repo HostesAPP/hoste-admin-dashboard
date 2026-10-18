@@ -1,7 +1,7 @@
 import type {
   SecurityControlGroup,
   SecuritySettingsSnapshot,
-} from "../settings.security.types";
+} from "../types/settings.security.types";
 
 export const SECURITY_CONTROL_GROUPS: SecurityControlGroup[] = [
   {

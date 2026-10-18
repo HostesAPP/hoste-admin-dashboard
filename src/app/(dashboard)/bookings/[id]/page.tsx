@@ -13,6 +13,8 @@ import {
   Star,
 } from "lucide-react";
 
+import { BOOKINGS_DATA } from "@/features/bookings/data/bookings.data";
+
 import ReassignHosteModal from "@/components/modals/ReassignHosteModal";
 import CancelBookingModal from "@/components/modals/CancelBookingModal";
 import ConfirmBookingModal from "@/components/modals/ConfirmBookingModal";
@@ -24,14 +26,35 @@ interface PageProps {
 
 type BookingStatus = "Pending" | "Confirmed" | "Completed" | "Cancelled";
 
+const cardStyle =
+  "min-w-0 rounded-none border border-border bg-card p-4 shadow-none lg:p-5";
+
+const labelStyle = "text-[11px] font-medium text-muted-foreground";
+const valueStyle = "mt-1 text-xs font-semibold text-foreground";
+
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  })
+    .format(amount)
+    .replace("NGN", "₦");
+
 export default function BookingDetailPage({ params }: PageProps) {
   const resolvedParams = React.use(params);
+  const rawId = decodeURIComponent(resolvedParams?.id || "BK-10482").replace(
+    /^#/,
+    "",
+  );
 
-  const rawId = resolvedParams?.id || "BK-10482";
-  const bookingId = rawId.startsWith("#") ? rawId : `#${rawId}`;
+  const booking = BOOKINGS_DATA.find(
+    (item) => item.id.replace(/^#/, "") === rawId,
+  );
 
-  const [bookingStatus, setBookingStatus] =
-    useState<BookingStatus>("Confirmed");
+  const [bookingStatus, setBookingStatus] = useState<BookingStatus>(
+    () => (booking?.status as BookingStatus) || "Pending",
+  );
 
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -39,636 +62,581 @@ export default function BookingDetailPage({ params }: PageProps) {
   const [isMarkCompletedModalOpen, setIsMarkCompletedModalOpen] =
     useState(false);
 
-  const handleReassign = (selectedHosteId: string) => {
-    console.log("Reassigning to hosté ID:", selectedHosteId);
-    setIsReassignModalOpen(false);
-  };
+  const bookingId = `#${rawId}`;
 
-  const handleOpenCancel = () => {
-    setIsCancelModalOpen(true);
+  const closeOtherModals = () => {
+    setIsCancelModalOpen(false);
     setIsConfirmModalOpen(false);
     setIsMarkCompletedModalOpen(false);
   };
 
-  const handleConfirmCancel = (reason: string, notes: string) => {
-    console.log("Cancelling booking:", {
-      bookingId: rawId,
-      reason,
-      notes,
-    });
+  const handleReassign = (selectedHosteId: string) => {
+    console.log("Reassigning to Hosté ID:", selectedHosteId);
+    setIsReassignModalOpen(false);
+  };
 
+  const handleConfirmCancel = (reason: string, notes: string) => {
+    console.log("Cancelling booking:", { bookingId: rawId, reason, notes });
     setBookingStatus("Cancelled");
     setIsCancelModalOpen(false);
   };
 
   const handleKeepBooking = () => {
-    console.log("Keeping booking:", rawId);
-
     setIsCancelModalOpen(false);
     setIsConfirmModalOpen(true);
-  };
-
-  const handleOpenConfirm = () => {
-    setIsConfirmModalOpen(true);
-    setIsCancelModalOpen(false);
-    setIsMarkCompletedModalOpen(false);
   };
 
   const handleConfirmBooking = () => {
     console.log("Booking confirmed:", rawId);
-
     setBookingStatus("Confirmed");
-    setIsConfirmModalOpen(false);
-  };
-
-  const handleOpenMarkCompleted = () => {
-    console.log("Opening Mark Completed modal:", rawId);
-
-    setIsMarkCompletedModalOpen(true);
-
-    setIsCancelModalOpen(false);
     setIsConfirmModalOpen(false);
   };
 
   const handleConfirmCompleted = () => {
     console.log("Booking marked as completed:", rawId);
-
     setBookingStatus("Completed");
     setIsMarkCompletedModalOpen(false);
   };
 
-  const getStatusBadgeStyle = (status: BookingStatus) => {
-    switch (status) {
-      case "Pending":
-        return "bg-amber-50 text-amber-700 border-amber-200";
-
-      case "Confirmed":
-      case "Completed":
-        return "bg-[#E6F0EB] text-[#006837] border-[#B3D4C4]";
-
-      case "Cancelled":
-        return "bg-red-50 text-red-700 border-red-200";
-
-      default:
-        return "bg-gray-50 text-gray-700 border-gray-200";
-    }
+  const statusStyle: Record<BookingStatus, string> = {
+    Pending: "bg-warning-surface text-warning border-warning-border",
+    Confirmed: "bg-success/10 text-success border-success/20",
+    Completed: "bg-success/10 text-success border-success/20",
+    Cancelled: "bg-destructive/10 text-destructive border-destructive/20",
   };
 
+  if (!booking) {
+    return (
+      <div className="flex min-h-screen flex-col items-start justify-center gap-3 bg-background p-8 text-sm text-foreground">
+        <h1 className="text-lg font-bold text-foreground">Booking not found</h1>
+        <p>
+          No booking was found for ID <strong>{bookingId}</strong>.
+        </p>
+        <Link
+          href="/bookings"
+          className="font-semibold text-primary hover:underline"
+        >
+          Back to Bookings
+        </Link>
+      </div>
+    );
+  }
+
+  const payment = booking.paymentDetails;
+
+  const amount =
+    typeof booking.amount === "number"
+      ? booking.amount
+      : Number(String(booking.amount).replace(/[₦,\s]/g, "")) || 0;
+
+  const paymentStatus = booking.payment || "Pending";
+
+  const paymentIsPaid =
+    paymentStatus === "Paid" || payment?.status === "Successful";
+
+  const activity = [
+    {
+      title: "Booking created",
+      time: "Aug 21 · 10:20 AM",
+      color: "bg-primary",
+    },
+    ...(paymentIsPaid
+      ? [
+          {
+            title: "Payment received",
+            time: "Aug 21 · 10:24 AM",
+            color: "bg-success",
+          },
+        ]
+      : []),
+    {
+      title: "Hostés assigned",
+      time: "Aug 21 · 11:05 AM",
+      color: "bg-success",
+    },
+    ...(bookingStatus === "Confirmed" || bookingStatus === "Completed"
+      ? [
+          {
+            title:
+              bookingStatus === "Completed"
+                ? "Booking completed"
+                : "Booking confirmed",
+            time: "Aug 21 · 11:12 AM",
+            color: "bg-success",
+          },
+        ]
+      : []),
+    ...(bookingStatus === "Cancelled"
+      ? [
+          {
+            title: "Booking cancelled",
+            time: "Aug 21 · 11:15 AM",
+            color: "bg-destructive",
+          },
+        ]
+      : []),
+  ];
+
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-[#333333] font-sans text-xs">
-      {/* ================= HEADER ================= */}{" "}
-      <header className="bg-white border-b border-gray-200 px-8 py-3 flex items-center justify-between">
-        {" "}
+    <div className="min-h-screen bg-background font-sans text-xs text-foreground">
+      {/* HEADER */}
+      <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-4 border-b border-border bg-card px-5 py-3 lg:px-8">
         <div>
-          {" "}
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            Booking Details{" "}
+          <h1 className="text-lg font-bold tracking-tight text-foreground">
+            Booking Details
           </h1>
-          <p className="text-[11px] text-gray-400 mt-0.5">
-            Bookings <span className="mx-1">/</span> All Bookings{" "}
-            <span className="mx-1">/</span>{" "}
-            <span className="font-semibold text-slate-700">{bookingId}</span>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            Bookings <span className="mx-1">/</span> All Bookings
+            <span className="mx-1">/</span>
+            <span className="font-semibold text-foreground">{bookingId}</span>
           </p>
         </div>
-        <div className="flex items-center space-x-4">
+
+        <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            className="flex items-center space-x-2 border border-gray-200 bg-white px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-gray-50"
+            className="inline-flex items-center gap-2 rounded-none border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-gray-500" />
-            <span>Filter</span>
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            Filter
           </button>
 
-          <div className="relative w-72">
-            <Search className="w-4 h-4 absolute left-3 top-2 text-gray-400" />
-
+          <div className="relative w-full sm:w-56 lg:w-64">
+            <Search className="absolute left-3 top-2 h-3.5 w-3.5 text-muted-foreground" />
             <input
-              type="text"
+              type="search"
               placeholder="Search anything..."
-              className="w-full pl-9 pr-4 py-1.5 bg-[#F3F4F6] text-xs rounded-md focus:outline-none placeholder-gray-400 text-slate-800"
+              aria-label="Search anything"
+              className="w-full rounded-none border border-input bg-muted py-1.5 pl-9 pr-3 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring/30"
             />
           </div>
 
-          <div className="relative cursor-pointer">
-            <Bell className="w-5 h-5 text-gray-600" />
-
-            <span className="absolute -top-1 -right-1 bg-[#EF5A22] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+          <button
+            type="button"
+            aria-label="Notifications"
+            className="relative p-1.5 hover:bg-muted"
+          >
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            <span className="absolute right-0 top-0 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground">
               12
             </span>
-          </div>
+          </button>
 
-          <div className="flex items-center space-x-2.5 pl-3 border-l border-gray-200">
+          <div className="flex items-center gap-2.5 border-l border-border pl-3">
             <Image
               src="/Image/name.png"
-              alt="John Admin Avatar"
+              alt="John Admin"
               width={32}
               height={32}
-              className="w-8 h-8 rounded-full object-cover"
+              className="h-8 w-8 rounded-full border border-border object-cover"
             />
-
-            <div className="leading-tight">
-              <p className="text-xs font-bold text-slate-900">John Admin</p>
-              <p className="text-[10px] text-gray-400">Super Admin</p>
+            <div className="hidden leading-tight sm:block">
+              <p className="text-xs font-bold text-foreground">John Admin</p>
+              <p className="text-[10px] text-muted-foreground">Super Admin</p>
             </div>
           </div>
         </div>
       </header>
-      {/* ================= MAIN ================= */}
-      <main className="p-8 space-y-4 max-w-[1400px] mx-auto">
-        {/* BACK */}
+
+      {/* PAGE CONTENT */}
+      <main className="mx-auto w-full max-w-[1600px] space-y-4 p-4 sm:p-5 lg:space-y-4 lg:p-6">
         <div className="flex items-center justify-between">
           <Link
             href="/bookings"
-            className="inline-flex items-center space-x-1 text-[#EF5A22] font-bold text-xs hover:underline"
+            className="inline-flex items-center gap-1.5 font-semibold text-primary hover:underline"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Bookings</span>
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to Bookings
           </Link>
 
           <button
             type="button"
-            className="p-1.5 border border-gray-200 rounded-md bg-white text-gray-500 hover:bg-gray-50"
+            aria-label="More booking options"
+            className="border border-border bg-card p-1.5 text-muted-foreground hover:bg-muted"
           >
-            <MoreHorizontal className="w-4 h-4" />
+            <MoreHorizontal className="h-4 w-4" />
           </button>
         </div>
 
-        {/* ================= BOOKING SUMMARY ================= */}
-        <div className="bg-white border border-gray-200 p-5 flex items-center justify-between shadow-xs">
-          <div className="flex items-center space-x-12">
-            {/* BOOKING ID */}
-            <div>
-              <p className="text-[10px] text-gray-400 font-medium">
-                Booking ID
-              </p>
+        {/* BOOKING SUMMARY */}
+        <section className={cardStyle}>
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4 sm:gap-x-8">
+              <div>
+                <p className={labelStyle}>Booking ID</p>
+                <p className="mt-1 text-sm font-extrabold text-foreground">
+                  {bookingId}
+                </p>
+              </div>
 
-              <p className="text-lg font-black text-slate-900 mt-0.5">
-                {bookingId}
-              </p>
-            </div>
-
-            {/* BOOKING STATUS */}
-            <div>
-              <p className="text-[10px] text-gray-400 font-medium">
-                Booking Status
-              </p>
-
-              <div className="mt-1">
+              <div>
+                <p className={labelStyle}>Booking Status</p>
                 <span
-                  className={`inline-flex items-center space-x-1 px-2.5 py-0.5 text-[11px] font-semibold border ${getStatusBadgeStyle(
-                    bookingStatus,
-                  )}`}
+                  className={`mt-1 inline-flex items-center gap-1.5 border px-2 py-0.5 text-[11px] font-semibold ${statusStyle[bookingStatus]}`}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                  <span>{bookingStatus}</span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                  {bookingStatus}
                 </span>
+              </div>
+
+              <div>
+                <p className={labelStyle}>Payment Status</p>
+                <span
+                  className={`mt-1 inline-flex items-center gap-1.5 border px-2 py-0.5 text-[11px] font-semibold ${
+                    paymentIsPaid
+                      ? "border-success/20 bg-success/10 text-success"
+                      : "border-warning-border bg-warning-surface text-warning"
+                  }`}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                  {paymentStatus}
+                </span>
+              </div>
+
+              <div>
+                <p className={labelStyle}>Booking Date</p>
+                <p className="mt-1 font-semibold text-foreground">
+                  August 21, 2026
+                </p>
               </div>
             </div>
 
-            {/* PAYMENT STATUS */}
-            <div>
-              <p className="text-[10px] text-gray-400 font-medium">
-                Payment Status
-              </p>
+            <div className="flex flex-wrap items-center gap-3">
+              {bookingStatus !== "Cancelled" &&
+                bookingStatus !== "Completed" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeOtherModals();
+                      setIsCancelModalOpen(true);
+                    }}
+                    className="rounded-none border border-destructive/40 bg-card px-5 py-2.5 text-xs font-semibold text-destructive shadow-none hover:bg-destructive/5"
+                  >
+                    Cancel Booking
+                  </button>
+                )}
 
-              <div className="mt-1">
-                <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 text-[11px] font-semibold bg-[#E6F0EB] text-[#006837] border border-[#B3D4C4]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#006837]" />
-                  <span>Paid</span>
-                </span>
-              </div>
-            </div>
+              {bookingStatus === "Pending" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeOtherModals();
+                    setIsConfirmModalOpen(true);
+                  }}
+                  className="rounded-none border border-primary bg-primary px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-none hover:opacity-90"
+                >
+                  Mark as Completed
+                </button>
+              )}
 
-            {/* BOOKING DATE */}
-            <div>
-              <p className="text-[10px] text-gray-400 font-medium">
-                Booking Date
-              </p>
-
-              <p className="text-xs font-semibold text-slate-800 mt-1">
-                August 21, 2026
-              </p>
+              {bookingStatus === "Confirmed" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeOtherModals();
+                    setIsMarkCompletedModalOpen(true);
+                  }}
+                  className="rounded-none border border-primary bg-primary px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-none hover:opacity-90"
+                >
+                  Mark as Completed
+                </button>
+              )}
             </div>
           </div>
+        </section>
 
-          {/* ================= ACTION BUTTONS ================= */}
-          <div className="flex items-center space-x-3">
-            {/* CONFIRM BOOKING */}
-            {bookingStatus === "Pending" && (
-              <button
-                type="button"
-                onClick={handleOpenConfirm}
-                className="px-4 py-2 border border-slate-300 text-slate-700 font-semibold bg-white hover:bg-slate-50 text-xs transition"
-              >
-                Confirm Booking
-              </button>
-            )}
-
-            {/* CANCEL BOOKING */}
-            <button
-              type="button"
-              onClick={handleOpenCancel}
-              className="px-4 py-2 border border-[#FCA5A5] text-[#DC2626] font-semibold bg-white hover:bg-red-50 text-xs transition"
-            >
-              Cancel Booking
-            </button>
-
-            {/* MARK AS COMPLETED */}
-            <button
-              type="button"
-              onClick={handleOpenMarkCompleted}
-              className="px-4 py-2 bg-[#EF5A22] text-white font-semibold hover:bg-[#d84d1a] text-xs transition"
-            >
-              Mark as Completed
-            </button>
-          </div>
-        </div>
-
-        {/* ================= CONTENT ================= */}
-        <div className="grid grid-cols-12 gap-5">
+        {/* TWO-COLUMN LAYOUT */}
+        <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-12 xl:gap-4">
           {/* LEFT COLUMN */}
-          <div className="col-span-8 space-y-5">
+          <div className="min-w-0 space-y-4 xl:col-span-8 xl:space-y-4">
             {/* EVENT INFORMATION */}
-            <div className="bg-white border border-gray-200 p-6 shadow-xs">
-              <h2 className="text-sm font-bold text-slate-900 mb-5">
+            <section className={cardStyle}>
+              <h2 className="mb-4 text-xs font-bold uppercase tracking-wider text-foreground">
                 Event Information
               </h2>
 
-              <div className="grid grid-cols-2 gap-y-5 gap-x-8">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                 <div>
-                  <p className="text-[10px] text-gray-400 font-medium">
-                    Event Name
-                  </p>
-                  <p className="text-xs font-bold text-slate-900 mt-1">
+                  <p className={labelStyle}>Event Name</p>
+                  <p className="mt-1 font-bold text-foreground">
                     Luxury Corporate Dinner
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-[10px] text-gray-400 font-medium">
-                    Event Type
-                  </p>
-                  <p className="text-xs font-medium text-slate-800 mt-1">
-                    Corporate Event
+                  <p className={labelStyle}>Event Type</p>
+                  <p className={valueStyle}>Corporate Event</p>
+                </div>
+
+                <div>
+                  <p className={labelStyle}>Date &amp; Time</p>
+                  <p className={valueStyle}>
+                    August 28, 2026 – 6:00 PM – 11:00 PM
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-[10px] text-gray-400 font-medium">
-                    Date & Time
-                  </p>
-                  <p className="text-xs font-medium text-slate-800 mt-1">
-                    August 28, 2026 &nbsp;;&nbsp; 6:00 PM – 11:00 PM
-                  </p>
+                  <p className={labelStyle}>Location</p>
+                  <p className={valueStyle}>Eko Hotel &amp; Suites, Lagos</p>
                 </div>
 
                 <div>
-                  <p className="text-[10px] text-gray-400 font-medium">
-                    Location
-                  </p>
-                  <p className="text-xs font-medium text-slate-800 mt-1">
-                    Eko Hotel & Suites, Lagos
-                  </p>
+                  <p className={labelStyle}>Number of Staff</p>
+                  <p className="mt-1 font-bold text-foreground">8 Hostés</p>
                 </div>
 
                 <div>
-                  <p className="text-[10px] text-gray-400 font-medium">
-                    Number of Staff
-                  </p>
-                  <p className="text-xs font-bold text-slate-900 mt-1">
-                    8 Hostés
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-[10px] text-gray-400 font-medium">
-                    Requested Services
-                  </p>
-
-                  <div className="flex flex-wrap gap-1.5 mt-1.5">
-                    <span className="px-2.5 py-1 bg-[#F3F4F6] text-slate-700 text-[10px] font-medium">
-                      Event Hosting
-                    </span>
-
-                    <span className="px-2.5 py-1 bg-[#F3F4F6] text-slate-700 text-[10px] font-medium">
-                      Ushering
-                    </span>
-
-                    <span className="px-2.5 py-1 bg-[#F3F4F6] text-slate-700 text-[10px] font-medium">
-                      Guest Reception
-                    </span>
+                  <p className={labelStyle}>Requested Services</p>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {["Event Hosting", "Ushering", "Guest Reception"].map(
+                      (service) => (
+                        <span
+                          key={service}
+                          className="bg-muted px-2.5 py-1 text-[11px] text-foreground"
+                        >
+                          {service}
+                        </span>
+                      ),
+                    )}
                   </div>
                 </div>
               </div>
-            </div>
+            </section>
 
             {/* ASSIGNED HOSTÉS */}
-            <div className="bg-white border border-gray-200 p-6 shadow-xs">
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center space-x-2">
-                  <h2 className="text-sm font-bold text-slate-900">
+            <section className={cardStyle}>
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">
                     Assigned Hostés
                   </h2>
-
-                  <span className="text-xs font-normal text-gray-400">
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
                     (2 of 8 Displayed)
-                  </span>
+                  </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setIsReassignModalOpen(true)}
-                  className="text-[#EF5A22] font-bold text-xs hover:underline"
+                  className="px-2 py-1 text-xs font-bold text-primary hover:bg-primary/5"
                 >
                   + Reassign Hosté
                 </button>
               </div>
 
-              <div className="divide-y divide-gray-100">
-                {/* AMAKA */}
-                <div className="py-3 flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-full bg-[#E2E8F0] text-slate-600 font-bold flex items-center justify-center text-xs">
-                      AO
+              <div className="divide-y divide-border">
+                {[
+                  {
+                    initials: "AO",
+                    name: "Amaka Okafor",
+                    role: "Event Host",
+                    rating: "4.8",
+                  },
+                  {
+                    initials: "BE",
+                    name: "Blessing Eze",
+                    role: "Usher",
+                    rating: "4.9",
+                  },
+                ].map((hoste) => (
+                  <div
+                    key={hoste.name}
+                    className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+                        {hoste.initials}
+                      </div>
+                      <div>
+                        <p className="font-bold text-foreground">
+                          {hoste.name}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {hoste.role}
+                        </p>
+                      </div>
                     </div>
 
-                    <div>
-                      <p className="font-bold text-slate-900 text-xs">
-                        Amaka Okafor
-                      </p>
+                    <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+                      <span className="inline-flex items-center gap-1 font-semibold text-foreground">
+                        <Star className="h-3.5 w-3.5 fill-yellow text-yellow" />
+                        {hoste.rating}
+                      </span>
 
-                      <p className="text-[10px] text-gray-400">Event Host</p>
+                      <span className="border border-success/20 bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
+                        Confirmed
+                      </span>
+
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+                      >
+                        View Profile
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex items-center space-x-6">
-                    <div className="flex items-center space-x-1 text-slate-700 font-bold text-xs">
-                      <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" />
-                      <span>4.8</span>
-                    </div>
-
-                    <span className="px-2.5 py-0.5 text-[10px] font-semibold bg-[#E6F0EB] text-[#006837] border border-[#B3D4C4]">
-                      Confirmed
-                    </span>
-
-                    <button
-                      type="button"
-                      className="text-[#EF5A22] font-bold text-xs hover:underline flex items-center space-x-0.5"
-                    >
-                      <span>View Profile</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* BLESSING */}
-                <div className="py-3 flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-full bg-[#E2E8F0] text-slate-600 font-bold flex items-center justify-center text-xs">
-                      BE
-                    </div>
-
-                    <div>
-                      <p className="font-bold text-slate-900 text-xs">
-                        Blessing Eze
-                      </p>
-
-                      <p className="text-[10px] text-gray-400">Usher</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-6">
-                    <div className="flex items-center space-x-1 text-slate-700 font-bold text-xs">
-                      <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" />
-                      <span>4.9</span>
-                    </div>
-
-                    <span className="px-2.5 py-0.5 text-[10px] font-semibold bg-[#E6F0EB] text-[#006837] border border-[#B3D4C4]">
-                      Confirmed
-                    </span>
-
-                    <button
-                      type="button"
-                      className="text-[#EF5A22] font-bold text-xs hover:underline flex items-center space-x-0.5"
-                    >
-                      <span>View Profile</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
+                ))}
               </div>
 
-              <div className="mt-4 pt-2">
+              <div className="mt-3 border-t border-border pt-3">
                 <Link
                   href={`/bookings/${rawId}/staff`}
-                  className="text-[#EF5A22] font-bold text-xs hover:underline inline-flex items-center space-x-1"
+                  className="inline-flex flex-wrap items-center gap-1.5 font-semibold text-primary hover:underline"
                 >
-                  <span>View All 8 Assigned Staff Members</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  View All 8 Assigned Staff Members
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
-            </div>
+            </section>
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="col-span-4 space-y-5">
+          <aside className="min-w-0 space-y-4 xl:col-span-4 xl:space-y-4">
             {/* CLIENT INFORMATION */}
-            <div className="bg-white border border-gray-200 p-6 shadow-xs space-y-4">
-              <h2 className="text-sm font-bold text-slate-900">
+            <section className={cardStyle}>
+              <h2 className="mb-4 text-xs font-bold uppercase tracking-wider text-foreground">
                 Client Information
               </h2>
 
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-medium">
-                      Company
-                    </p>
-
-                    <p className="font-bold text-slate-900 text-xs mt-0.5">
-                      ABC Events Limited
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-medium">
-                      Email
-                    </p>
-
-                    <p className="text-slate-800 font-medium text-xs mt-0.5 truncate">
-                      john@abcevents.com
-                    </p>
-                  </div>
+              <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                <div>
+                  <p className={labelStyle}>Company</p>
+                  <p className={valueStyle}>ABC Events Limited</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-medium">
-                      Contact Person
-                    </p>
+                <div className="min-w-0">
+                  <p className={labelStyle}>Email</p>
+                  <p className="mt-1 break-words text-xs font-semibold text-foreground">
+                    john@abcevents.com
+                  </p>
+                </div>
 
-                    <p className="font-medium text-slate-800 text-xs mt-0.5">
-                      John Okafor
-                    </p>
-                  </div>
+                <div>
+                  <p className={labelStyle}>Contact Person</p>
+                  <p className={valueStyle}>John Okafor</p>
+                </div>
 
-                  <div>
-                    <p className="text-[10px] text-gray-400 font-medium">
-                      Phone
-                    </p>
-
-                    <p className="text-slate-800 font-medium text-xs mt-0.5">
-                      +234 803 000 0000
-                    </p>
-                  </div>
+                <div>
+                  <p className={labelStyle}>Phone</p>
+                  <p className={valueStyle}>+234 803 000 0000</p>
                 </div>
               </div>
 
-              <div className="pt-2">
-                <button
-                  type="button"
-                  className="text-[#EF5A22] font-bold text-xs hover:underline flex items-center space-x-1"
-                >
-                  <span>View Client Profile</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
+              <button
+                type="button"
+                className="mt-4 inline-flex items-center gap-1.5 border-t border-border pt-3 font-semibold text-primary hover:underline"
+              >
+                View Client Profile
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </section>
 
             {/* PAYMENT SUMMARY */}
-            <div className="bg-white border border-gray-200 p-6 shadow-xs space-y-3">
-              <h2 className="text-sm font-bold text-slate-900 mb-2">
+            <section className={cardStyle}>
+              <h2 className="mb-4 text-xs font-bold uppercase tracking-wider text-foreground">
                 Payment Summary
               </h2>
 
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between text-gray-500">
-                  <span>Booking Amount</span>
-                  <span className="font-bold text-slate-900">₦250,000</span>
-                </div>
-
-                <div className="flex justify-between text-gray-500">
-                  <span>Hosté Commission (20%)</span>
-                  <span className="font-bold text-slate-900">₦50,000</span>
-                </div>
-
-                <div className="flex justify-between text-gray-500">
-                  <span>Hosté Payout</span>
-                  <span className="font-bold text-slate-900">₦200,000</span>
-                </div>
-
-                <div className="pt-2 border-t border-gray-100 flex justify-between items-baseline">
-                  <span className="font-bold text-slate-900 text-sm">
-                    Total Paid
-                  </span>
-
-                  <span className="font-black text-[#EF5A22] text-base">
-                    ₦250,000
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Booking Amount</span>
+                  <span className="font-semibold text-foreground">
+                    {formatCurrency(amount)}
                   </span>
                 </div>
 
-                <div className="flex justify-between text-gray-400 text-[11px]">
-                  <span>Payment Method</span>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">
+                    Hosté Commission (20%)
+                  </span>
+                  <span className="font-semibold text-foreground">
+                    {formatCurrency(amount * 0.2)}
+                  </span>
+                </div>
 
-                  <span className="font-semibold text-slate-700">Paystack</span>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">Hosté Payout</span>
+                  <span className="font-semibold text-foreground">
+                    {formatCurrency(amount * 0.8)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+                  <span className="font-bold text-foreground">Total Paid</span>
+                  <span className="text-base font-extrabold text-primary">
+                    {formatCurrency(amount)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <span className="text-muted-foreground">Payment Method</span>
+                  <span className="font-semibold text-foreground">
+                    Paystack
+                  </span>
                 </div>
               </div>
 
-              <div className="pt-2">
-                <Link
-                  href={`/bookings/${rawId}/payments`}
-                  className="inline-flex items-center space-x-1 text-[#EF5A22] font-bold text-xs hover:underline"
-                >
-                  <span>View Payment Details</span>
-                  <ArrowRight className="w-3 h-3" />
-                </Link>
-              </div>
-            </div>
+              <Link
+                href={`/bookings/${rawId}/payments`}
+                className="mt-4 inline-flex items-center gap-1.5 border-t border-border pt-3 font-semibold text-primary hover:underline"
+              >
+                View Payment Details
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </section>
 
             {/* BOOKING ACTIVITY */}
-            <div className="bg-white border border-gray-200 p-6 shadow-xs space-y-4">
-              <h2 className="text-sm font-bold text-slate-900">
-                Booking Activity
-              </h2>
-
-              <div className="relative pl-4 border-l border-gray-200 space-y-4 text-xs">
-                <div className="relative">
-                  <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-[#EF5A22]" />
-
-                  <div className="flex justify-between items-start">
-                    <span className="font-semibold text-slate-800">
-                      Booking created
-                    </span>
-
-                    <span className="text-[10px] text-gray-400">
-                      Aug 21 - 10:20 AM
-                    </span>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-[#006837]" />
-
-                  <div className="flex justify-between items-start">
-                    <span className="font-semibold text-slate-800">
-                      Payment received
-                    </span>
-
-                    <span className="text-[10px] text-gray-400">
-                      Aug 21 - 10:24 AM
-                    </span>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-[#006837]" />
-
-                  <div className="flex justify-between items-start">
-                    <span className="font-semibold text-slate-800">
-                      Hostés assigned
-                    </span>
-
-                    <span className="text-[10px] text-gray-400">
-                      Aug 21 - 11:05 AM
-                    </span>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <span className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-[#006837]" />
-
-                  <div className="flex justify-between items-start">
-                    <span className="font-semibold text-slate-800">
-                      Booking confirmed
-                    </span>
-
-                    <span className="text-[10px] text-gray-400">
-                      Aug 21 - 11:12 AM
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-2">
+            <section className={cardStyle}>
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                  Booking Activity
+                </h2>
                 <Link
                   href={`/bookings/${rawId}/activity`}
-                  className="inline-flex items-center space-x-1 text-[#EF5A22] font-bold text-xs hover:underline"
+                  aria-label="View full booking activity"
+                  className="p-1 text-muted-foreground hover:bg-muted"
                 >
-                  <span>View Full Activity</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
-            </div>
-          </div>
+
+              <div className="relative ml-1 space-y-4 border-l border-border pl-4">
+                {activity.map((item) => (
+                  <div key={item.title} className="relative">
+                    <span
+                      className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border-2 border-card ${item.color}`}
+                    />
+                    <p className="font-semibold text-foreground">
+                      {item.title}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {item.time}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <Link
+                href={`/bookings/${rawId}/activity`}
+                className="mt-4 inline-flex items-center gap-1.5 border-t border-border pt-3 font-semibold text-primary hover:underline"
+              >
+                View Full Activity
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </section>
+          </aside>
         </div>
       </main>
-      {/* ================= MODALS ================= */}
+
+      {/* MODALS */}
       <ReassignHosteModal
         isOpen={isReassignModalOpen}
         onClose={() => setIsReassignModalOpen(false)}
         bookingId={bookingId}
         onReassign={handleReassign}
       />
+
       <CancelBookingModal
         isOpen={isCancelModalOpen}
         onClose={() => setIsCancelModalOpen(false)}
@@ -676,12 +644,14 @@ export default function BookingDetailPage({ params }: PageProps) {
         onConfirmCancel={handleConfirmCancel}
         onKeepBooking={handleKeepBooking}
       />
+
       <ConfirmBookingModal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={handleConfirmBooking}
         bookingId={bookingId}
       />
+
       <MarkCompletedModal
         isOpen={isMarkCompletedModalOpen}
         onClose={() => setIsMarkCompletedModalOpen(false)}

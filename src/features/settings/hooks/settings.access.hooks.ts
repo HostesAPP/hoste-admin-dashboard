@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { AccessAdapter } from "../settings.access.types";
+import type { AccessAdapter } from "../types/settings.access.types";
 
 const ACCESS_QUERY_KEY = ["settings", "users-access"] as const;
 

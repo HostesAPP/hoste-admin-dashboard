@@ -1,4 +1,4 @@
-import type { FinanceSettingsSnapshot } from "../settings.finance.types";
+import type { FinanceSettingsSnapshot } from "../types/settings.finance.types";
 
 // Screenshot fixtures, not production fee policies or gateway credentials.
 export const MOCK_FINANCE_SETTINGS: FinanceSettingsSnapshot = {

@@ -1,4 +1,4 @@
-import type { SystemSettingsSnapshot } from "../settings.system.types";
+import type { SystemSettingsSnapshot } from "../types/settings.system.types";
 
 export const MOCK_SYSTEM_SETTINGS: SystemSettingsSnapshot = {
   canManage: true,

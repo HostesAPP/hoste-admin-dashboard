@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface PaymentHeaderProps {
   searchQuery: string;
-  onSearchChange: (val: string) => void;
+  onSearchChange?: (val: string) => void;
 }
 
 export function PaymentHeader({
@@ -33,7 +33,8 @@ export function PaymentHeader({
           <Input
             type="search"
             value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => onSearchChange?.(e.target.value)}
+            disabled={!onSearchChange}
             placeholder="Search by name, email, profile ..."
             className="pl-9 pr-4 h-9 text-xs rounded-full bg-muted/40 border-border/70 focus-visible:ring-primary focus-visible:ring-1 transition-colors"
           />

@@ -1,7 +1,7 @@
 import type {
   BookingControlGroup,
   BookingsSettingsSnapshot,
-} from "../settings.bookings.types";
+} from "../types/settings.bookings.types";
 
 // Screenshot fixtures. No refunds, assignment decisions, or status transitions are calculated here.
 export const MOCK_BOOKINGS_SETTINGS: BookingsSettingsSnapshot = {

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   ContentSettings,
   ContentSettingsAdapter,
-} from "../settings.content.types";
+} from "../types/settings.content.types";
 
 export function useContentSettings(adapter: ContentSettingsAdapter) {
   const client = useQueryClient();

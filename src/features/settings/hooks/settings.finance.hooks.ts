@@ -4,7 +4,7 @@ import type {
   FinanceSettings,
   FinanceSettingsAdapter,
   FinanceSettingsSnapshot,
-} from "../settings.finance.types";
+} from "../types/settings.finance.types";
 
 export function useFinanceSettings(adapter: FinanceSettingsAdapter) {
   const client = useQueryClient();
