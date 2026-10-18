@@ -2,69 +2,52 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star } from "lucide-react";
-import { getGroupEngagements, getGroupMembers, type Group } from "@/features/groups";
+import type { Group } from "../../types/groups.types";
 
 export const GroupDetailsStat = ({ group }: { group: Group }) => {
-  const membersCount = getGroupMembers(group.id)?.length || 124;
-  const bookingsCount = getGroupEngagements(group.id)?.length || 342;
+  const membersCount = group.memberCount ?? group.membersCount ?? "—";
+  const bookingsCount = group.bookingCount ?? group.bookingsCount ?? group.engagementsCount ?? "—";
 
   const stats = [
     {
       title: "Total Members",
-      value: membersCount > 0 ? membersCount : 124,
-      subtitle: "Current group members",
-      isRating: false,
-      isCurrency: false,
+      value: membersCount,
+      subtitle: "Registered group members",
     },
     {
       title: "Total Bookings",
-      value: bookingsCount > 0 ? bookingsCount : 342,
-      subtitle: "Associated group bookings",
-      isRating: false,
-      isCurrency: false,
+      value: bookingsCount,
+      subtitle: "Attributed group engagements",
     },
     {
-      title: "Group Rating",
-      value: "4.9",
-      subtitle: "Average customer rating",
-      isRating: true,
-      isCurrency: false,
+      title: "Category",
+      value: group.category || "General",
+      subtitle: "Group classification",
     },
     {
-      title: "Leader Earnings",
-      value: "480,000",
-      subtitle: "Attributed to group leader",
-      isRating: false,
-      isCurrency: true,
+      title: "Operational Status",
+      value: group.status || "Active",
+      subtitle: "Current operational state",
     },
   ];
 
   return (
-    <section className="grid grid-cols-4 gap-6">
+    <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {stats.map((stat) => (
         <Card
           key={stat.title}
-          className="border border-border bg-card hover:shadow-sm transition-all duration-200 rounded-md"
+          className="border border-border bg-card hover:shadow-xs transition-all duration-200 rounded-xl"
         >
-          <CardContent className="px-5">
-            <span className="text-xs font-medium text-muted-foreground tracking-wide">
+          <CardContent className="p-4 sm:p-5">
+            <span className="text-xs font-semibold text-muted-foreground tracking-wide block">
               {stat.title}
             </span>
-            <div className="flex items-baseline gap-1.5">
-              {stat.isCurrency && (
-                <span className="text-2xl sm:text-3xl font-bold text-foreground">
-                  ₦
-                </span>
-              )}
-              <span className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+            <div className="flex items-baseline gap-1.5 my-1">
+              <span className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight truncate">
                 {stat.value}
               </span>
-              {stat.isRating && (
-                <Star className="w-5 h-5 fill-yellow text-yellow inline -mt-1 ml-0.5" />
-              )}
             </div>
-            <p className="text-xs text-muted-foreground pt-0.5">
+            <p className="text-xs text-muted-foreground">
               {stat.subtitle}
             </p>
           </CardContent>

@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRightLeft, Download, Plus } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
@@ -12,19 +12,15 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import type { Group } from "@/features/groups";
+import type { Group } from "../../types/groups.types";
 
 export type GroupMembersHeaderProps = {
   group?: Group;
-  onOpenAddMember: () => void;
-  onOpenTransferLeader: () => void;
   onExport: () => void;
 };
 
 export const GroupMembersHeader: React.FC<GroupMembersHeaderProps> = ({
   group,
-  onOpenAddMember,
-  onOpenTransferLeader,
   onExport,
 }) => {
   const groupName = group?.name || "Group Details";
@@ -70,33 +66,15 @@ export const GroupMembersHeader: React.FC<GroupMembersHeaderProps> = ({
           </BreadcrumbList>
         </Breadcrumb>
 
-        {/* Title & Action Buttons */}
-        {/* Top Right Action Buttons */}
+        {/* Top Right Action Button */}
         <div className="flex items-center gap-2.5 flex-wrap">
           <Button
             variant="outline"
-            className="bg-card hover:bg-muted text-foreground border-border text-xs sm:text-sm font-medium h-9 px-3.5 gap-2 shadow-xs"
-            onClick={onOpenTransferLeader}
-          >
-            <ArrowRightLeft className="w-4 h-4 text-muted-foreground" />
-            <span>Transfer Leader</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            className="bg-card hover:bg-muted text-foreground border-border text-xs sm:text-sm font-medium h-9 px-3.5 gap-2 shadow-xs"
+            className="bg-card hover:bg-muted text-foreground border-border text-xs sm:text-sm font-medium h-9 px-3.5 gap-2 shadow-xs cursor-pointer"
             onClick={onExport}
           >
             <Download className="w-4 h-4 text-muted-foreground" />
             <span>Export</span>
-          </Button>
-
-          <Button
-            className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs sm:text-sm font-medium h-9 px-4 gap-1.5 shadow-xs"
-            onClick={onOpenAddMember}
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Member</span>
           </Button>
         </div>
       </div>

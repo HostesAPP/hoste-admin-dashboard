@@ -146,6 +146,7 @@ export const MOCK_REVENUE_OVERVIEW_DATA: RevenueOverviewData = {
 
 export const MOCK_REVENUE_TRANSACTION_DETAILS: import("../revenue.types").RevenueTransactionDetails = {
   transactionId: "TRX-2025-00847",
+  paymentId: "pay-101",
   bookingId: "BK-NG-LAG-78243",
   paymentReference: "PAY-7m5d2a9h4",
   transactionDateTime: "19-Jan-2026, 14:35 WAT",

@@ -35,7 +35,7 @@ export function RevenueBySourceCard({
   }
 
   return (
-    <div className="bg-card rounded-2xl border border-border/80 shadow-xs p-6 flex flex-col justify-between h-full space-y-5">
+    <div className="bg-card rounded-2xl border border-border/80 shadow-xs p-6 flex flex-col h-full space-y-8 justify-start">
       <h2 className="text-xs font-bold text-foreground">Revenue by Source</h2>
 
       {sources.length === 0 ? (
@@ -43,7 +43,7 @@ export function RevenueBySourceCard({
           No revenue source data available.
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 ">
           {sources.map((src) => (
             <div key={src.id} className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">

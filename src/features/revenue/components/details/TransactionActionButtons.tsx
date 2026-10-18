@@ -2,21 +2,22 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
-import { Download, FileText, ExternalLink, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TransactionActionButtonsProps {
   bookingId: string;
   transactionId: string;
+  paymentId?: string;
 }
 
 export function TransactionActionButtons({
   bookingId,
   transactionId,
+  paymentId,
 }: TransactionActionButtonsProps) {
-  const [isRefunding, setIsRefunding] = useState(false);
+  const refundId = paymentId || transactionId;
 
   const handleDownloadReceipt = () => {
     // Generate/download PDF receipt simulation
@@ -73,14 +74,12 @@ export function TransactionActionButtons({
       </Link>
 
       {/* 4. Issue Refund */}
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => setIsRefunding(true)}
-        className="h-10 px-5 rounded-xl border-destructive/60 text-destructive hover:bg-destructive/5 text-xs font-semibold transition-colors cursor-pointer"
+      <Link
+        href={`/payments/${refundId}/refund`}
+        className="inline-flex items-center justify-center h-10 px-5 rounded-xl border border-destructive/60 text-destructive hover:bg-destructive/5 text-xs font-semibold transition-colors cursor-pointer"
       >
         Issue Refund
-      </Button>
+      </Link>
     </div>
   );
 }

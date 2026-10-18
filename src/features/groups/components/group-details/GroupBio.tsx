@@ -33,13 +33,12 @@ export const GroupDetailsBio = ({ group }: { group: Group }) => {
           </h2>
           <span className="inline-flex items-center gap-1 bg-success/15 text-success border border-success/30 px-2.5 py-0.5 rounded-full text-xs font-semibold">
             <BadgeCheck className="w-3.5 h-3.5 fill-success text-card" />
-            <span>Verified Group</span>
+            <span>{group?.status || "Active"} Group</span>
           </span>
         </div>
 
         <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
-          {group?.description ||
-            "A professional event hospitality team providing trained staff for corporate events, private functions and nightlife experiences."}
+          {group?.description || "No description provided."}
         </p>
 
         {/* Category, Created At and Group ID */}
@@ -47,14 +46,14 @@ export const GroupDetailsBio = ({ group }: { group: Group }) => {
           <div>
             <span>Category: </span>
             <span className="font-semibold text-foreground">
-              {group?.category || "Event Hospitality"}
+              {group?.category || "General"}
             </span>
           </div>
           <span>•</span>
           <div>
             <span>Created: </span>
             <span className="font-semibold text-foreground">
-              {group?.createdAt ? formatDate(group.createdAt) : "August 10, 2026"}
+              {group?.createdAt ? formatDate(group.createdAt) : "—"}
             </span>
           </div>
           <span>•</span>

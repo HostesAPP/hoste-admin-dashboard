@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import type { User } from "./types/auth.types";
 
 export interface AuthState {
@@ -13,11 +14,13 @@ export interface AuthState {
   clearAuth: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  accessToken: null,
-  refreshToken: null,
-  user: null,
-  isAuthenticated: false,
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      accessToken: null,
+      refreshToken: null,
+      user: null,
+      isAuthenticated: false,
 
   setAuth: (arg1: string | User, arg2?: string | User, arg3?: string) => {
     let accessToken: string | null = null;
@@ -99,5 +102,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       document.cookie = "auth_user=; path=/; max-age=0; SameSite=Lax";
     }
   },
-}));
+}),
+    {
+      name: "hoste-auth",
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
 

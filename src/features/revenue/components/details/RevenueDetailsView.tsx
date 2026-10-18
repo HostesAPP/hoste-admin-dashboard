@@ -54,7 +54,7 @@ export function RevenueDetailsView({ id }: RevenueDetailsViewProps) {
               <div className="h-4 w-36 bg-muted rounded" />
               <div className="h-6 w-24 bg-muted rounded-full" />
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 pt-1 border-t border-border/60">
+            <div className="grid sm:grid-cols-3 grid-cols-6 gap-6 pt-1 border-t border-border/60">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="space-y-2">
                   <div className="h-2.5 w-20 bg-muted rounded" />
@@ -65,9 +65,9 @@ export function RevenueDetailsView({ id }: RevenueDetailsViewProps) {
           </div>
 
           {/* 2. Main 2-Column Split Skeleton */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="grid grid-cols-12 gap-6 items-start">
             {/* Left Column Skeleton */}
-            <div className="lg:col-span-8 space-y-5 animate-pulse">
+            <div className="col-span-8 space-y-5 animate-pulse">
               <div className="bg-card rounded-2xl border border-border/80 p-6 space-y-6">
                 <div className="h-4 w-32 bg-muted rounded" />
                 <div className="space-y-6 pt-1">
@@ -93,7 +93,7 @@ export function RevenueDetailsView({ id }: RevenueDetailsViewProps) {
             </div>
 
             {/* Right Column Skeleton */}
-            <div className="lg:col-span-4 space-y-5 animate-pulse">
+            <div className="col-span-4 space-y-5 animate-pulse">
               {/* Booking Information Skeleton */}
               <div className="bg-card rounded-2xl border border-border/80 p-6 space-y-5">
                 <div className="h-3.5 w-32 bg-muted rounded" />
@@ -177,9 +177,9 @@ export function RevenueDetailsView({ id }: RevenueDetailsViewProps) {
         </section>
 
         {/* 2. Main 2-Column Split */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <section className="grid grid-cols-12 gap-6 items-start">
           {/* Left Column (~65% / 8 cols): Payment Journey + Action Buttons */}
-          <div className="lg:col-span-8 space-y-5">
+          <div className="col-span-8 space-y-5">
             <PaymentJourneyCard steps={details.paymentJourney} />
             <TransactionActionButtons
               bookingId={details.bookingId}
@@ -188,7 +188,7 @@ export function RevenueDetailsView({ id }: RevenueDetailsViewProps) {
           </div>
 
           {/* Right Column (~35% / 4 cols): Booking Information + Financial Breakdown */}
-          <div className="lg:col-span-4 space-y-5">
+          <div className="col-span-4 space-y-5">
             <BookingInformationCard booking={details.bookingInfo} />
             <FinancialBreakdownCard breakdown={details.financialBreakdown} />
           </div>

@@ -19,8 +19,8 @@ export type GroupMembersFilterProps = {
   selectedJoined: string;
   onJoinedChange: (joined: string) => void;
   onResetFilters: () => void;
-  hasActiveFilters: boolean;
-  selectedCount: number;
+  hasActiveFilters?: boolean;
+  selectedCount?: number;
   isLeaderSelected?: boolean;
   onClearSelection?: () => void;
 };
@@ -45,8 +45,8 @@ export const GroupMembersFilter: React.FC<GroupMembersFilterProps> = ({
   selectedJoined,
   onJoinedChange,
   onResetFilters,
-  hasActiveFilters,
-  selectedCount,
+  hasActiveFilters = false,
+  selectedCount = 0,
   isLeaderSelected = true,
   onClearSelection,
 }) => {
