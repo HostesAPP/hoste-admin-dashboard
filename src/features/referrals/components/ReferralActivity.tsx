@@ -164,7 +164,7 @@ export function ReferralActivity({
           >
             <SelectTrigger
               aria-label="Activity date range"
-              className="w-40 bg-card text-xs"
+              className="w-40 gap-3 bg-card px-3 text-xs"
             >
               <CalendarDays className="size-4" />
               <SelectValue>
@@ -174,7 +174,11 @@ export function ReferralActivity({
                 }
               </SelectValue>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent
+              align="start"
+              alignItemWithTrigger={false}
+              sideOffset={6}
+            >
               {ACTIVITY_RANGES.map((item) => (
                 <SelectItem key={item.value} value={item.value}>
                   {item.label}
@@ -316,7 +320,11 @@ export function ReferralActivity({
               >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                align="start"
+                alignItemWithTrigger={false}
+                sideOffset={6}
+              >
                 {[5, 10, 25, 50].map((size) => (
                   <SelectItem key={size} value={String(size)}>
                     {size}

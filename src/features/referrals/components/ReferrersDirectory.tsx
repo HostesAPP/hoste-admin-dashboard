@@ -281,8 +281,8 @@ export function ReferrersDirectory({
             <p className="mt-1 text-[11px] text-muted-foreground">
               Manage and review individual referral performance.
             </p>
-            <div className="my-4 flex items-center gap-2">
-              <div className="relative w-80">
+            <div className="my-4 flex flex-wrap items-center gap-3">
+              <div className="relative min-w-60 flex-1">
                 <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={filters.search}
@@ -293,7 +293,7 @@ export function ReferrersDirectory({
                   }
                   aria-label="Search all referrers"
                   placeholder="Search by name, email or referral code"
-                  className="h-8 bg-muted/20 pl-9 text-[11px]"
+                  className="h-9 bg-muted/20 pl-9 text-[11px]"
                 />
               </div>
               {filterControls()}
