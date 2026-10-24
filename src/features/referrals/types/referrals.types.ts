@@ -1,4 +1,14 @@
-export type ReferralStatus = "Pending" | "Converted" | "Rewarded" | "Expired" | "Rejected";
+export type ReferralStatus =
+  | "Pending"
+  | "Converted"
+  | "Rewarded"
+  | "Expired"
+  | "Rejected";
+export type PayoutStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+export type QualifyingStatus =
+  | "NOT_QAULIFIED"
+  | "QUALIFYING_ENGAGEMENT_COMPLETED"
+  | "QUALIFIED";
 
 export interface Referral {
   id: string;
@@ -22,4 +32,17 @@ export interface ReferralStats {
   pendingCount: number;
   rewardedCount: number;
   totalRewardsPaid: number;
+}
+
+export interface ReferralParams {
+  status?: ReferralStatus;
+  qualifyingStatus?: QualifyingStatus;
+  referrerProfileId?: string;
+  referredProfileId?: string;
+  payoutStatus?: PayoutStatus;
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+  pageSize?: number;
 }

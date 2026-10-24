@@ -42,3 +42,10 @@ export interface ReferrersSummary {
   totalRewards: number;
   rewardReferrals: number;
 }
+
+export interface ReferrersParams {
+  period?: number;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
