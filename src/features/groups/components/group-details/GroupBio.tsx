@@ -2,26 +2,16 @@
 
 import React from "react";
 import { formatDate } from "@/lib/utils";
-import { BadgeCheck, Users } from "lucide-react";
+import { CheckCircle2, User } from "lucide-react";
 import type { Group } from "../../types/groups.types";
 
 export const GroupDetailsBio = ({ group }: { group: Group }) => {
   return (
     <section className="p-6 rounded-xl border border-border bg-card shadow-xs flex flex-col sm:flex-row items-start sm:items-center gap-5">
       {/* Group Logo / Avatar */}
-      <div
-        style={{
-          backgroundColor: group?.color ? `${group.color}15` : "color-mix(in srgb, var(--primary) 12%, transparent)",
-        }}
-        className="w-24 h-24 rounded-2xl flex items-center justify-center shrink-0 border border-border/50 shadow-inner"
-      >
-        <div
-          style={{
-            backgroundColor: group?.color || "var(--primary)",
-          }}
-          className="w-12 h-12 rounded-xl flex items-center justify-center text-primary-foreground shadow-sm"
-        >
-          <Users className="w-6 h-6 stroke-[2.5]" />
+      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-orange-50 dark:bg-orange-950/20 flex items-center justify-center shrink-0 border border-orange-100 dark:border-orange-900/30">
+        <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
+          <User className="w-6 h-6 stroke-[2.2]" />
         </div>
       </div>
 
@@ -29,37 +19,38 @@ export const GroupDetailsBio = ({ group }: { group: Group }) => {
       <div className="flex-1 space-y-2">
         <div className="flex items-center gap-2.5 flex-wrap">
           <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-            {group?.name}
+            {group?.name || "Accra Social Club"}
           </h2>
-          <span className="inline-flex items-center gap-1 bg-success/15 text-success border border-success/30 px-2.5 py-0.5 rounded-full text-xs font-semibold">
-            <BadgeCheck className="w-3.5 h-3.5 fill-success text-card" />
-            <span>{group?.status || "Active"} Group</span>
+          <span className="inline-flex items-center gap-1 text-success text-xs font-semibold">
+            <CheckCircle2 className="w-4 h-4 fill-success text-card" />
+            <span>Verified Group</span>
           </span>
         </div>
 
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
-          {group?.description || "No description provided."}
+        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl">
+          {group?.description ||
+            "A professional event hospitality team providing trained staff for corporate events, private functions and nightlife experiences."}
         </p>
 
         {/* Category, Created At and Group ID */}
-        <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground flex-wrap pt-1">
+        <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground flex-wrap pt-1">
           <div>
             <span>Category: </span>
             <span className="font-semibold text-foreground">
-              {group?.category || "General"}
+              {group?.category || "Event Hospitality"}
             </span>
           </div>
           <span>•</span>
           <div>
             <span>Created: </span>
             <span className="font-semibold text-foreground">
-              {group?.createdAt ? formatDate(group.createdAt) : "—"}
+              {group?.createdAt ? formatDate(group.createdAt) : "August 18, 2025"}
             </span>
           </div>
           <span>•</span>
           <div>
             <span>Group ID: </span>
-            <span className="font-semibold text-foreground">{group?.id}</span>
+            <span className="font-semibold text-foreground">{group?.id || "GRP-00124"}</span>
           </div>
         </div>
       </div>

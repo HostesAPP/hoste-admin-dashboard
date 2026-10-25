@@ -15,7 +15,7 @@ const ACTIVITIES = [
   {
     id: "act-2",
     title: "Ama Mensah joined the group.",
-    timestamp: "Aug 19, 2026 — 6:15 PM",
+    timestamp: "Aug 19, 2026 — 6:10 PM",
     dotColor: "bg-sky-500",
   },
   {
@@ -27,7 +27,7 @@ const ACTIVITIES = [
   {
     id: "act-4",
     title: "Group created by Kofi Asante.",
-    timestamp: "Aug 10, 2026 — 11:30 AM",
+    timestamp: "Aug 15, 2026 — 11:20 AM",
     dotColor: "bg-muted-foreground",
   },
 ];
@@ -72,13 +72,6 @@ export const GroupActivityCard = ({ group }: { group?: Group }) => {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Bottom spacer / note */}
-      <div className="pt-2 text-right">
-        <span className="text-[11px] text-muted-foreground">
-          Real-time platform activity log
-        </span>
       </div>
     </section>
   );

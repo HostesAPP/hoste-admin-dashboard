@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { EllipsisVertical, AlertCircle, RotateCcw } from "lucide-react";
@@ -26,16 +27,24 @@ import {
   GroupInformation,
   GroupLeaderCard,
   GroupDetailsMembers,
+  GroupPerformanceCard,
+  GroupActivityCard,
   RecentGroupBookings,
+  GroupManagementControls,
+  SuspendGroupDialog,
   GroupDetailsSkeleton,
 } from "@/features/groups";
-import { useGroup } from "@/features/groups/hooks/groups.hooks";
+import { useGroup, useUpdateGroupStatus } from "@/features/groups/hooks/groups.hooks";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function GroupDetailPage() {
+  const [suspendOpen, setSuspendOpen] = useState(false);
   const params = useParams();
   const groupId = (params?.id as string) || "";
 
   const { data: currentGroup, isLoading, isError, refetch } = useGroup(groupId);
+  const { mutateAsync: updateStatus, isPending: isUpdatingStatus } = useUpdateGroupStatus();
 
   if (isLoading) {
     return <GroupDetailsSkeleton />;
@@ -112,16 +121,42 @@ export default function GroupDetailPage() {
             <StatusBadge status={currentGroup.status || "Active"} />
           </div>
 
-          {/* Top Actions (View-Only for V1) */}
+          {/* Top Actions */}
           <div className="flex items-center gap-2.5">
-            <Button
-              variant="outline"
-              className="text-xs sm:text-sm font-semibold h-9 px-4 cursor-pointer"
-            >
-              <Link href={`/groups/${currentGroup.id}/members`}>
-                View All Members
-              </Link>
-            </Button>
+            {/* Suspend or Reactivate Outline Button */}
+            {currentGroup.status?.toUpperCase() === "PAUSED" ||
+            currentGroup.status?.toUpperCase() === "SUSPENDED" ||
+            currentGroup.status?.toUpperCase() === "INACTIVE" ? (
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    await updateStatus({
+                      groupId: currentGroup.id,
+                      status: "ACTIVE",
+                    });
+                    toast.success(`Group "${currentGroup.name}" operational status restored to Active.`);
+                  } catch (err: unknown) {
+                    const message =
+                      err instanceof Error ? err.message : "Failed to reactivate group.";
+                    toast.error(message);
+                  }
+                }}
+                disabled={isUpdatingStatus}
+                className="border-success/40 text-success hover:bg-success/10 text-xs sm:text-sm font-semibold h-9 px-4 cursor-pointer inline-flex items-center gap-1.5"
+              >
+                {isUpdatingStatus && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>Reactivate Group</span>
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => setSuspendOpen(true)}
+                className="border-destructive/30 text-destructive hover:bg-destructive/10 text-xs sm:text-sm font-semibold h-9 px-4 cursor-pointer"
+              >
+                Suspend Group
+              </Button>
+            )}
 
             {/* Menu Dropdown */}
             <DropdownMenu>
@@ -142,6 +177,10 @@ export default function GroupDetailPage() {
                     {
                       text: "View All Members",
                       href: `/groups/${currentGroup.id}/members`,
+                    },
+                    {
+                      text: "View Activity Log",
+                      href: `/groups/${currentGroup.id}/activity`,
                     },
                   ].map((item) => (
                     <DropdownMenuItem
@@ -168,12 +207,50 @@ export default function GroupDetailPage() {
                   >
                     Copy Group ID
                   </DropdownMenuItem>
+
+                  {/* Suspend / Reactivate Group item */}
+                  {currentGroup.status?.toUpperCase() === "PAUSED" ||
+                  currentGroup.status?.toUpperCase() === "SUSPENDED" ||
+                  currentGroup.status?.toUpperCase() === "INACTIVE" ? (
+                    <DropdownMenuItem
+                      className="cursor-pointer text-success focus:bg-success/10 text-xs px-3 py-2"
+                      onClick={async () => {
+                        try {
+                          await updateStatus({
+                            groupId: currentGroup.id,
+                            status: "ACTIVE",
+                          });
+                          toast.success(`Group "${currentGroup.name}" operational status restored to Active.`);
+                        } catch (err: unknown) {
+                          const message =
+                            err instanceof Error ? err.message : "Failed to reactivate group.";
+                          toast.error(message);
+                        }
+                      }}
+                    >
+                      Reactivate Group
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      className="cursor-pointer text-destructive focus:bg-destructive/10 text-xs px-3 py-2"
+                      onClick={() => setSuspendOpen(true)}
+                    >
+                      Suspend Group
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </section>
       </div>
+
+      {/* Suspend Group Dialog */}
+      <SuspendGroupDialog
+        group={currentGroup}
+        open={suspendOpen}
+        onOpenChange={setSuspendOpen}
+      />
 
       {/* Main Content Area */}
       <main className="px-6 space-y-6">
@@ -184,16 +261,28 @@ export default function GroupDetailPage() {
         <GroupDetailsStat group={currentGroup} />
 
         {/* 3. Group Information & Group Leader (2-Columns) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 gap-6">
           <GroupInformation group={currentGroup} />
           <GroupLeaderCard group={currentGroup} />
         </div>
 
-        {/* 4. Group Members Table (Real integration with /groups/:id/members) */}
+        {/* 4. Group Members Table */}
         <GroupDetailsMembers group={currentGroup} />
 
-        {/* 5. Recent Group Bookings */}
+        {/* 5. Group Performance & Group Activity (2-Columns) */}
+        <div className="grid grid-cols-2 gap-6">
+          <GroupPerformanceCard group={currentGroup} />
+          <GroupActivityCard group={currentGroup} />
+        </div>
+
+        {/* 6. Recent Group Bookings */}
         <RecentGroupBookings group={currentGroup} />
+
+        {/* 7. Group Management & Controls (Danger Zone) */}
+        <GroupManagementControls
+          group={currentGroup}
+          onOpenSuspend={() => setSuspendOpen(true)}
+        />
       </main>
     </div>
   );

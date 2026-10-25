@@ -16,7 +16,9 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import type { Group } from "@/features/groups";
-import { AlertTriangle } from "lucide-react";
+import { useUpdateGroupStatus } from "../../hooks/groups.hooks";
+import { AlertTriangle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 
 // suspend group schema
@@ -71,12 +73,24 @@ export const SuspendGroupDialog: React.FC<SuspendGroupDialogProps> = ({
   }, [open, reset]);
 
 
+  // update status mutation
+  const { mutateAsync: updateStatus, isPending } = useUpdateGroupStatus();
+
   // on submit
-  const onSubmit = (data: SuspendGroupFormValues) => {
-    // TODO: connect to backend suspend-group mutation with data.reason
-    console.log("Suspending group:", group.id, "Reason:", data.reason);
-    reset();
-    onOpenChange(false);
+  const onSubmit = async (data: SuspendGroupFormValues) => {
+    try {
+      await updateStatus({
+        groupId: group.id,
+        status: "PAUSED",
+      });
+      toast.success(`Group "${group.name}" has been suspended.`);
+      reset();
+      onOpenChange(false);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to update group status.";
+      toast.error(message);
+    }
   };
 
 
@@ -143,10 +157,13 @@ export const SuspendGroupDialog: React.FC<SuspendGroupDialogProps> = ({
             <Button
               type="submit"
               variant="destructive"
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-medium cursor-pointer"
-              disabled={isSubmitting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-medium cursor-pointer inline-flex items-center gap-2"
+              disabled={isSubmitting || isPending}
             >
-              Suspend Group
+              {(isSubmitting || isPending) && (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              )}
+              <span>Suspend Group</span>
             </Button>
           </DialogFooter>
         </form>

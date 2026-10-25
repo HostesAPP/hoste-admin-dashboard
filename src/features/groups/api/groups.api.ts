@@ -296,31 +296,32 @@ export async function fetchGroupMembers(
 }
 
 /**
- * 4. Groups led by acting profile
- * GET /api/v1/groups/mine (Active profile)
- */
-export async function fetchMyGroups(): Promise<Group[]> {
-  const response = await apiClient<GenericApiResponse<Group[]>>("/groups/mine", {
-    method: "GET",
-  });
-
-  if (Array.isArray(response)) return response;
-  if (Array.isArray(response?.data)) return response.data;
-  if (
-    response?.data &&
-    typeof response.data === "object" &&
-    "groups" in response.data &&
-    Array.isArray((response.data as Record<string, unknown>).groups)
-  ) {
-    return (response.data as { groups: Group[] }).groups;
-  }
-  return (response?.groups as Group[]) || [];
-}
-
-/**
  * Overview group statistics
  */
 export async function fetchGroupStats(): Promise<GroupStatsData> {
   const list = await fetchGroups({ pageSize: 100 });
   return list.stats;
+}
+
+/**
+ * 5. Update group status
+ * PATCH /api/v1/groups/:groupId/status
+ * Access: Group leader (Active profile)
+ * Body: { status: "ACTIVE" | "PAUSED" | "INACTIVE" }
+ */
+export async function updateGroupStatus(
+  groupId: string,
+  status: "ACTIVE" | "PAUSED" | "INACTIVE"
+): Promise<Group> {
+  const response = await apiClient<GenericApiResponse<Group>>(`/groups/${groupId}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+
+  const updatedGroup =
+    response?.data && typeof response.data === "object" && !Array.isArray(response.data)
+      ? response.data
+      : response?.group || (response as unknown as Group);
+
+  return updatedGroup;
 }

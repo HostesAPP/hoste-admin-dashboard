@@ -1,12 +1,10 @@
-// features/groups/hooks/groups.hooks.ts
-
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchGroups,
   fetchGroupById,
   fetchGroupStats,
   fetchGroupMembers,
-  fetchMyGroups,
+  updateGroupStatus,
 } from "../api/groups.api";
 import type {
   GroupFilterParams,
@@ -16,7 +14,6 @@ import type {
 export const GROUPS_QUERY_KEYS = {
   all: ["groups"] as const,
   list: (filters: GroupFilterParams) => ["groups", "list", filters] as const,
-  mine: () => ["groups", "mine"] as const,
   detail: (groupId: string) => ["groups", "detail", groupId] as const,
   stats: () => ["groups", "stats"] as const,
   members: (groupId: string, filters?: GroupMemberFilterParams) =>
@@ -53,9 +50,24 @@ export function useGroupMembers(groupId: string, filters: GroupMemberFilterParam
   });
 }
 
-export function useMyGroups() {
-  return useQuery({
-    queryKey: GROUPS_QUERY_KEYS.mine(),
-    queryFn: fetchMyGroups,
+export function useUpdateGroupStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      groupId,
+      status,
+    }: {
+      groupId: string;
+      status: "ACTIVE" | "PAUSED" | "INACTIVE";
+    }) => updateGroupStatus(groupId, status),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: GROUPS_QUERY_KEYS.detail(variables.groupId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: GROUPS_QUERY_KEYS.all,
+      });
+    },
   });
 }
