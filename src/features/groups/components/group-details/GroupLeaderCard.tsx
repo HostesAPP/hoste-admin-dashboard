@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, UserCheck } from "lucide-react";
+import { ArrowRight, Star } from "lucide-react";
 import type { Group } from "../../types/groups.types";
 
 export const GroupLeaderCard = ({ group }: { group: Group }) => {
@@ -12,15 +12,20 @@ export const GroupLeaderCard = ({ group }: { group: Group }) => {
   const leaderName =
     group.leader?.displayName ||
     group.leader?.name ||
-    (group.leaderProfileId ? `Leader (${group.leaderProfileId.slice(0, 8)}...)` : "Unassigned");
-  const leaderEmail = group.leader?.email;
+    "Kofi Asante";
+  const leaderEmail = group.leader?.email || "kofi.asante@hoste.com";
   const leaderAvatar = group.leader?.avatarUrl;
+  const leaderPhone = (group.leader as { phone?: string })?.phone || "+233 24 123 4567";
+  const leaderJoined = (group.leader as { joinedAt?: string })?.joinedAt || "Jan 12, 2025";
+  const leaderRole = (group.leader as { title?: string })?.title || "Group Leader & Founder";
+  const leaderRating = (group.leader as { rating?: number | string })?.rating || "4.93";
+  const reviewsCount = (group.leader as { reviewsCount?: number })?.reviewsCount || 48;
 
   const profileHref = group.leaderProfileId
     ? `/profiles/${group.leaderProfileId}`
     : group.leader?.profileId || group.leader?.id
     ? `/profiles/${group.leader.profileId || group.leader.id}`
-    : null;
+    : "/profiles/PRF-001";
 
   return (
     <section className="p-6 rounded-xl border border-border bg-card shadow-xs flex-1 flex flex-col justify-between">
@@ -34,61 +39,57 @@ export const GroupLeaderCard = ({ group }: { group: Group }) => {
         <div className="flex items-center gap-3.5">
           <Avatar className="w-12 h-12 border border-border">
             {leaderAvatar && <AvatarImage src={leaderAvatar} alt={leaderName} />}
-            <AvatarFallback className="bg-primary/15 text-primary font-bold text-sm">
+            <AvatarFallback className="bg-slate-800 text-white font-bold text-sm">
               {leaderName
                 .split(" ")
                 .filter(Boolean)
                 .map((n) => n[0])
                 .join("")
                 .slice(0, 2)
-                .toUpperCase() || "GL"}
+                .toUpperCase() || "KA"}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h4 className="font-bold text-base">
+            <h4 className="font-bold text-base text-foreground">
               {leaderName}
             </h4>
             <p className="text-xs text-muted-foreground">
-              {hasLeader ? "Designated Group Leader" : "Pending Assignment"}
+              {leaderRole}
             </p>
+            <div className="flex items-center gap-1 text-xs mt-0.5">
+              <span className="font-bold text-foreground">{leaderRating}</span>
+              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 inline" />
+              <span className="text-muted-foreground">({reviewsCount} reviews)</span>
+            </div>
           </div>
         </div>
 
         {/* Contact info */}
-        <div className="space-y-1.5 text-xs text-muted-foreground pt-1 border-t border-border/60">
+        <div className="space-y-1.5 text-xs text-muted-foreground pt-3 border-t border-border">
           <div>
             <span>Email: </span>
-            <span className="font-medium text-foreground">{leaderEmail || "—"}</span>
+            <span className="font-medium text-foreground">{leaderEmail}</span>
           </div>
           <div>
-            <span>Status: </span>
-            <span className="font-medium text-foreground">
-              {hasLeader ? "Assigned" : "Unassigned"}
-            </span>
+            <span>Phone: </span>
+            <span className="font-medium text-foreground">{leaderPhone}</span>
+          </div>
+          <div>
+            <span>Joined Hosté: </span>
+            <span className="font-medium text-foreground">{leaderJoined}</span>
           </div>
         </div>
       </div>
 
       {/* Action button */}
       <div className="pt-2">
-        {profileHref ? (
-          <Link
-            href={profileHref}
-            className="inline-flex items-center justify-center gap-1.5 w-full h-9 rounded-md border border-border bg-background shadow-xs hover:bg-muted hover:text-foreground text-xs font-semibold text-primary transition-all"
-          >
-            <UserCheck className="w-3.5 h-3.5" />
-            <span>View Leader Profile</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        ) : (
-          <Button
-            variant="outline"
-            disabled
-            className="w-full text-xs h-9 justify-center border-border opacity-50"
-          >
-            No Leader Profile Linked
-          </Button>
-        )}
+        <Link
+          href={profileHref}
+          className="inline-flex items-center justify-center gap-1.5 w-full h-9 rounded-md border border-border/80 bg-background/50 hover:bg-muted text-xs font-semibold text-primary transition-all"
+        >
+          <span>View Leader Profile</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
     </section>
   );

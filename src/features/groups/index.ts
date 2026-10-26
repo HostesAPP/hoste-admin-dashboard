@@ -26,6 +26,7 @@ export { GroupsPageHeader } from "./components/groups/GroupsPageHeader";
 export { GroupsStat } from "./components/groups/GroupsStat";
 export { GroupsStatCard } from "./components/groups/GroupsStatCard";
 export { GroupsTable } from "./components/groups/GroupsTable";
+export { SuspendGroupDialog } from "./components/groups/SuspendGroupDialog";
 
 // Utils
 export { normalizeGroupStatus } from "./lib/groups.utils";
@@ -36,7 +37,10 @@ export { GroupDetailsStat } from "./components/group-details/GroupDetailsStat";
 export { GroupInformation } from "./components/group-details/GroupInformation";
 export { GroupLeaderCard } from "./components/group-details/GroupLeaderCard";
 export { GroupDetailsMembers } from "./components/group-details/GroupDetailsMembers";
+export { GroupPerformanceCard } from "./components/group-details/GroupPerformanceCard";
+export { GroupActivityCard } from "./components/group-details/GroupActivityCard";
 export { RecentGroupBookings } from "./components/group-details/RecentGroupBookings";
+export { GroupManagementControls } from "./components/group-details/GroupManagementControls";
 export { GroupDetailsSkeleton } from "./components/group-details/GroupDetailsSkeleton";
 
 // Group Members Components

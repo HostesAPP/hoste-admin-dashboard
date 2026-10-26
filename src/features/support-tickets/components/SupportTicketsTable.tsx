@@ -1,6 +1,7 @@
 // features/support-tickets/components/SupportTicketsTable.tsx
+"use client"
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import {
   SupportTicket,
@@ -8,66 +9,118 @@ import {
   TicketPriority,
   TicketStatus,
 } from "../types/support-tickets.types";
+import { ChevronLeft, ChevronRight, CheckCircle2, ArrowRight, AlertCircle, RefreshCw } from "lucide-react";
 
 interface SupportTicketsTableProps {
   tickets: SupportTicket[];
   isLoading?: boolean;
-  onSelectTicket: (ticket: SupportTicket) => void;
+  isError?: boolean;
+  onRetry?: () => void;
+  onSelectTicket?: (ticket: SupportTicket) => void;
+  pageSize?: number;
 }
 
 export function SupportTicketsTable({
   tickets,
   isLoading = false,
-  onSelectTicket,
+  isError = false,
+  onRetry,
+  pageSize = 10,
 }: SupportTicketsTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  if (isError) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-12 text-center shadow-xs">
+        <AlertCircle className="w-10 h-10 text-destructive mx-auto mb-3" />
+        <h3 className="text-base font-semibold text-foreground">Unable to load support tickets</h3>
+        <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+          We encountered an issue fetching tickets from the backend. Please check your network or try again.
+        </p>
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-all cursor-pointer shadow-xs"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Retry</span>
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Pagination calculation
+  const totalItems = tickets.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (validCurrentPage - 1) * pageSize;
+  const currentTickets = tickets.slice(startIndex, startIndex + pageSize);
+
   const getTypeBadge = (type: TicketType) => {
-    switch (type) {
-      case "Payment":
-        return "bg-emerald-100/80 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200/50";
-      case "Account":
-        return "bg-orange-100/80 text-orange-800 dark:bg-orange-950/50 dark:text-orange-300 border border-orange-200/50";
-      case "Booking":
-        return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200/60";
-      case "NIN":
-        return "bg-rose-100/80 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200/50";
-      default:
-        return "bg-muted text-muted-foreground";
+    const t = String(type).toLowerCase();
+    if (t.includes("payment") || t.includes("payout")) {
+      return "bg-secondary/10 text-secondary border border-secondary/20";
     }
+    if (t.includes("account")) {
+      return "bg-primary/10 text-primary border border-primary/20";
+    }
+    if (t.includes("booking")) {
+      return "bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20";
+    }
+    if (t.includes("nin") || t.includes("cac")) {
+      return "bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20";
+    }
+    if (t.includes("refund")) {
+      return "bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20";
+    }
+    return "bg-muted text-muted-foreground border border-border";
   };
 
   const getPriorityBadge = (priority: TicketPriority) => {
-    switch (priority) {
-      case "High":
-        return "bg-rose-100/70 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200/50";
-      case "Medium":
-        return "bg-amber-100/80 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200/50";
-      case "Low":
-        return "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200/50";
-      default:
-        return "bg-muted text-muted-foreground";
+    const p = String(priority).toUpperCase();
+    if (p === "HIGH") {
+      return "bg-destructive/10 text-destructive border border-destructive/20";
     }
+    if (p === "MEDIUM") {
+      return "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20";
+    }
+    return "bg-muted text-muted-foreground border border-border";
   };
 
   const getStatusBadge = (status: TicketStatus) => {
-    switch (status) {
-      case "Open":
-        return "bg-orange-100/80 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300 border border-orange-200/60";
-      case "In Progress":
-        return "bg-amber-100/80 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200/60";
-      case "Resolved":
-        return "bg-emerald-100/80 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200/60";
-      default:
-        return "bg-muted text-muted-foreground";
+    const s = String(status).toUpperCase().replace(/\s+/g, "_");
+    if (s === "OPEN") {
+      return "bg-primary/10 text-primary border border-primary/20";
     }
+    if (s === "IN_PROGRESS") {
+      return "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20";
+    }
+    if (s === "RESOLVED") {
+      return "bg-secondary/10 text-secondary border border-secondary/20";
+    }
+    return "bg-muted text-muted-foreground border border-border";
+  };
+
+  const formatTicketDate = (ticket: SupportTicket) => {
+    if (ticket.date) return ticket.date;
+    if (ticket.createdAt) {
+      const d = new Date(ticket.createdAt);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      }
+    }
+    return "Recently";
   };
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-xs">
+    <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           {/* Table Header */}
           <thead>
-            <tr className="border-b border-border/80 text-xs font-semibold text-muted-foreground bg-muted/20">
+            <tr className="border-b border-border text-xs font-semibold text-muted-foreground bg-muted/30">
               <th className="py-3.5 px-6 font-semibold">Ticket ID</th>
               <th className="py-3.5 px-4 font-semibold">Raised By</th>
               <th className="py-3.5 px-4 font-semibold">Type</th>
@@ -87,7 +140,7 @@ export function SupportTicketsTable({
               Array.from({ length: 6 }).map((_, i) => (
                 <tr key={i} className="animate-pulse">
                   <td className="py-4 px-6">
-                    <div className="h-4 w-14 bg-muted rounded" />
+                    <div className="h-4 w-28 bg-muted rounded" />
                   </td>
                   <td className="py-4 px-4">
                     <div className="h-4 w-24 bg-muted rounded" />
@@ -108,93 +161,143 @@ export function SupportTicketsTable({
                     <div className="h-5 w-16 bg-muted rounded-full" />
                   </td>
                   <td className="py-4 px-6 text-right">
-                    <div className="h-7 w-20 bg-muted rounded-lg ml-auto" />
+                    <div className="h-8 w-24 bg-muted rounded-lg ml-auto" />
                   </td>
                 </tr>
               ))
-            ) : tickets.length === 0 ? (
+            ) : currentTickets.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-12 text-center text-muted-foreground">
-                  <p className="font-semibold text-sm">No support tickets found</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Try adjusting your search query or status filter.
+                <td colSpan={8} className="py-16 text-center text-muted-foreground">
+                  <p className="font-semibold text-base text-foreground">No support tickets found</p>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+                    No tickets match your active filter criteria. Try adjusting your search query, status tab, or category.
                   </p>
                 </td>
               </tr>
             ) : (
-              tickets.map((ticket) => (
-                <tr
-                  key={ticket.id}
-                  className="hover:bg-muted/30 transition-colors group"
-                >
-                  {/* Ticket ID */}
-                  <td className="py-4 px-6 font-bold text-xs text-primary whitespace-nowrap">
-                    {ticket.ticketCode}
-                  </td>
+              currentTickets.map((ticket) => {
+                const ticketCodeDisplay = ticket.ticketNumber || ticket.ticketCode || ticket.id;
+                return (
+                  <tr
+                    key={ticket.id}
+                    className="hover:bg-muted/30 transition-colors group"
+                  >
+                    {/* Ticket ID (SUP-YYMMDD-XXXX) */}
+                    <td className="py-4 px-6 font-bold text-xs text-primary whitespace-nowrap">
+                      {ticketCodeDisplay}
+                    </td>
 
-                  {/* Raised By */}
-                  <td className="py-4 px-4 font-bold text-xs sm:text-sm text-foreground whitespace-nowrap">
-                    {ticket.raisedBy}
-                  </td>
+                    {/* Raised By */}
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-primary/10 text-primary font-bold text-[11px] flex items-center justify-center shrink-0">
+                          {ticket.userInitial || (ticket.raisedBy ? ticket.raisedBy[0].toUpperCase() : "U")}
+                        </div>
+                        <span className="font-medium text-foreground">
+                          {ticket.raisedBy || "Anonymous"}
+                        </span>
+                        {ticket.isVerified && (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-secondary shrink-0" />
+                        )}
+                      </div>
+                    </td>
 
-                  {/* Type */}
-                  <td className="py-4 px-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium ${getTypeBadge(
-                        ticket.type
-                      )}`}
-                    >
-                      {ticket.type}
-                    </span>
-                  </td>
+                    {/* Type */}
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${getTypeBadge(
+                          ticket.type
+                        )}`}
+                      >
+                        {ticket.type}
+                      </span>
+                    </td>
 
-                  {/* Subject */}
-                  <td className="py-4 px-4 text-xs sm:text-sm text-foreground/90 font-normal max-w-md truncate">
-                    {ticket.subject}
-                  </td>
+                    {/* Subject */}
+                    <td className="py-4 px-4 text-xs sm:text-sm text-foreground/90 font-normal max-w-xs xl:max-w-md truncate" title={ticket.subject}>
+                      {ticket.subject}
+                    </td>
 
-                  {/* Date */}
-                  <td className="py-4 px-4 text-xs text-muted-foreground whitespace-nowrap">
-                    {ticket.date}
-                  </td>
+                    {/* Date */}
+                    <td className="py-4 px-4 text-xs text-muted-foreground whitespace-nowrap">
+                      {formatTicketDate(ticket)}
+                    </td>
 
-                  {/* Priority */}
-                  <td className="py-4 px-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium ${getPriorityBadge(
-                        ticket.priority
-                      )}`}
-                    >
-                      {ticket.priority}
-                    </span>
-                  </td>
+                    {/* Priority */}
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${getPriorityBadge(
+                          ticket.priority
+                        )}`}
+                      >
+                        {ticket.priority}
+                      </span>
+                    </td>
 
-                  {/* Status */}
-                  <td className="py-4 px-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium ${getStatusBadge(
-                        ticket.status
-                      )}`}
-                    >
-                      {ticket.status}
-                    </span>
-                  </td>
+                    {/* Status */}
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${getStatusBadge(
+                          ticket.status
+                        )}`}
+                      >
+                        {ticket.status}
+                      </span>
+                    </td>
 
-                  {/* Action */}
-                  <td className="py-4 px-6 text-right whitespace-nowrap">
-                    <Link
-                      href={`/support-tickets/${ticket.id}`}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border/80 bg-background text-primary text-xs font-semibold hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer shadow-2xs"
-                    >
-                      View Ticket &rarr;
-                    </Link>
-                  </td>
-                </tr>
-              ))
+                    {/* Action */}
+                    <td className="py-4 px-6 text-right whitespace-nowrap">
+                      <Link
+                        href={`/support-tickets/${ticket.id}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/90 bg-card text-foreground text-xs font-semibold hover:border-primary hover:text-primary hover:bg-primary/5 transition-all cursor-pointer shadow-2xs"
+                      >
+                        <span>View Ticket</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Footer */}
+      {!isLoading && totalItems > 0 && (
+        <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-card/60">
+          <p className="text-xs text-muted-foreground">
+            Showing <span className="font-semibold text-foreground">{startIndex + 1}</span> to{" "}
+            <span className="font-semibold text-foreground">
+              {Math.min(startIndex + pageSize, totalItems)}
+            </span>{" "}
+            of <span className="font-semibold text-foreground">{totalItems}</span> tickets
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={validCurrentPage === 1}
+              className="inline-flex items-center justify-center p-1.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs font-semibold px-2 text-foreground">
+              {validCurrentPage} of {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={validCurrentPage === totalPages}
+              className="inline-flex items-center justify-center p-1.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Next page"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

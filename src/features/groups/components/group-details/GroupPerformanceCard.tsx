@@ -122,7 +122,7 @@ export const GroupPerformanceCard = ({ group }: { group?: Group }) => {
 
         <div>
           <span className="text-muted-foreground block text-[11px]">
-            Cancelled Bookings
+            Canceled Bookings
           </span>
           <span className="font-bold text-base text-destructive mt-0.5 block">
             14 (4.0%)

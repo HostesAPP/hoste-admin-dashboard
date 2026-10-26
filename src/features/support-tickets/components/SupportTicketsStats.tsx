@@ -15,41 +15,47 @@ export function SupportTicketsStats({
   const cards = [
     {
       label: "Open Tickets",
-      value: stats?.openCount ?? 24,
+      value: stats?.openCount ?? 0,
       accentBorder: "border-t-2 border-t-primary",
+      badgeColor: "bg-primary/10 text-primary",
     },
     {
       label: "In Progress",
-      value: stats?.inProgressCount ?? 12,
+      value: stats?.inProgressCount ?? 0,
       accentBorder: "border-t-2 border-t-amber-500",
+      badgeColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
     },
     {
       label: "Resolved (All Time)",
-      value: stats?.resolvedCount ?? 340,
-      accentBorder: "border-t-2 border-t-emerald-600",
+      value: stats?.resolvedCount ?? 0,
+      accentBorder: "border-t-2 border-t-secondary",
+      badgeColor: "bg-secondary/10 text-secondary",
     },
     {
       label: "Avg. Resolution",
       value: stats?.avgResolutionTime ?? "1.8 hrs",
-      accentBorder: "border-t-2 border-t-primary",
+      accentBorder: "border-t-2 border-t-primary/70",
+      badgeColor: "bg-primary/10 text-primary",
     },
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((card, idx) => (
         <div
           key={idx}
-          className={`bg-card rounded-lg p-5 border border-border/80 shadow-xs flex flex-col justify-between relative overflow-hidden ${card.accentBorder}`}
+          className={`bg-card rounded-2xl p-5 border border-border shadow-xs flex flex-col justify-between relative overflow-hidden transition-all hover:border-border/80 ${card.accentBorder}`}
         >
-          <span className="text-xs font-medium text-muted-foreground">
-            {card.label}
-          </span>
-          <div className="mt-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              {card.label}
+            </span>
+          </div>
+          <div className="mt-4">
             {isLoading ? (
-              <div className="h-8 w-16 bg-muted animate-pulse rounded" />
+              <div className="h-9 w-20 bg-muted animate-pulse rounded-lg" />
             ) : (
-              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
                 {card.value}
               </span>
             )}

@@ -1,7 +1,6 @@
 // features/support-tickets/index.ts
 
 export * from "./types/support-tickets.types";
-export * from "./data/support-tickets.data";
 export * from "./api/support-tickets.api";
 export * from "./hooks/support-tickets.hooks";
 export * from "./components/SupportTicketsHeader";
