@@ -12,14 +12,53 @@ import type {
     RefundContext,
     RefundDraft,
 } from "./types/transactions.types";
-export function createMockRefundAdapter(
-    contexts: readonly RefundContext[] = MOCK_REFUND_CONTEXTS,
-): RefundAdapter {
-    const snapshots = structuredClone(contexts);
-    const validate = (paymentId: string, draft: RefundDraft) => {
-        const context = snapshots.find(
-            (item) => item.transaction.payment.id === paymentId,
+
+export function createMockRefundAdapter(): RefundAdapter {
+    const getContext = (identifier: string): RefundContext | null => {
+        const transaction = MOCK_TRANSACTIONS.find(
+            (item) =>
+                item.payment.id === identifier ||
+                item.bookingId === identifier ||
+                item.bookingReference === identifier ||
+                item.payment.referenceId === identifier,
         );
+        if (!transaction) return null;
+
+        const booking = MOCK_BOOKINGS.find(
+            (item) => item.id === transaction.bookingId,
+        );
+
+        return {
+            transaction,
+            availableAmount:
+                MOCK_REFUND_AVAILABLE_AMOUNTS[transaction.payment.id] ?? 0,
+            booking: booking
+                ? {
+                    reference: booking.bookingCode,
+                    title: booking.eventName,
+                    status: booking.status,
+                    date: booking.eventDate,
+                    location: booking.location,
+                    hostCount: null,
+                    imageUrl: null,
+                }
+                : null,
+            reasons: MOCK_REFUND_REASONS,
+            policy: MOCK_REFUND_POLICY,
+            recentRefunds: MOCK_REFUNDS.filter(
+                (refund) => refund.paymentId === transaction.payment.id,
+            ).map((refund) => ({
+                id: refund.id,
+                reference: refund.referenceId,
+                amount: refund.amount,
+                date: refund.createdAt,
+                status: null,
+            })),
+        };
+    };
+
+    const validate = (identifier: string, draft: RefundDraft) => {
+        const context = getContext(identifier);
         if (!context) throw new Error("Payment was not found.");
         if (!context.transaction.canRefund)
             throw new Error("This payment is not eligible for a refund.");
@@ -29,15 +68,13 @@ export function createMockRefundAdapter(
         ).parse(draft);
         return { context, validated };
     };
+
     return {
-        async load(paymentId) {
-            return structuredClone(
-                snapshots.find((item) => item.transaction.payment.id === paymentId) ??
-                null,
-            );
+        async load(identifier) {
+            return structuredClone(getContext(identifier));
         },
-        async quote(paymentId, draft) {
-            const { validated } = validate(paymentId, draft);
+        async quote(identifier, draft) {
+            const { validated } = validate(identifier, draft);
             // Production quotes belong to the backend; the existing mock refund contract has no fee.
             return {
                 amount: Number(validated.amount),
@@ -45,11 +82,8 @@ export function createMockRefundAdapter(
                 totalRefund: Number(validated.amount),
             };
         },
-        async review(paymentId, draft) {
-            const validated = validate(paymentId, draft);
-            const context = snapshots.find(
-                (item) => item.transaction.payment.id === paymentId,
-            )!;
+        async review(identifier, draft) {
+            const { context, validated } = validate(identifier, draft);
             return {
                 message: "Refund reviewed in this preview. No money was refunded.",
                 receipt: {
@@ -61,10 +95,10 @@ export function createMockRefundAdapter(
                     amountPaid: context.transaction.payment.grossAmount,
                     booking: structuredClone(context.booking),
                     method: context.transaction.method,
-                    destination: validated,
-                    reason: context.reasons.find(
-                        (reason) => reason.value === validated.reason,
-                    )!.label,
+                    destination: validated.destination,
+                    reason:
+                        context.reasons.find((reason) => reason.value === validated.reason)
+                            ?.label ?? validated.reason,
                     description: validated.description,
                     amount: Number(validated.amount),
                     processingFee: 0,
@@ -76,4 +110,5 @@ export function createMockRefundAdapter(
         },
     };
 }
+
 export const mockRefundAdapter = createMockRefundAdapter();
