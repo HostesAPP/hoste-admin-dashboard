@@ -27,7 +27,6 @@ test("earnings filter by person, status, referrer, range and sorting without mut
       rows,
       MOCK_DIRECTORY_REFERRERS,
       { ...EARNINGS_FILTER_DEFAULTS, ...changes },
-      summary.periodEnd,
     );
   assert.equal(
     filter({ search: "Chiamaka" })[0].referrerId,
@@ -36,13 +35,15 @@ test("earnings filter by person, status, referrer, range and sorting without mut
   assert.equal(filter({ search: "daniel" })[0].referredPerson, "Daniel Eze");
   assert.equal(filter({ status: "Pending" }).length, 2);
   assert.equal(filter({ referrer: "promoter-tobi" }).length, 1);
-  assert.equal(filter({ range: "1" }).length, 1);
+  assert.equal(filter({ dateFrom: summary.periodEnd, dateTo: summary.periodEnd }).length, 1);
   assert.equal(filter({ search: "missing" }).length, 0);
   assert.equal(filter({ sort: "OLDEST" })[0].qualifiedAt, "2026-08-28");
   assert.deepEqual(rows, before);
-  assert.equal(earningInRange("2026-08-04", summary.periodEnd, "30"), true);
-  assert.equal(earningInRange("2026-08-03", summary.periodEnd, "30"), false);
-  assert.equal(earningInRange("2026-09-03", summary.periodEnd, "30"), false);
+  assert.equal(earningInRange("2026-08-04", "2026-08-04", summary.periodEnd), true);
+  assert.equal(earningInRange("2026-08-03", "2026-08-04", summary.periodEnd), false);
+  assert.equal(earningInRange("2026-09-03", "2026-08-04", summary.periodEnd), false);
+  assert.equal(earningInRange("2026-09-02T23:59:59+01:00", "", summary.periodEnd), true);
+  assert.equal(earningInRange("2026-09-03", "", ""), true);
 });
 
 test("configuration validation rejects invalid amounts", () => {

@@ -1,4 +1,7 @@
 "use client";
+import { ReferralDateFilters } from "./referral.date.filters";
+import { referralInDateRange } from "../referrals.date.utils";
+
 
 import { useState } from "react";
 import Link from "next/link";
@@ -27,7 +30,6 @@ import {
   PAYOUT_FILTER_DEFAULTS,
   type PayoutsFilters,
 } from "../schemas/payouts.filter.schema";
-import { REFERRER_RANGES } from "../schemas/referrers.filter.schema";
 import { downloadReferralCsv } from "../referrals.export";
 import { formatPayoutDate } from "../payouts.format";
 import { ReferralTabs } from "./ReferralTabs";
@@ -64,19 +66,11 @@ export function ReferralPayouts({
   const [pagination, setPagination] = useState({ page: 1, size: 10 });
   const resetPage = () =>
     setPagination((previous) => ({ ...previous, page: 1 }));
-  const changeRange = (value: string) => {
-    setValue("range", value as PayoutsFilters["range"]);
+  const changeDates = (name: "dateFrom" | "dateTo", value: string) => {
+    setValue(name, value);
     resetPage();
   };
-  const end = new Date(`${summary.periodEnd}T00:00:00+01:00`);
-  end.setTime(end.getTime() + 86400000);
-  const start = new Date(
-    end.getTime() -
-      Number(filters.range === "ALL" ? "30" : filters.range) * 86400000,
-  );
-  const inRange = (date: string) =>
-    filters.range === "ALL" ||
-    (new Date(date) >= start && new Date(date) < end);
+  const inRange = (date: string) => referralInDateRange(date, filters.dateFrom, filters.dateTo);
   const filtered = rows
     .filter((row) => {
       const referrer = referrers.find((person) => person.id === row.referrerId);
@@ -244,12 +238,7 @@ export function ReferralPayouts({
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <ReferrersSelect
-                label="Payout date range"
-                value={filters.range}
-                options={REFERRER_RANGES}
-                onChange={changeRange}
-              />
+              <ReferralDateFilters label="Payout date range" dateFrom={filters.dateFrom} dateTo={filters.dateTo} onChange={changeDates} />
               <Button
                 variant="outline"
                 className="text-xs"
@@ -311,12 +300,7 @@ export function ReferralPayouts({
                 />
               </div>
               {renderFilter("status")}
-              <ReferrersSelect
-                label="Payout table date range"
-                value={filters.range}
-                options={REFERRER_RANGES}
-                onChange={changeRange}
-              />
+              <ReferralDateFilters label="Payout table date range" dateFrom={filters.dateFrom} dateTo={filters.dateTo} onChange={changeDates} />
               {renderFilter("referrer")}
               <div className="ml-auto">{renderFilter("sort")}</div>
             </div>

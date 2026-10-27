@@ -1,4 +1,6 @@
 "use client";
+import { ReferralDateFilters } from "./referral.date.filters";
+
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -23,7 +25,6 @@ import {
   earningsFilterSchema,
   type EarningsFilters,
 } from "../schemas/earnings.schema";
-import { REFERRER_RANGES } from "../schemas/referrers.filter.schema";
 import type { EarningsAdapter, EarningsData } from "../types/earnings.types";
 import type { DirectoryReferrer } from "../types/referrers.types";
 import type { ReferralTab } from "../types/referrals.overview.types";
@@ -65,7 +66,6 @@ export function ReferralEarnings({
     data.rows,
     referrers,
     filters,
-    data.summary.periodEnd,
   );
   const currentPage = Math.min(page, Math.max(1, Math.ceil(rows.length / 10)));
   const exportRows = () => {
@@ -98,8 +98,8 @@ export function ReferralEarnings({
     );
     toast.success("Earnings exported.");
   };
-  const changeRange = (value: string) => {
-    setValue("range", value as EarningsFilters["range"]);
+  const changeDates = (name: "dateFrom" | "dateTo", value: string) => {
+    setValue(name, value);
     setPage(1);
   };
   const renderFilter = (
@@ -183,12 +183,7 @@ export function ReferralEarnings({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <ReferrersSelect
-            label="Earnings date range"
-            value={filters.range}
-            options={REFERRER_RANGES}
-            onChange={changeRange}
-          />
+          <ReferralDateFilters label="Earnings date range" dateFrom={filters.dateFrom} dateTo={filters.dateTo} onChange={changeDates} />
           <Button variant="outline" className="text-xs" onClick={exportRows}>
             <Download className="size-4" />
             Export
@@ -249,7 +244,7 @@ export function ReferralEarnings({
       </div>
       <EarningsChart
         data={data.chart.filter((point) =>
-          earningInRange(point.date, data.summary.periodEnd, filters.range),
+          earningInRange(point.date, filters.dateFrom, filters.dateTo),
         )}
       />
       <section className="border-y border-border bg-card py-5">
@@ -270,7 +265,7 @@ export function ReferralEarnings({
             Export
           </Button>
         </div>
-        <div className="my-4 grid grid-cols-[minmax(220px,2fr)_repeat(4,minmax(128px,1fr))] items-center gap-3 px-5 [&_[data-slot=select-trigger]]:w-full">
+        <div className="my-4 flex flex-wrap items-center gap-3 px-5">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -285,12 +280,7 @@ export function ReferralEarnings({
             { value: "Paid", label: "Paid" },
             { value: "Pending", label: "Pending" },
           ])}
-          <ReferrersSelect
-            label="Earning records date range"
-            value={filters.range}
-            options={REFERRER_RANGES}
-            onChange={changeRange}
-          />
+          <ReferralDateFilters label="Earning records date range" dateFrom={filters.dateFrom} dateTo={filters.dateTo} onChange={changeDates} />
           {renderFilter("referrer", "Earning referrer", [
             { value: "ALL", label: "All Referrers" },
             ...referrers

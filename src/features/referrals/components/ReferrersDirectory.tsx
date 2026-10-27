@@ -1,4 +1,7 @@
 "use client";
+import { ReferralDateFilters } from "./referral.date.filters";
+import { referralInDateRange } from "../referrals.date.utils";
+
 
 import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -31,7 +34,6 @@ import type { ReferralTab } from "../types/referrals.overview.types";
 import {
   referrersFilterSchema,
   REFERRERS_FILTER_DEFAULTS,
-  REFERRER_RANGES,
   type ReferrersFilters,
 } from "../schemas/referrers.filter.schema";
 import { downloadReferralCsv } from "../referrals.export";
@@ -63,14 +65,6 @@ const FILTERS = [
       { value: "PENDING", label: "Below threshold" },
     ],
   },
-  {
-    name: "range" as const,
-    label: "Referrer date range",
-    options: REFERRER_RANGES.map((item) => ({
-      ...item,
-      label: `Date: ${item.label}`,
-    })),
-  },
 ];
 
 export function ReferrersDirectory({
@@ -95,11 +89,7 @@ export function ReferrersDirectory({
   const end = new Date(`${summary.periodEnd}T00:00:00Z`);
   const yesterday = new Date(end);
   yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-  const start = new Date(end);
-  if (filters.range !== "ALL")
-    start.setUTCDate(start.getUTCDate() - Number(filters.range) + 1);
   const filtered = rows.filter((row) => {
-    const date = new Date(`${row.lastActivity}T00:00:00Z`);
     return (
       `${row.name} ${row.email} ${row.code}`
         .toLowerCase()
@@ -107,7 +97,7 @@ export function ReferrersDirectory({
       (filters.status === "ALL" || row.status === filters.status) &&
       (filters.qualification === "ALL" ||
         row.threshold.reached === (filters.qualification === "QUALIFIED")) &&
-      (filters.range === "ALL" || (date >= start && date <= end))
+      referralInDateRange(row.lastActivity, filters.dateFrom, filters.dateTo)
     );
   });
   const page =
@@ -233,14 +223,14 @@ export function ReferrersDirectory({
                   <Filter className="size-4" />
                   Filters
                 </PopoverTrigger>
-                <PopoverContent align="end">
+                <PopoverContent align="end" className="w-auto space-y-3">
                   <PopoverTitle>Filter Referrers</PopoverTitle>
-                  {filterControls()}
+                  {filterControls()}<ReferralDateFilters label="Referrer date range" dateFrom={filters.dateFrom} dateTo={filters.dateTo} onChange={(name, value) => setValue(name, value)} />
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() =>
-                      reset({ ...REFERRERS_FILTER_DEFAULTS, range: "ALL" })
+                      reset({ ...REFERRERS_FILTER_DEFAULTS, dateFrom: "", dateTo: "" })
                     }
                   >
                     Clear Filters
@@ -296,7 +286,7 @@ export function ReferrersDirectory({
                   className="h-9 bg-muted/20 pl-9 text-[11px]"
                 />
               </div>
-              {filterControls()}
+              {filterControls()}<ReferralDateFilters label="Referrer date range" dateFrom={filters.dateFrom} dateTo={filters.dateTo} onChange={(name, value) => setValue(name, value)} />
             </div>
             <Table className="text-xs">
               <TableHeader className="bg-muted/30">

@@ -1,4 +1,7 @@
 "use client";
+import { ReferralDateFilters } from "./referral.date.filters";
+import { referralInDateRange } from "../referrals.date.utils";
+
 
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
@@ -23,7 +26,6 @@ import type {
   DirectoryReferrer,
   ReferrerHistoryRecord,
 } from "../types/referrers.types";
-import { REFERRER_RANGES } from "../schemas/referrers.filter.schema";
 import {
   ReferrerStatusBadge,
   ReferrersPagination,
@@ -33,7 +35,6 @@ import {
 export function ReferrerDetails({
   referrer,
   history,
-  periodEnd,
   onBack,
   backLabel = "Back to Referrers",
 }: {
@@ -44,20 +45,15 @@ export function ReferrerDetails({
   backLabel?: string;
 }) {
   const [status, setStatus] = useState("ALL");
-  const [range, setRange] = useState("30");
+  const [dates, setDates] = useState({ dateFrom: "", dateTo: "" });
   const [pageState, setPageState] = useState({ page: 1, key: "" });
   const [selected, setSelected] = useState<ReferrerHistoryRecord | null>(null);
-  const key = `${status}:${range}`;
-  const end = new Date(`${periodEnd}T00:00:00Z`);
-  const start = new Date(end);
-  if (range !== "ALL") start.setUTCDate(start.getUTCDate() - Number(range) + 1);
+  const key = `${status}:${dates.dateFrom}:${dates.dateTo}`;
   const filtered = history.filter(
     (row) =>
       row.referrerId === referrer.id &&
       (status === "ALL" || row.status === status) &&
-      (range === "ALL" ||
-        (new Date(`${row.date}T00:00:00Z`) >= start &&
-          new Date(`${row.date}T00:00:00Z`) <= end)),
+      referralInDateRange(row.date, dates.dateFrom, dates.dateTo),
   );
   const page =
     pageState.key === key
@@ -242,12 +238,7 @@ export function ReferrerDetails({
             ]}
             onChange={setStatus}
           />
-          <ReferrersSelect
-            label="History date range"
-            value={range}
-            options={REFERRER_RANGES}
-            onChange={setRange}
-          />
+          <ReferralDateFilters label="Referral date range" {...dates} onChange={(name, value) => setDates((previous) => ({ ...previous, [name]: value }))} />
         </div>
         <Table className="text-xs">
           <TableHeader className="bg-muted/20">

@@ -1,4 +1,7 @@
 "use client";
+import { ReferralDateFilters } from "./referral.date.filters";
+import { referralInDateRange } from "../referrals.date.utils";
+
 
 import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -22,7 +25,6 @@ import {
   REWARDS_FILTER_DEFAULTS,
   type RewardsFilters,
 } from "../schemas/rewards.filter.schema";
-import { REFERRER_RANGES } from "../schemas/referrers.filter.schema";
 import { ReferrersPagination, ReferrersSelect } from "./ReferrersControls";
 import { ReferralTabs } from "./ReferralTabs";
 import { RewardStatusBadge } from "./RewardStatusBadge";
@@ -72,28 +74,23 @@ export function RewardsApprovals({
   const [pagination, setPagination] = useState({ page: 1, size: 25, key: "" });
   const resetPage = () =>
     setPagination((previous) => ({ ...previous, page: 1, key: "" }));
-  const changeRange = (value: string) => {
-    setValue("range", value as RewardsFilters["range"]);
+  const changeDates = (name: "dateFrom" | "dateTo", value: string) => {
+    setValue(name, value);
     resetPage();
   };
   const key = JSON.stringify(filters);
   const summary = snapshot.summary;
-  const end = new Date(`${summary.periodEnd}T00:00:00Z`);
-  const start = new Date(end);
-  if (filters.range !== "ALL")
-    start.setUTCDate(start.getUTCDate() - Number(filters.range) + 1);
   const filtered = snapshot.records.filter((reward) => {
     const referrer = referrers.find(
       (person) => person.id === reward.referrerId,
     );
-    const date = new Date(`${reward.date}T00:00:00Z`);
     return (
       `${reward.id} ${referrer?.name} ${referrer?.code} ${reward.referredUser} ${reward.referralId}`
         .toLowerCase()
         .includes(filters.search.trim().toLowerCase()) &&
       (filters.status === "ALL" || reward.status === filters.status) &&
       (filters.type === "ALL" || referrer?.type === filters.type) &&
-      (filters.range === "ALL" || (date >= start && date <= end))
+      referralInDateRange(reward.date, filters.dateFrom, filters.dateTo)
     );
   });
   const page =
@@ -144,12 +141,7 @@ export function RewardsApprovals({
     toast.success("Rewards exported.");
   };
   const rangeSelect = (
-    <ReferrersSelect
-      label="Rewards date range"
-      value={filters.range}
-      options={REFERRER_RANGES}
-      onChange={changeRange}
-    />
+    <ReferralDateFilters label="Rewards date range" dateFrom={filters.dateFrom} dateTo={filters.dateTo} onChange={changeDates} />
   );
   const metrics = [
     {
@@ -224,7 +216,7 @@ export function RewardsApprovals({
         </strong>{" "}
         Registration alone does not generate a reward.
       </p>
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="relative min-w-0 flex-1">
           <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -252,20 +244,12 @@ export function RewardsApprovals({
             )}
           />
         ))}
-        <ReferrersSelect
-          label="Reward table date filter"
-          value={filters.range}
-          options={REFERRER_RANGES.map((range) => ({
-            ...range,
-            label: `Date: ${range.label}`,
-          }))}
-          onChange={changeRange}
-        />
+        <ReferralDateFilters label="Reward table date filter" dateFrom={filters.dateFrom} dateTo={filters.dateTo} onChange={changeDates} />
         <button
           type="button"
           className="shrink-0 text-xs font-semibold text-primary"
           onClick={() => {
-            reset({ ...REWARDS_FILTER_DEFAULTS, range: "ALL" });
+            reset({ ...REWARDS_FILTER_DEFAULTS, dateFrom: "", dateTo: "" });
             resetPage();
           }}
         >
