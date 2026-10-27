@@ -17,14 +17,16 @@ export const rewardsFilterSchema = z.object({
     "Individual",
     "Brand / Partner",
   ]),
-  range: z.enum(["ALL", "30", "7", "1"]),
+  dateFrom: z.string(),
+  dateTo: z.string(),
 });
 export type RewardsFilters = z.infer<typeof rewardsFilterSchema>;
 export const REWARDS_FILTER_DEFAULTS: RewardsFilters = {
   search: "",
   status: "ALL",
   type: "ALL",
-  range: "30",
+  dateFrom: "",
+  dateTo: "",
 };
 export const rewardReviewSchema = z.object({
   note: z.string(),

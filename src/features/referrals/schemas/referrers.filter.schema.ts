@@ -4,14 +4,16 @@ export const referrersFilterSchema = z.object({
   search: z.string(),
   status: z.enum(["ALL", "Active", "Inactive", "Suspended"]),
   qualification: z.enum(["ALL", "QUALIFIED", "PENDING"]),
-  range: z.enum(["ALL", "30", "7", "1"]),
+  dateFrom: z.string(),
+  dateTo: z.string(),
 });
 export type ReferrersFilters = z.infer<typeof referrersFilterSchema>;
 export const REFERRERS_FILTER_DEFAULTS: ReferrersFilters = {
   search: "",
   status: "ALL",
   qualification: "ALL",
-  range: "30",
+  dateFrom: "",
+  dateTo: "",
 };
 
 export const REFERRER_RANGES = [

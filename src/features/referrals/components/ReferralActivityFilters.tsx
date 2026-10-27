@@ -14,7 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  ACTIVITY_RANGES,
   referralActivitySchema,
   type ReferralActivityFilters,
 } from "../schemas/referral.activity.schema";
@@ -63,15 +62,7 @@ export function ReferralActivityFiltersBar({
   onClear: () => void;
 }) {
   const chips = [
-    ...(filters.range !== "ALL"
-      ? [
-          {
-            name: "range" as const,
-            label: ACTIVITY_RANGES.find((item) => item.value === filters.range)
-              ?.label,
-          },
-        ]
-      : []),
+    ...(["dateFrom", "dateTo"] as const).filter((name) => filters[name]).map((name) => ({ name, label: `${name === "dateFrom" ? "From" : "To"}: ${filters[name]}` })),
     ...FILTERS.filter((item) => filters[item.name] !== "ALL").map((item) => ({
       name: item.name,
       label: `${item.label}: ${item.options.find((option) => option.value === filters[item.name])?.label}`,
@@ -144,7 +135,7 @@ export function ReferralActivityFiltersBar({
               key={chip.name}
               type="button"
               aria-label={`Remove ${chip.label} filter`}
-              onClick={() => setValue(chip.name, "ALL")}
+              onClick={() => setValue(chip.name, chip.name === "dateFrom" || chip.name === "dateTo" ? "" : "ALL")}
               className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/20 px-2 py-1 font-medium"
             >
               {chip.label}

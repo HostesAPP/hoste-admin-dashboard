@@ -5,7 +5,8 @@ export const referralActivitySchema = z.object({
   status: z.enum(["ALL", "Qualified", "Pending", "Flagged"]),
   type: z.enum(["ALL", "Student", "Brand", "Individual", "Club", "Partner"]),
   reward: z.enum(["ALL", "EARNED", "NONE"]),
-  range: z.enum(["30", "7", "1", "ALL"]),
+  dateFrom: z.string(),
+  dateTo: z.string(),
 });
 
 export type ReferralActivityFilters = z.infer<typeof referralActivitySchema>;
@@ -15,7 +16,8 @@ export const ACTIVITY_FILTER_DEFAULTS: ReferralActivityFilters = {
   status: "ALL",
   type: "ALL",
   reward: "ALL",
-  range: "30",
+  dateFrom: "",
+  dateTo: "",
 };
 
 export const ACTIVITY_RANGES = [

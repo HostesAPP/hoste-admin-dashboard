@@ -1,9 +1,12 @@
 "use client";
+import { ReferralDateFilters } from "./referral.date.filters";
+import { referralInDateRange } from "../referrals.date.utils";
+
 
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarDays, ChevronDown, Download } from "lucide-react";
+import { ChevronDown, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +30,6 @@ import type {
 import type { ReferralTab } from "../types/referrals.overview.types";
 import {
   ACTIVITY_FILTER_DEFAULTS,
-  ACTIVITY_RANGES,
   referralActivitySchema,
   type ReferralActivityFilters,
 } from "../schemas/referral.activity.schema";
@@ -66,15 +68,10 @@ export function ReferralActivity({
   const filterKey = JSON.stringify(filters);
   const pageSize = pageState.size;
   const query = filters.search.trim().toLowerCase();
-  const end = new Date(`${summary.periodEnd}T00:00:00Z`);
-  const start = new Date(end);
-  if (filters.range !== "ALL")
-    start.setUTCDate(start.getUTCDate() - Number(filters.range) + 1);
   const filtered = rows.filter((row) => {
     const promoter = promoters.find((item) => item.id === row.referrerId);
-    const date = new Date(`${row.date}T00:00:00Z`);
     return (
-      (filters.range === "ALL" || (date >= start && date <= end)) &&
+      referralInDateRange(row.date, filters.dateFrom, filters.dateTo) &&
       (filters.status === "ALL" || row.qualification === filters.status) &&
       (filters.type === "ALL" || promoter?.type === filters.type) &&
       (filters.reward === "ALL" ||
@@ -152,40 +149,7 @@ export function ReferralActivity({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Select
-            value={filters.range}
-            onValueChange={(value) => {
-              if (
-                value &&
-                referralActivitySchema.shape.range.safeParse(value).success
-              )
-                setValue("range", value as ReferralActivityFilters["range"]);
-            }}
-          >
-            <SelectTrigger
-              aria-label="Activity date range"
-              className="w-40 gap-3 bg-card px-3 text-xs"
-            >
-              <CalendarDays className="size-4" />
-              <SelectValue>
-                {
-                  ACTIVITY_RANGES.find((item) => item.value === filters.range)
-                    ?.label
-                }
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent
-              align="start"
-              alignItemWithTrigger={false}
-              sideOffset={6}
-            >
-              {ACTIVITY_RANGES.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ReferralDateFilters label="Activity date range" dateFrom={filters.dateFrom} dateTo={filters.dateTo} onChange={(name, value) => setValue(name, value)} />
           <DropdownMenu>
             <DropdownMenuTrigger className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-3 text-xs font-semibold">
               <Download className="size-4" />
@@ -272,7 +236,7 @@ export function ReferralActivity({
           filters={filters}
           selectedCount={selectedRows.length}
           onClear={() => {
-            reset({ ...ACTIVITY_FILTER_DEFAULTS, range: "ALL" });
+            reset({ ...ACTIVITY_FILTER_DEFAULTS, dateFrom: "", dateTo: "" });
             setSelected([]);
           }}
         />

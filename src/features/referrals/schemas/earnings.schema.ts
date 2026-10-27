@@ -3,7 +3,8 @@ import { z } from "zod";
 export const earningsFilterSchema = z.object({
   search: z.string(),
   status: z.enum(["ALL", "Paid", "Pending"]),
-  range: z.enum(["ALL", "30", "7", "1"]),
+  dateFrom: z.string(),
+  dateTo: z.string(),
   referrer: z.string(),
   sort: z.enum(["NEWEST", "OLDEST"]),
 });
@@ -11,7 +12,8 @@ export type EarningsFilters = z.infer<typeof earningsFilterSchema>;
 export const EARNINGS_FILTER_DEFAULTS: EarningsFilters = {
   search: "",
   status: "ALL",
-  range: "30",
+  dateFrom: "",
+  dateTo: "",
   referrer: "ALL",
   sort: "NEWEST",
 };

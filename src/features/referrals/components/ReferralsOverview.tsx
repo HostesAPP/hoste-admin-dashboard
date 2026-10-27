@@ -1,4 +1,6 @@
 "use client";
+import { ReferralDateFilters } from "./referral.date.filters";
+
 
 import { useState } from "react";
 import Link from "next/link";
@@ -28,19 +30,12 @@ import type {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { referralInDateRange } from "../referrals.date.utils";
 import type {
   ReferralActivityOverview,
   ReferralOverviewSummary,
   ReferralPerformancePoint,
   ReferrerOverview,
-  ReferralRange,
   ReferralTab,
 } from "../types/referrals.overview.types";
 import {
@@ -52,11 +47,6 @@ import {
 import { ReferralPerformanceChart } from "./ReferralPerformanceChart";
 import { RecentReferralsTable, ReferrersTable } from "./ReferralOverviewTables";
 
-const RANGES = [
-  { value: "30", label: "Last 30 Days" },
-  { value: "7", label: "Last 7 Days" },
-  { value: "1", label: "Today" },
-];
 
 interface ReferralsOverviewProps {
   summary: ReferralOverviewSummary;
@@ -94,17 +84,12 @@ export function ReferralsOverview({
   earningsData,
 }: ReferralsOverviewProps) {
   const [search, setSearch] = useState("");
-  const [range, setRange] = useState<ReferralRange>("30");
+  const [dates, setDates] = useState({ dateFrom: "", dateTo: "" });
   const [tab, setTab] = useState<ReferralTab>("Overview");
   const [rewards, setRewards] = useState(rewardsSnapshot);
   const query = search.trim().toLowerCase();
-  // Historical mock snapshot; API integration should supply the reporting period.
-  const end = new Date(`${summary.periodEnd}T00:00:00Z`);
-  const start = new Date(end);
-  start.setUTCDate(start.getUTCDate() - Number(range) + 1);
   const inRange = (date: string) =>
-    new Date(`${date}T00:00:00Z`) >= start &&
-    new Date(`${date}T00:00:00Z`) <= end;
+    referralInDateRange(date, dates.dateFrom, dates.dateTo);
   const referrers = topReferrers.filter((row) =>
     `${row.name} ${row.code} ${row.type}`.toLowerCase().includes(query),
   );
@@ -183,7 +168,7 @@ export function ReferralsOverview({
     }
     downloadReferralCsv(
       rows,
-      `hoste-referrals-${tab.toLowerCase().replaceAll(" ", "-")}-${range}-days.csv`,
+      `hoste-referrals-${tab.toLowerCase().replaceAll(" ", "-")}-${dates.dateFrom || "start"}-${dates.dateTo || "end"}.csv`,
     );
     toast.success("Referral report exported.");
   };
@@ -297,33 +282,7 @@ export function ReferralsOverview({
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Select
-              value={range}
-              onValueChange={(value) => {
-                if (value === "30" || value === "7" || value === "1")
-                  setRange(value);
-              }}
-            >
-              <SelectTrigger
-                aria-label="Referral date range"
-                className="w-36 gap-3 bg-card px-3 text-xs"
-              >
-                <SelectValue>
-                  {RANGES.find((item) => item.value === range)?.label}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent
-                align="start"
-                alignItemWithTrigger={false}
-                sideOffset={6}
-              >
-                {RANGES.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ReferralDateFilters label="Referral date range" {...dates} onChange={(name, value) => setDates((previous) => ({ ...previous, [name]: value }))} />
             <Button
               variant="outline"
               className="bg-card text-xs"
