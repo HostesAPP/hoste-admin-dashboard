@@ -1,658 +1,1040 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
-  X,
-  Check,
   ArrowRight,
-  Edit,
+  BarChart3,
+  Check,
+  ChevronDown,
   Copy,
-  MoreVertical,
-  Trash2,
-  BarChart2,
+  Edit3,
   PauseCircle,
+  Smartphone,
+  Tablet,
+  Trash2,
+  X,
 } from "lucide-react";
 
-// Import your custom modal components from your project structure
+import type { BannerItem } from "@/features/banners/types/banners.types";
+import {
+  getStoredBanners,
+  saveStoredBanners,
+  saveBanner as saveStoredBanner,
+} from "@/features/banners/utils/banner-storage";
 
+import ActivateBannerModal from "@/features/banners/components/modals/ActivateBannerModal";
 import DeactivateBannerModal from "@/features/banners/components/modals/DeactivateBannerModal";
-import DeleteBannerModal from "@/features/banners/components/modals/DeleteBannerModal";
 import DuplicateBannerModal from "@/features/banners/components/modals/DuplicateBannerModal";
+import DeleteBannerModal from "@/features/banners/components/modals/DeleteBannerModal";
 
-export default function BannerDetailsPage(): React.ReactElement {
+type PreviewMode = "Desktop" | "Tablet" | "Mobile";
+type ModalType = "activate" | "deactivate" | "duplicate" | "delete" | null;
+type BannerAction =
+  | "edit"
+  | "activate"
+  | "deactivate"
+  | "duplicate"
+  | "delete"
+  | "analytics";
+
+const UPDATE_EVENT = "hoste-banners-updated";
+const STORAGE_KEY = "hoste_banner_management_banners";
+
+const auditEvents = [
+  {
+    title: "Banner Activated",
+    description:
+      "Banner was activated and set live across platform placements.",
+    date: "August 22, 2026 · 2:20 PM",
+    color: "bg-[var(--success)]",
+  },
+  {
+    title: "Banner Updated",
+    description: "Placement expanded to include 'Customer Dashboard'.",
+    date: "August 22, 2026 · 2:15 PM",
+    color: "bg-[var(--primary-orange)]",
+  },
+  {
+    title: "Banner Published",
+    description: "Super Admin Sarah published the banner campaign.",
+    date: "August 20, 2026 · 10:45 AM",
+    color: "bg-[var(--dark)]",
+  },
+  {
+    title: "Banner Created",
+    description: "Draft created with initial headline and hero banner artwork.",
+    date: "August 20, 2026 · 10:32 AM",
+    color: "bg-[var(--muted-foreground)]",
+  },
+];
+
+const metrics = [
+  { label: "IMPRESSIONS", value: "12,450", note: "↑ +14% vs avg" },
+  { label: "CLICKS", value: "1,842", note: "↑ +8.2%" },
+  {
+    label: "CTR",
+    value: "14.8%",
+    note: "Top 5% campaign",
+    highlight: true,
+  },
+  {
+    label: "CONVERSIONS",
+    value: "326",
+    note: "Bookings made",
+    success: true,
+  },
+];
+
+export default function BannerDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const bannerId = params?.id || "summer-event-staffing-campaign";
 
-  const [previewMode, setPreviewMode] = useState<
-    "desktop" | "tablet" | "mobile"
-  >("desktop");
+  const rawId = params.id;
+  const bannerId = Array.isArray(rawId) ? rawId[0] : String(rawId ?? "");
 
-  // Modal States matching your exact existing actions
-  const [activeModal, setActiveModal] = useState<
-    "deactivate" | "duplicate" | "delete" | null
-  >(null);
+  const [banner, setBanner] = useState<BannerItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("Desktop");
+  const [showMoreActions, setShowMoreActions] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
+  const [isActive, setIsActive] = useState(false);
+  const [modal, setModal] = useState<ModalType>(null);
+  const [toast, setToast] = useState("");
+
+  const loadBanner = useCallback(() => {
+    if (!bannerId) {
+      setBanner(null);
+      setIsActive(false);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const savedBanners = getStoredBanners();
+      const found = savedBanners.find(
+        (item) => String(item.id) === String(bannerId),
+      );
+
+      setBanner(found ?? null);
+      setIsActive(found?.status === "Active");
+    } catch (error) {
+      console.error("Failed to load banner details:", error);
+      setBanner(null);
+      setIsActive(false);
+    } finally {
+      setLoading(false);
+    }
+  }, [bannerId]);
+
+  useEffect(() => {
+    const initialLoadTimeout = window.setTimeout(loadBanner, 0);
+
+    window.addEventListener(UPDATE_EVENT, loadBanner);
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === STORAGE_KEY) {
+        loadBanner();
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.clearTimeout(initialLoadTimeout);
+      window.removeEventListener(UPDATE_EVENT, loadBanner);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [loadBanner]);
+
+  const notify = useCallback((message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast(""), 3000);
+  }, []);
+
+  const updateBanner = useCallback(
+    (updatedBanner: BannerItem): boolean => {
+      try {
+        saveStoredBanner(updatedBanner);
+        setBanner(updatedBanner);
+        setIsActive(updatedBanner.status === "Active");
+        return true;
+      } catch (error) {
+        console.error("Failed to save banner:", error);
+        notify("Unable to save banner changes.");
+        return false;
+      }
+    },
+    [notify],
+  );
+
+  const openAction = (action: BannerAction) => {
+    setShowMoreActions(false);
+
+    if (action === "edit") {
+      router.push(`/banners/${encodeURIComponent(bannerId)}/edit`);
+      return;
+    }
+
+    if (action === "analytics") {
+      notify("Connect your banner analytics route.");
+      return;
+    }
+
+    if (!banner) {
+      notify("Banner not found.");
+      return;
+    }
+
+    setModal(action);
+  };
+
+  const handleActivate = useCallback(() => {
+    if (!banner) {
+      notify("Banner not found.");
+      return;
+    }
+
+    if (updateBanner({ ...banner, status: "Active" })) {
+      setModal(null);
+      notify("Banner activated successfully.");
+    }
+  }, [banner, notify, updateBanner]);
+
+  const handleDeactivate = useCallback(() => {
+    if (!banner) {
+      notify("Banner not found.");
+      return;
+    }
+
+    if (updateBanner({ ...banner, status: "Draft" })) {
+      setModal(null);
+      notify("Banner deactivated successfully.");
+    }
+  }, [banner, notify, updateBanner]);
+
+  const handleDuplicate = useCallback(() => {
+    if (!banner) {
+      notify("Banner not found.");
+      return;
+    }
+
+    try {
+      const banners = getStoredBanners();
+
+      const duplicateId =
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `${banner.id}-copy-${Date.now()}`;
+
+      const duplicate: BannerItem = {
+        ...banner,
+        id: duplicateId,
+        title: `${banner.title} (Copy)`,
+        status: "Draft",
+        startDate: "Not set",
+        endDate: "Not set",
+        createdBy: "Admin User",
+      };
+
+      saveStoredBanners([...banners, duplicate]);
+      setModal(null);
+      notify("Banner duplicated successfully.");
+    } catch (error) {
+      console.error("Failed to duplicate banner:", error);
+      notify("Unable to duplicate banner.");
+    }
+  }, [banner, notify]);
+
+  const handleDelete = useCallback(() => {
+    if (!banner) {
+      notify("Banner not found.");
+      return;
+    }
+
+    try {
+      const remaining = getStoredBanners().filter(
+        (item) => String(item.id) !== String(bannerId),
+      );
+
+      saveStoredBanners(remaining);
+      setModal(null);
+      router.push("/banners");
+    } catch (error) {
+      console.error("Failed to delete banner:", error);
+      notify("Unable to delete banner.");
+    }
+  }, [banner, bannerId, notify, router]);
+
+  if (loading) {
+    return (
+      <div className="p-8 text-xs text-[var(--muted-foreground)]">
+        Loading banner details...
+      </div>
+    );
+  }
+
+  if (!banner) {
+    return (
+      <main className="min-h-screen bg-[var(--background)] p-8 font-sans text-[var(--foreground)]">
+        <p className="mb-2 text-sm font-semibold">Banner not found.</p>
+        <p className="mb-4 text-xs text-[var(--muted-foreground)]">
+          This banner may have been deleted or may not exist in your saved
+          banners.
+        </p>
+        <Link
+          href="/banners"
+          className="inline-flex items-center gap-2 rounded-md bg-[var(--primary)] px-3 py-2 text-xs font-semibold text-[var(--primary-foreground)] hover:opacity-90"
+        >
+          <ArrowRight size={13} className="rotate-180" />
+          Back to Banners
+        </Link>
+      </main>
+    );
+  }
+
+  const currentBanner = banner;
+
+  const mutedSurface = "bg-[var(--muted)]";
+  const subtleSurface = "bg-[var(--background)]";
+  const cardBorder = "border-[var(--border)]";
+  const mainText = "text-[var(--foreground)]";
+  const mutedText = "text-[var(--muted-foreground)]";
+  const primaryText = "text-[var(--primary-orange)]";
+  const primaryButton =
+    "bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90";
+  const secondaryButton =
+    "border border-[var(--border)] bg-[var(--card)] text-[var(--card-foreground)] hover:bg-[var(--muted)]";
+  const cardStyle = `rounded-lg border ${cardBorder} bg-[var(--card)]`;
 
   return (
-    <div className="min-h-screen bg-[#fafafa] font-[Arial,sans-serif] text-[#1A1A1A] p-[20px] antialiased">
-      <div className="mx-auto w-full max-w-[1280px] space-y-[16px]">
-        {/* Top Header Section */}
-        <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#e9eaed] bg-white px-[20px] py-[16px] rounded-[12px] shadow-sm gap-[12px]">
-          <div>
-            <div className="mb-[3px] text-[10px] text-[#858b98]">
-              Dashboard <span className="mx-[2px]">/</span> Banner{" "}
-              <span className="mx-[2px]">/</span>{" "}
-              <span className="font-semibold text-[#EF5A22]">
-                Banner Details
-              </span>
-            </div>
-            <h1 className="text-[18px] font-bold leading-[22px] tracking-[-0.3px] text-[#1A1A1A]">
+    <main className="min-h-screen bg-[var(--background)] font-sans text-[var(--foreground)]">
+      {/* HEADER */}
+      <header
+        className={`flex flex-wrap items-center justify-between gap-3 border-b ${cardBorder} bg-[var(--card)] px-4 py-2.5`}
+      >
+        <div className="min-w-0">
+          <div
+            className={`mb-0.5 flex items-center gap-1 text-[9px] ${mutedText}`}
+          >
+            <Link href="/dashboard" className={`hover:${primaryText}`}>
+              Dashboard
+            </Link>
+            <span>/</span>
+            <Link href="/banners" className={`hover:${primaryText}`}>
+              Banner
+            </Link>
+            <span>/</span>
+            <span className={`font-semibold ${primaryText}`}>
               Banner Details
-            </h1>
-            <p className="text-[10px] text-[#858b98] mt-[2px]">
-              Review banner content, placement, audience, schedule, and
-              performance settings.
+            </span>
+          </div>
+
+          <h1 className={`text-[17px] font-bold leading-tight ${mainText}`}>
+            Banner Details
+          </h1>
+
+          <p className={`text-[9px] leading-tight ${mutedText}`}>
+            Review banner content, placement, audience, schedule, and
+            performance settings.
+          </p>
+        </div>
+
+        <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+          <button
+            onClick={() => openAction("edit")}
+            className={`flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[9px] font-semibold ${secondaryButton}`}
+          >
+            <Edit3 size={11} className={primaryText} />
+            Edit Banner
+          </button>
+
+          <button
+            onClick={() => openAction("duplicate")}
+            className={`flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[9px] font-semibold ${secondaryButton}`}
+          >
+            <Copy size={11} />
+            Duplicate
+          </button>
+
+          <div className="relative">
+            <button
+              onClick={() => setShowMoreActions((value) => !value)}
+              aria-expanded={showMoreActions}
+              className="flex items-center gap-1 rounded-md bg-[var(--dark)] px-3 py-1.5 text-[9px] font-semibold text-[var(--dark-foreground)] hover:opacity-90"
+            >
+              More Actions
+              <ChevronDown size={11} />
+            </button>
+
+            {showMoreActions && (
+              <div
+                className={`absolute right-0 top-full z-30 mt-1 w-40 rounded-md border ${cardBorder} bg-[var(--popover)] p-1 shadow-[var(--shadow-card)]`}
+              >
+                <ActionMenuItem
+                  icon={<Edit3 size={12} />}
+                  label="Edit Banner"
+                  onClick={() => openAction("edit")}
+                />
+                <ActionMenuItem
+                  icon={<Copy size={12} />}
+                  label="Duplicate"
+                  onClick={() => openAction("duplicate")}
+                />
+                <ActionMenuItem
+                  icon={<BarChart3 size={12} />}
+                  label="View Analytics"
+                  onClick={() => openAction("analytics")}
+                />
+                <ActionMenuItem
+                  icon={<PauseCircle size={12} />}
+                  label={isActive ? "Deactivate Banner" : "Activate Banner"}
+                  onClick={() =>
+                    openAction(isActive ? "deactivate" : "activate")
+                  }
+                />
+                <ActionMenuItem
+                  icon={<Trash2 size={12} />}
+                  label="Delete Banner"
+                  danger
+                  onClick={() => openAction("delete")}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <div className="space-y-3 p-3">
+        {/* BANNER SUMMARY */}
+        <section className={`${cardStyle} px-4 py-3`}>
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <h2 className={`text-[12px] font-bold ${mainText}`}>
+              {currentBanner.title}
+            </h2>
+
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[8px] font-bold ${
+                isActive
+                  ? "bg-[var(--secondary-green)]/10 text-[var(--secondary-green)]"
+                  : "bg-[var(--destructive)]/10 text-[var(--destructive)]"
+              }`}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              {isActive ? "ACTIVE" : "INACTIVE"}
+            </span>
+          </div>
+
+          <div
+            className={`grid grid-cols-1 gap-x-4 gap-y-1.5 text-[8px] sm:grid-cols-4 ${mutedText}`}
+          >
+            <p>
+              Placement:{" "}
+              <strong className={`font-semibold ${mainText}`}>
+                {currentBanner.placement}
+              </strong>
+            </p>
+
+            <p>
+              Target Audience:{" "}
+              <strong className={`font-semibold ${mainText}`}>
+                {currentBanner.audience}
+              </strong>
+            </p>
+
+            <p>
+              Created by:{" "}
+              <strong className={`font-medium ${mainText}`}>
+                {currentBanner.createdBy || "Admin Sarah"}
+              </strong>
+            </p>
+
+            <p>
+              Updated:{" "}
+              <strong className={`font-medium ${mainText}`}>
+                Aug 22, 2026
+              </strong>
             </p>
           </div>
-
-          <div className="flex items-center gap-[8px]">
-            <Link
-              href={`/banners/edit/${bannerId}`}
-              className="flex h-[32px] items-center gap-[6px] rounded-[6px] border border-[#dfe3ea] bg-white px-[12px] text-[10px] font-bold text-[#343a44] hover:bg-[#f5f6f8] transition"
-            >
-              <Edit size={12} className="text-[#EF5A22]" /> Edit Banner
-            </Link>
-            <button
-              onClick={() => setActiveModal("duplicate")}
-              className="flex h-[32px] items-center gap-[6px] rounded-[6px] border border-[#dfe3ea] bg-white px-[12px] text-[10px] font-bold text-[#343a44] hover:bg-[#f5f6f8] transition"
-            >
-              <Copy size={12} /> Duplicate
-            </button>
-            <button className="flex h-[32px] items-center gap-[6px] rounded-[6px] bg-[#1A1A1A] px-[12px] text-[10px] font-bold text-white hover:bg-[#333] transition">
-              More Actions <MoreVertical size={12} />
-            </button>
-          </div>
-        </header>
-
-        {/* Overview Status Bar */}
-        <section className="rounded-[12px] border border-[#e8eaf0] bg-white p-[20px] flex flex-col md:flex-row items-start md:items-center justify-between gap-[16px] shadow-sm">
-          <div className="space-y-[6px]">
-            <div className="flex items-center gap-[10px]">
-              <h2 className="text-[16px] font-extrabold text-[#1A1A1A]">
-                Find the Right Hosté for Your Next Event
-              </h2>
-              <span className="rounded-full bg-[#dcfce7] px-[10px] py-[3px] text-[9px] font-bold text-[#15803d] flex items-center gap-[4px] uppercase tracking-wide">
-                <span className="w-[6px] h-[6px] rounded-full bg-[#15803d]"></span>{" "}
-                ACTIVE
-              </span>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-[20px] gap-y-[4px] text-[10px] text-[#555b68]">
-              <div>
-                Placement:{" "}
-                <strong className="text-[#1A1A1A] font-bold">
-                  Homepage, Customer Dashboard
-                </strong>
-              </div>
-              <div>
-                Target Audience:{" "}
-                <strong className="text-[#1A1A1A] font-bold">Customers</strong>
-              </div>
-            </div>
-          </div>
-          <div className="text-[9.5px] text-[#858b98] space-y-[3px] md:text-right">
-            <div>
-              Created by:{" "}
-              <strong className="text-[#1A1A1A]">
-                Admin Sarah (Aug 20, 2026)
-              </strong>
-            </div>
-            <div>
-              Updated: <strong className="text-[#1A1A1A]">Aug 22, 2026</strong>
-            </div>
-          </div>
         </section>
 
-        {/* Live Platform Preview Section */}
-        <section className="rounded-[12px] border border-[#e8eaf0] bg-white p-[20px] space-y-[14px] shadow-sm">
-          <div className="flex justify-between items-center border-b border-[#f0f1f4] pb-[12px]">
-            <h2 className="text-[12px] font-bold text-[#1A1A1A]">
+        {/* PLATFORM PREVIEW */}
+        <section className={`${cardStyle} p-3`}>
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h3 className={`text-[10px] font-bold ${mainText}`}>
               Banner Live Platform Preview
-            </h2>
-            <div className="bg-[#f1f2f5] p-[3px] rounded-[8px] flex items-center text-[10px] font-semibold">
-              {(["desktop", "tablet", "mobile"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setPreviewMode(mode)}
-                  className={`px-[12px] py-[4px] rounded-[6px] capitalize transition ${
-                    previewMode === mode
-                      ? "bg-white text-[#1A1A1A] shadow-sm font-bold"
-                      : "text-[#858b98] hover:text-[#1A1A1A]"
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
+            </h3>
+
+            <div
+              className={`flex items-center gap-0.5 rounded-md p-0.5 ${mutedSurface}`}
+            >
+              {(
+                [
+                  { label: "Desktop", icon: null },
+                  { label: "Tablet", icon: Tablet },
+                  { label: "Mobile", icon: Smartphone },
+                ] as const
+              ).map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => setPreviewMode(item.label)}
+                    className={`flex items-center gap-1 rounded px-2 py-1 text-[8px] ${
+                      previewMode === item.label
+                        ? "bg-[var(--card)] font-bold text-[var(--foreground)] shadow-[var(--shadow-soft)]"
+                        : mutedText
+                    }`}
+                  >
+                    {Icon && <Icon size={10} />}
+                    {item.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="relative w-full rounded-[10px] bg-gradient-to-r from-[#210905] via-[#5c1c05] to-[#802a06] p-[20px] text-white overflow-hidden shadow-md flex flex-col justify-between min-h-[160px]">
-            <div className="flex justify-between items-start relative z-10">
-              <span className="text-[8px] font-black uppercase tracking-wider text-[#78350f] bg-[#FFFFDC] px-[8px] py-[3px] rounded-[4px]">
-                VERIFIED HOSTÉS
-              </span>
-              <button className="text-white/80 hover:text-white p-[2px] rounded-full bg-black/20">
-                <X size={14} />
+          {showPreview ? (
+            <div className="flex justify-center overflow-hidden rounded-lg">
+              <div
+                className={`relative min-h-[158px] overflow-hidden rounded-lg bg-[var(--dark)] px-5 py-6 text-[var(--dark-foreground)] transition-all sm:px-7 ${
+                  previewMode === "Desktop"
+                    ? "w-full"
+                    : previewMode === "Tablet"
+                      ? "w-4/5"
+                      : "w-[340px] max-w-full"
+                }`}
+              >
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--dark)] via-[var(--primary-orange)]/60 to-[var(--primary-orange)]/30"
+                />
+
+                <div className="relative z-10">
+                  <button
+                    onClick={() => setShowPreview(false)}
+                    aria-label="Close preview"
+                    className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--dark)] text-[var(--dark-foreground)] hover:opacity-80"
+                  >
+                    <X size={10} />
+                  </button>
+
+                  <span className="mb-2 inline-block rounded bg-[var(--card)] px-2.5 py-0.5 text-[7px] font-bold text-[var(--foreground)]">
+                    VERIFIED HOSTÉS
+                  </span>
+
+                  <h2 className="mb-2 pr-5 text-[16px] font-bold leading-tight">
+                    {currentBanner.title}
+                  </h2>
+
+                  <p className="mb-4 max-w-[440px] text-[9px] leading-[1.5] opacity-90">
+                    Book verified and professional event staff for your next
+                    celebration, corporate event, or special occasion. Vetted
+                    hosts, bartenders, ushers, and brand ambassadors ready to
+                    elevate your experience.
+                  </p>
+
+                  <button
+                    onClick={() => notify("Preview CTA clicked.")}
+                    className={`flex items-center gap-1 rounded-md px-4 py-2 text-[9px] font-bold ${primaryButton}`}
+                  >
+                    {currentBanner.cta || "Book a Hosté"}
+                    <ArrowRight size={11} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowPreview(true)}
+              className={`text-[10px] font-semibold ${primaryText}`}
+            >
+              Show banner preview
+            </button>
+          )}
+        </section>
+
+        {/* BANNER INFORMATION AND PLACEMENT */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <section className={`min-w-0 ${cardStyle} p-3`}>
+            <div
+              className={`mb-3 flex items-center justify-between border-b ${cardBorder} pb-2`}
+            >
+              <h3 className={`text-[10px] font-bold ${mainText}`}>
+                Banner Information
+              </h3>
+
+              <button
+                onClick={() => openAction("edit")}
+                className={`text-[8px] font-semibold hover:underline ${primaryText}`}
+              >
+                Edit
               </button>
             </div>
 
-            <div className="relative z-10 space-y-[4px] my-[10px]">
-              <h3 className="text-[16px] font-extrabold tracking-tight leading-[20px]">
-                Find the Right Hosté for Your Next Event
+            <div className="space-y-3">
+              <InfoField label="BANNER NAME" value={currentBanner.title} />
+              <InfoField label="HEADLINE" value={currentBanner.title} />
+              <InfoField
+                label="DESCRIPTION"
+                value="Book verified and professional event staff for your next celebration, corporate event, or special occasion."
+              />
+
+              <div className="grid grid-cols-3 gap-2">
+                <InfoField
+                  label="CTA TEXT"
+                  value={currentBanner.cta || "Book a Hosté"}
+                  bold
+                />
+                <InfoField label="DESTINATION" value="Booking Marketplace" />
+                <InfoField label="CTA LINK" value="/bookings" orange />
+              </div>
+            </div>
+          </section>
+
+          <section className={`min-w-0 ${cardStyle} p-3`}>
+            <div className={`mb-3 border-b ${cardBorder} pb-2`}>
+              <h3 className={`text-[10px] font-bold ${mainText}`}>
+                Placement &amp; Target Audience
               </h3>
-              <p className="text-[10px] text-[#FFFFDC]/90 leading-[14px] max-w-[500px]">
-                Book verified and professional event staff for your next
-                celebration, corporate event, or special occasion. vetted hosts,
-                bartenders, USHERs, and brand ambassadors ready to elevate your
-                experience.
+            </div>
+
+            <p className={`mb-2 text-[8px] font-bold ${mutedText}`}>
+              ACTIVE PLACEMENTS
+            </p>
+
+            <div className="mb-4 flex flex-wrap gap-1.5">
+              {currentBanner.placement
+                .split(",")
+                .map((placement) => placement.trim())
+                .filter(Boolean)
+                .map((placement) => (
+                  <span
+                    key={placement}
+                    className={`rounded-full border border-[var(--primary-orange)] bg-[var(--primary-orange)]/5 px-3 py-1 text-[8px] font-semibold ${mainText}`}
+                  >
+                    {placement}
+                  </span>
+                ))}
+            </div>
+
+            <p className={`mb-2 text-[8px] font-bold ${mutedText}`}>
+              TARGET AUDIENCE GROUPS
+            </p>
+
+            <span className="mb-5 inline-flex rounded-full bg-[var(--dark)] px-4 py-1 text-[8px] font-bold text-[var(--dark-foreground)]">
+              {currentBanner.audience}
+            </span>
+
+            <div
+              className={`rounded-lg border ${cardBorder} ${subtleSurface} p-2.5`}
+            >
+              <p className="mb-1 flex items-center gap-1 text-[9px] font-bold text-[var(--success)]">
+                <Check size={10} />
+                Visibility {isActive ? "Active" : "Inactive"}
+              </p>
+
+              <p className={`text-[8px] leading-relaxed ${mutedText}`}>
+                This banner is currently {isActive ? "visible" : "inactive"} for{" "}
+                {currentBanner.audience} on the selected Hosté platform
+                locations.
               </p>
             </div>
+          </section>
+        </div>
 
-            <div className="relative z-10">
-              <button className="px-[14px] py-[7px] bg-[#EF5A22] text-white rounded-[6px] text-[10px] font-bold shadow flex items-center gap-[4px] hover:bg-[#d94d10] transition">
-                Book a Hosté <ArrowRight size={10} />
+        {/* SCHEDULE AND PERFORMANCE */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <section className={`min-w-0 ${cardStyle} p-3`}>
+            <div className={`mb-3 border-b ${cardBorder} pb-2`}>
+              <h3 className={`text-[10px] font-bold ${mainText}`}>
+                Publishing Schedule &amp; Settings
+              </h3>
+            </div>
+
+            <div className="mb-3 grid grid-cols-2 gap-x-3 gap-y-3">
+              <div>
+                <p className={`mb-1 text-[8px] font-bold ${mutedText}`}>
+                  PUBLISHING STATUS
+                </p>
+
+                <span
+                  className={`inline-flex rounded-full px-2.5 py-0.5 text-[8px] font-bold ${
+                    isActive
+                      ? "bg-[var(--secondary-green)]/10 text-[var(--secondary-green)]"
+                      : "bg-[var(--destructive)]/10 text-[var(--destructive)]"
+                  }`}
+                >
+                  {isActive ? "ACTIVE" : "INACTIVE"}
+                </span>
+              </div>
+
+              <InfoField
+                label="TIMEZONE"
+                value="West Africa Time (WAT / UTC+1)"
+              />
+              <InfoField
+                label="START DATE & TIME"
+                value={currentBanner.startDate}
+                bold
+              />
+              <InfoField
+                label="END DATE & TIME"
+                value={currentBanner.endDate}
+                bold
+              />
+            </div>
+
+            <div className={`border-t ${cardBorder} pt-3`}>
+              <h4 className={`mb-3 text-[9px] font-bold ${mainText}`}>
+                Display Configuration Indicators
+              </h4>
+
+              <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+                <ConfigItem
+                  label="Display Priority:"
+                  value="High (Priority Weight: 1)"
+                />
+                <ConfigItem label="Multiple Banners:" value="Yes" />
+                <ConfigItem label="Show CTA Button:" value="Enabled" />
+                <ConfigItem label="Track Clicks (CTR):" value="Enabled" />
+                <ConfigItem label="Allow Banner Dismissal:" value="Enabled" />
+                <ConfigItem label="Track Impressions:" value="Enabled" />
+              </div>
+            </div>
+          </section>
+
+          <section className={`min-w-0 ${cardStyle} p-3`}>
+            <div
+              className={`mb-3 flex items-center justify-between gap-2 border-b ${cardBorder} pb-2`}
+            >
+              <h3 className={`text-[10px] font-bold ${mainText}`}>
+                Banner Performance Summary
+              </h3>
+
+              <button
+                onClick={() => openAction("analytics")}
+                className={`flex shrink-0 items-center gap-1 text-[8px] font-bold hover:underline ${primaryText}`}
+              >
+                View Full Analytics
+                <ArrowRight size={10} />
               </button>
             </div>
-          </div>
-        </section>
 
-        {/* 2-Column Section: Banner Info & Placement */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-[16px] items-stretch">
-          {/* Banner Information Card */}
-          <section className="rounded-[12px] border border-[#e8eaf0] bg-white p-[20px] space-y-[16px] shadow-sm flex flex-col justify-between">
-            <div className="space-y-[14px]">
-              <div className="flex justify-between items-center border-b border-[#f0f1f4] pb-[10px]">
-                <h2 className="text-[12px] font-bold text-[#1A1A1A]">
-                  Banner Information
-                </h2>
-                <Link
-                  href={`/banners/edit/${bannerId}`}
-                  className="text-[10px] font-bold text-[#EF5A22] hover:underline"
+            <div className="mb-4 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+              {metrics.map((metric) => (
+                <div
+                  key={metric.label}
+                  className={`min-w-0 rounded-md border ${cardBorder} ${subtleSurface} p-2`}
                 >
-                  Edit
-                </Link>
-              </div>
+                  <p className={`mb-1 truncate text-[7px] ${mutedText}`}>
+                    {metric.label}
+                  </p>
 
-              <div>
-                <span className="text-[8.5px] text-[#858b98] font-bold block uppercase tracking-wider mb-[2px]">
-                  BANNER NAME
-                </span>
-                <strong className="text-[#1A1A1A] text-[11px]">
-                  Summer Event Staffing Campaign
-                </strong>
-              </div>
-
-              <div>
-                <span className="text-[8.5px] text-[#858b98] font-bold block uppercase tracking-wider mb-[2px]">
-                  HEADLINE
-                </span>
-                <strong className="text-[#1A1A1A] text-[11px]">
-                  Find the Right Hosté for Your Next Event
-                </strong>
-              </div>
-
-              <div>
-                <span className="text-[8.5px] text-[#858b98] font-bold block uppercase tracking-wider mb-[2px]">
-                  DESCRIPTION
-                </span>
-                <p className="text-[#424854] text-[10px] leading-[14px]">
-                  Book verified and professional event staff for your next
-                  celebration, corporate event, or special occasion.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-[12px] pt-[12px] border-t border-[#f0f1f4] text-[10px]">
-              <div>
-                <span className="text-[8.5px] text-[#858b98] font-bold block uppercase tracking-wider mb-[2px]">
-                  CTA TEXT
-                </span>
-                <strong className="text-[#1A1A1A] font-bold">
-                  Book a Hosté
-                </strong>
-              </div>
-              <div>
-                <span className="text-[8.5px] text-[#858b98] font-bold block uppercase tracking-wider mb-[2px]">
-                  DESTINATION
-                </span>
-                <strong className="text-[#1A1A1A] font-bold">
-                  Booking Marketplace
-                </strong>
-              </div>
-              <div>
-                <span className="text-[8.5px] text-[#858b98] font-bold block uppercase tracking-wider mb-[2px]">
-                  CTA LINK
-                </span>
-                <strong className="text-[#EF5A22] font-bold">/bookings</strong>
-              </div>
-            </div>
-          </section>
-
-          {/* Placement & Target Audience Card */}
-          <section className="rounded-[12px] border border-[#e8eaf0] bg-white p-[20px] space-y-[16px] shadow-sm flex flex-col justify-between">
-            <div className="space-y-[14px]">
-              <h2 className="text-[12px] font-bold text-[#1A1A1A] border-b border-[#f0f1f4] pb-[10px]">
-                Placement & Target Audience
-              </h2>
-
-              <div className="space-y-[6px]">
-                <span className="text-[8.5px] text-[#858b98] font-bold block uppercase tracking-wider">
-                  ACTIVE PLACEMENTS
-                </span>
-                <div className="flex gap-[8px]">
-                  <span className="px-[12px] py-[5px] rounded-[20px] border border-[#EF5A22] bg-[#FFFFDC] text-[10px] font-bold text-[#1A1A1A]">
-                    Homepage
-                  </span>
-                  <span className="px-[12px] py-[5px] rounded-[20px] border border-[#EF5A22] bg-[#FFFFDC] text-[10px] font-bold text-[#1A1A1A]">
-                    Customer Dashboard
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-[6px]">
-                <span className="text-[8.5px] text-[#858b98] font-bold block uppercase tracking-wider">
-                  TARGET AUDIENCE GROUPS
-                </span>
-                <span className="inline-block px-[14px] py-[5px] rounded-[20px] bg-[#1A1A1A] text-white text-[10px] font-bold">
-                  Customers
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-[#f0f5ff] border border-[#d6e4ff] p-[10px] rounded-[8px] text-[10px] text-[#1d39c4] flex items-center gap-[8px]">
-              <Check size={14} className="shrink-0 font-extrabold" />
-              <div>
-                <strong>Visibility Active</strong>
-                <p className="text-[9.5px] text-[#2f54eb]">
-                  This banner is currently visible to Customers on the selected
-                  Hosté platform locations.
-                </p>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        {/* 2-Column Section: Schedule & Performance */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-[16px] items-stretch">
-          {/* Publishing Schedule & Settings Card */}
-          <section className="rounded-[12px] border border-[#e8eaf0] bg-white p-[20px] space-y-[16px] shadow-sm flex flex-col justify-between">
-            <div className="space-y-[14px]">
-              <h2 className="text-[12px] font-bold text-[#1A1A1A] border-b border-[#f0f1f4] pb-[10px]">
-                Publishing Schedule & Settings
-              </h2>
-
-              <div className="grid grid-cols-2 gap-[16px] text-[10px]">
-                <div>
-                  <span className="text-[8.5px] text-[#858b98] font-bold block uppercase tracking-wider mb-[2px]">
-                    PUBLISHING STATUS
-                  </span>
-                  <span className="inline-block rounded-full bg-[#dcfce7] px-[10px] py-[2px] text-[9px] font-bold text-[#15803d]">
-                    ACTIVE
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[8.5px] text-[#858b98] font-bold block uppercase tracking-wider mb-[2px]">
-                    TIMEZONE
-                  </span>
-                  <strong className="text-[#1A1A1A] font-bold">
-                    West Africa Time (WAT / UTC+1)
-                  </strong>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-[16px] text-[10px]">
-                <div>
-                  <span className="text-[8.5px] text-[#858b98] font-bold block uppercase tracking-wider mb-[2px]">
-                    START DATE & TIME
-                  </span>
-                  <strong className="text-[#1A1A1A] font-extrabold text-[11px]">
-                    August 20, 2026 • 9:00 AM
-                  </strong>
-                </div>
-                <div>
-                  <span className="text-[8.5px] text-[#858b98] font-bold block uppercase tracking-wider mb-[2px]">
-                    END DATE & TIME
-                  </span>
-                  <strong className="text-[#1A1A1A] font-extrabold text-[11px]">
-                    September 20, 2026 • 11:59 PM
-                  </strong>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-[12px] border-t border-[#f0f1f4] space-y-[8px]">
-              <span className="text-[9px] text-[#1A1A1A] font-bold block">
-                Display Configuration Indicators
-              </span>
-              <div className="grid grid-cols-2 gap-y-[6px] text-[9.5px]">
-                <div>
-                  Display Priority:{" "}
-                  <strong className="text-[#1A1A1A] font-bold">
-                    High (Priority Weight: 10)
-                  </strong>
-                </div>
-                <div>
-                  Multiple Banners:{" "}
-                  <strong className="text-[#1A1A1A] font-bold">Yes</strong>
-                </div>
-                <div>
-                  Show CTA Button:{" "}
-                  <strong className="text-[#15803d] font-bold">
-                    ✓ Enabled
-                  </strong>
-                </div>
-                <div>
-                  Track Clicks (CTR):{" "}
-                  <strong className="text-[#15803d] font-bold">
-                    ✓ Enabled
-                  </strong>
-                </div>
-                <div>
-                  Allow Banner Dismissal:{" "}
-                  <strong className="text-[#15803d] font-bold">
-                    ✓ Enabled
-                  </strong>
-                </div>
-                <div>
-                  Track Impressions:{" "}
-                  <strong className="text-[#15803d] font-bold">
-                    ✓ Enabled
-                  </strong>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Banner Performance Summary Card */}
-          <section className="rounded-[12px] border border-[#e8eaf0] bg-white p-[20px] space-y-[14px] shadow-sm flex flex-col justify-between">
-            <div className="space-y-[12px]">
-              <div className="flex justify-between items-center border-b border-[#f0f1f4] pb-[10px]">
-                <h2 className="text-[12px] font-bold text-[#1A1A1A]">
-                  Banner Performance Summary
-                </h2>
-                <Link
-                  href="#"
-                  className="text-[10px] font-bold text-[#EF5A22] hover:underline flex items-center gap-[2px]"
-                >
-                  View Full Analytics <ArrowRight size={10} />
-                </Link>
-              </div>
-
-              {/* Stat Boxes */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-[8px]">
-                <div className="bg-[#f9fafb] border border-[#e8eaf0] p-[10px] rounded-[8px]">
-                  <span className="text-[8px] font-bold text-[#858b98] uppercase">
-                    IMPRESSIONS
-                  </span>
-                  <div className="text-[14px] font-black text-[#1A1A1A] my-[2px]">
-                    12,450
-                  </div>
-                  <span className="text-[8px] text-[#15803d] font-extrabold">
-                    ↑ +14% vs avg
-                  </span>
-                </div>
-                <div className="bg-[#f9fafb] border border-[#e8eaf0] p-[10px] rounded-[8px]">
-                  <span className="text-[8px] font-bold text-[#858b98] uppercase">
-                    CLICKS
-                  </span>
-                  <div className="text-[14px] font-black text-[#1A1A1A] my-[2px]">
-                    1,842
-                  </div>
-                  <span className="text-[8px] text-[#15803d] font-extrabold">
-                    ↑ +8.2%
-                  </span>
-                </div>
-                <div className="bg-[#f9fafb] border border-[#e8eaf0] p-[10px] rounded-[8px]">
-                  <span className="text-[8px] font-bold text-[#858b98] uppercase">
-                    CTR
-                  </span>
-                  <div className="text-[14px] font-black text-[#EF5A22] my-[2px]">
-                    14.8%
-                  </div>
-                  <span className="text-[8px] text-[#858b98] font-semibold">
-                    Top 5% campaign
-                  </span>
-                </div>
-                <div className="bg-[#f9fafb] border border-[#e8eaf0] p-[10px] rounded-[8px]">
-                  <span className="text-[8px] font-bold text-[#858b98] uppercase">
-                    CONVERSIONS
-                  </span>
-                  <div className="text-[14px] font-black text-[#15803d] my-[2px]">
-                    326
-                  </div>
-                  <span className="text-[8px] text-[#858b98]">
-                    Bookings made
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Exact Performance Trend SVG Graph */}
-            <div className="space-y-[6px] pt-[4px]">
-              <span className="text-[9px] text-[#1A1A1A] font-bold block">
-                Activity Trend (Past 7 Days)
-              </span>
-              <div className="bg-[#f9fafb] border border-[#e8eaf0] rounded-[8px] p-[12px] space-y-[8px]">
-                <div className="w-full h-[80px]">
-                  <svg
-                    className="w-full h-full overflow-visible"
-                    viewBox="0 0 400 80"
-                    preserveAspectRatio="none"
+                  <p
+                    className={`mb-1 text-[13px] font-bold ${
+                      metric.highlight
+                        ? primaryText
+                        : metric.success
+                          ? "text-[var(--success)]"
+                          : mainText
+                    }`}
                   >
-                    <defs>
-                      <linearGradient
-                        id="chartGradient"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor="#15803d"
-                          stopOpacity="0.25"
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor="#15803d"
-                          stopOpacity="0.0"
-                        />
-                      </linearGradient>
-                    </defs>
-                    <path
-                      d="M 10 60 L 60 50 L 110 53 L 160 35 L 210 40 L 260 18 L 310 25 L 360 8 L 360 80 L 10 80 Z"
-                      fill="url(#chartGradient)"
-                    />
-                    <path
-                      d="M 10 60 L 60 50 L 110 53 L 160 35 L 210 40 L 260 18 L 310 25 L 360 8"
-                      fill="none"
-                      stroke="#15803d"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                    />
-                    <circle cx="260" cy="18" r="4" fill="#15803d" />
-                    <circle
-                      cx="360"
-                      cy="8"
-                      r="4"
-                      fill="#EF5A22"
-                      stroke="#ffffff"
-                      strokeWidth="1.5"
-                    />
-                  </svg>
+                    {metric.value}
+                  </p>
+
+                  <p className="text-[7px] font-semibold text-[var(--success)]">
+                    {metric.note}
+                  </p>
                 </div>
-                <div className="flex justify-between text-[8px] font-bold text-[#858b98] pt-[4px] border-t border-[#e8eaf0]">
-                  <span>Aug 18</span>
-                  <span>Aug 20</span>
-                  <span>Aug 22</span>
-                  <span>Today</span>
-                </div>
-              </div>
+              ))}
+            </div>
+
+            <h4 className={`mb-2 text-[8px] font-bold ${mainText}`}>
+              Activity Trend (Past 7 Days)
+            </h4>
+
+            <div
+              className={`rounded-md border ${cardBorder} ${subtleSurface} p-2`}
+            >
+              <svg
+                viewBox="0 0 300 105"
+                className="h-[90px] w-full"
+                preserveAspectRatio="none"
+                role="img"
+                aria-label="Activity trend over the past seven days"
+              >
+                <defs>
+                  <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="0%"
+                      stopColor="var(--secondary-green)"
+                      stopOpacity=".25"
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="var(--secondary-green)"
+                      stopOpacity=".02"
+                    />
+                  </linearGradient>
+                </defs>
+
+                <path
+                  d="M5 77 L40 65 L75 69 L110 47 L145 50 L180 29 L215 35 L250 12 L290 23 L290 91 L5 91 Z"
+                  fill="url(#trendFill)"
+                />
+
+                <polyline
+                  points="5,77 40,65 75,69 110,47 145,50 180,29 215,35 250,12 290,23"
+                  fill="none"
+                  stroke="var(--secondary-green)"
+                  strokeWidth="1.5"
+                  strokeLinejoin="round"
+                />
+
+                <circle
+                  cx="180"
+                  cy="29"
+                  r="2.5"
+                  fill="var(--secondary-green)"
+                />
+                <circle cx="250" cy="12" r="2.5" fill="var(--primary-orange)" />
+
+                <g fill="var(--muted-foreground)" fontSize="7">
+                  <text x="5" y="102">
+                    Aug 18
+                  </text>
+                  <text x="92" y="102">
+                    Aug 20
+                  </text>
+                  <text x="185" y="102">
+                    Aug 22
+                  </text>
+                  <text x="266" y="102">
+                    Today
+                  </text>
+                </g>
+              </svg>
             </div>
           </section>
         </div>
 
-        {/* Banner Audit Activity Log */}
-        <section className="rounded-[12px] border border-[#e8eaf0] bg-white p-[20px] space-y-[16px] shadow-sm">
-          <div className="flex justify-between items-center border-b border-[#f0f1f4] pb-[10px]">
-            <h2 className="text-[12px] font-bold text-[#1A1A1A]">
+        {/* AUDIT ACTIVITY LOG */}
+        <section className={`${cardStyle} p-3`}>
+          <div
+            className={`mb-2 flex items-center justify-between gap-2 border-b ${cardBorder} pb-3`}
+          >
+            <h3 className={`text-[10px] font-bold ${mainText}`}>
               Banner Audit Activity Log
-            </h2>
-            <Link
-              href="#"
-              className="text-[10px] font-bold text-[#EF5A22] hover:underline flex items-center gap-[2px]"
+            </h3>
+
+            <button
+              onClick={() => notify("Connect your full activity log route.")}
+              className={`flex shrink-0 items-center gap-1 text-[8px] font-bold hover:underline ${primaryText}`}
             >
-              View Activity Log <ArrowRight size={10} />
-            </Link>
+              View Activity Log
+              <ArrowRight size={10} />
+            </button>
           </div>
 
-          <div className="space-y-[14px]">
-            <div className="flex items-center justify-between text-[10px]">
-              <div className="flex items-center gap-[10px]">
-                <span className="w-[8px] h-[8px] rounded-full bg-[#15803d]"></span>
-                <strong className="text-[#1A1A1A] font-extrabold w-[120px]">
-                  Banner Activated
-                </strong>
-                <span className="text-[#555b68]">
-                  Banner was activated and set live across platform placements.
-                </span>
-              </div>
-              <span className="text-[#858b98] text-[9px]">
-                August 22, 2026 • 2:20 PM
-              </span>
-            </div>
+          <div>
+            {auditEvents.map((event, index) => (
+              <div
+                key={event.title}
+                className="grid grid-cols-[10px_minmax(0,1fr)] gap-x-2 gap-y-1 py-2 sm:grid-cols-[10px_135px_minmax(0,1fr)_140px] sm:items-center sm:gap-x-3"
+              >
+                <div className="relative row-span-3 flex justify-center self-stretch sm:row-span-1 sm:self-center">
+                  <span
+                    className={`relative z-10 mt-1 h-2 w-2 rounded-full ${event.color}`}
+                  />
 
-            <div className="flex items-center justify-between text-[10px]">
-              <div className="flex items-center gap-[10px]">
-                <span className="w-[8px] h-[8px] rounded-full bg-[#EF5A22]"></span>
-                <strong className="text-[#1A1A1A] font-extrabold w-[120px]">
-                  Banner Updated
-                </strong>
-                <span className="text-[#555b68]">
-                  Placement expanded to include &apos;Customer Dashboard&apos;.
-                </span>
-              </div>
-              <span className="text-[#858b98] text-[9px]">
-                August 22, 2026 • 2:15 PM
-              </span>
-            </div>
+                  {index < auditEvents.length - 1 && (
+                    <span
+                      className={`absolute bottom-[-12px] top-3 w-px ${mutedSurface}`}
+                    />
+                  )}
+                </div>
 
-            <div className="flex items-center justify-between text-[10px]">
-              <div className="flex items-center gap-[10px]">
-                <span className="w-[8px] h-[8px] rounded-full bg-[#1A1A1A]"></span>
-                <strong className="text-[#1A1A1A] font-extrabold w-[120px]">
-                  Banner Published
-                </strong>
-                <span className="text-[#555b68]">
-                  Super Admin Sarah published the banner campaign.
-                </span>
+                <p className={`text-[8px] font-bold ${mainText}`}>
+                  {event.title}
+                </p>
+                <p className={`text-[8px] leading-relaxed ${mutedText}`}>
+                  {event.description}
+                </p>
+                <time className={`text-[8px] sm:text-right ${mutedText}`}>
+                  {event.date}
+                </time>
               </div>
-              <span className="text-[#858b98] text-[9px]">
-                August 20, 2026 • 10:45 AM
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between text-[10px]">
-              <div className="flex items-center gap-[10px]">
-                <span className="w-[8px] h-[8px] rounded-full bg-[#858b98]"></span>
-                <strong className="text-[#1A1A1A] font-extrabold w-[120px]">
-                  Banner Created
-                </strong>
-                <span className="text-[#555b68]">
-                  Draft created with initial headline and hero banner artwork.
-                </span>
-              </div>
-              <span className="text-[#858b98] text-[9px]">
-                August 20, 2026 • 10:32 AM
-              </span>
-            </div>
+            ))}
           </div>
         </section>
 
-        {/* Quick Actions Footer Bar */}
-        <section className="rounded-[12px] border border-[#e8eaf0] bg-white p-[16px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[12px] shadow-sm">
-          <span className="text-[11px] font-bold text-[#1A1A1A]">
+        {/* QUICK ACTIONS */}
+        <section
+          className={`flex flex-wrap items-center gap-2 ${cardStyle} p-3`}
+        >
+          <h3 className={`mr-2 text-[9px] font-bold ${mainText}`}>
             Quick Actions (Active Status):
-          </span>
-          <div className="flex flex-wrap items-center gap-[10px]">
-            <Link
-              href={`/banners/edit/${bannerId}`}
-              className="flex h-[32px] items-center gap-[6px] rounded-[6px] bg-[#EF5A22] px-[14px] text-[10px] font-bold text-white hover:bg-[#d94d10] transition"
-            >
-              <Edit size={12} /> Edit Banner
-            </Link>
-            <button
-              onClick={() => setActiveModal("duplicate")}
-              className="flex h-[32px] items-center gap-[6px] rounded-[6px] border border-[#dfe3ea] bg-[#f9fafb] px-[14px] text-[10px] font-bold text-[#343a44] hover:bg-[#e4e6ea] transition"
-            >
-              <Copy size={12} /> Duplicate
-            </button>
-            <button
-              onClick={() => setActiveModal("deactivate")}
-              className="flex h-[32px] items-center gap-[6px] rounded-[6px] border border-[#fca5a5] bg-[#fff0ef] px-[14px] text-[10px] font-bold text-[#d92d20] hover:bg-[#fee2e2] transition"
-            >
-              <PauseCircle size={12} /> Deactivate Banner
-            </button>
-            <button className="flex h-[32px] items-center gap-[6px] rounded-[6px] bg-[#1A1A1A] px-[14px] text-[10px] font-bold text-white hover:bg-[#333] transition">
-              <BarChart2 size={12} /> View Analytics
-            </button>
-            <button
-              onClick={() => setActiveModal("delete")}
-              className="flex h-[32px] items-center gap-[6px] rounded-[6px] border border-[#fca5a5] bg-white px-[14px] text-[10px] font-bold text-[#d92d20] hover:bg-[#fff0ef] transition"
-            >
-              <Trash2 size={12} /> Delete
-            </button>
-          </div>
+          </h3>
+
+          <button
+            onClick={() => openAction("edit")}
+            className={`flex items-center gap-1 rounded-md px-3 py-2 text-[9px] font-bold ${primaryButton}`}
+          >
+            <Edit3 size={10} />
+            Edit Banner
+          </button>
+
+          <button
+            onClick={() => openAction("duplicate")}
+            className={`flex items-center gap-1 rounded-md px-3 py-2 text-[9px] font-semibold ${secondaryButton}`}
+          >
+            <Copy size={10} />
+            Duplicate
+          </button>
+
+          <button
+            onClick={() => openAction(isActive ? "deactivate" : "activate")}
+            className={`flex items-center gap-1 rounded-md border px-3 py-2 text-[9px] font-semibold ${
+              isActive
+                ? "border-[var(--destructive)] bg-[var(--destructive)]/5 text-[var(--destructive)] hover:bg-[var(--destructive)]/10"
+                : "border-[var(--success)] bg-[var(--success)]/5 text-[var(--success)] hover:bg-[var(--success)]/10"
+            }`}
+          >
+            <PauseCircle size={10} />
+            {isActive ? "Deactivate Banner" : "Activate Banner"}
+          </button>
+
+          <button
+            onClick={() => openAction("analytics")}
+            className="flex items-center gap-1 rounded-md bg-[var(--dark)] px-3 py-2 text-[9px] font-semibold text-[var(--dark-foreground)] hover:opacity-90"
+          >
+            <BarChart3 size={10} />
+            View Analytics
+          </button>
+
+          <button
+            onClick={() => openAction("delete")}
+            className={`flex items-center gap-1 rounded-md border ${cardBorder} px-3 py-2 text-[9px] font-semibold text-[var(--destructive)] hover:bg-[var(--destructive)]/5`}
+          >
+            <Trash2 size={10} />
+            Delete
+          </button>
         </section>
       </div>
 
-      {/* --- CONFIRMATION MODALS INTEGRATED --- */}
+      {/* DEDICATED BANNER MODALS */}
+      <ActivateBannerModal
+        isOpen={modal === "activate"}
+        onClose={() => setModal(null)}
+        onConfirm={handleActivate}
+      />
 
-      {/* Deactivate Banner Modal */}
       <DeactivateBannerModal
-        isOpen={activeModal === "deactivate"}
-        bannerTitle="Find the Right Hosté for Your Next Event"
-        onClose={() => setActiveModal(null)}
-        onConfirm={() => {
-          alert("Banner Deactivated Successfully!");
-          setActiveModal(null);
-        }}
+        isOpen={modal === "deactivate"}
+        onClose={() => setModal(null)}
+        onConfirm={handleDeactivate}
       />
 
-      {/* Duplicate Banner Modal */}
       <DuplicateBannerModal
-        isOpen={activeModal === "duplicate"}
-        draftName="Find the Right Hosté for Your Next Event (Copy)"
-        placements="Homepage, Customer Dashboard"
-        audience="Customers"
-        onClose={() => setActiveModal(null)}
-        onConfirm={() => {
-          alert("Banner Duplicated as Draft!");
-          setActiveModal(null);
-        }}
+        isOpen={modal === "duplicate"}
+        onClose={() => setModal(null)}
+        onConfirm={handleDuplicate}
       />
 
-      {/* Delete Banner Modal */}
       <DeleteBannerModal
-        isOpen={activeModal === "delete"}
-        onClose={() => setActiveModal(null)}
-        onConfirm={() => {
-          alert("Banner Deleted Permanently!");
-          setActiveModal(null);
-          router.push("/banners");
-        }}
+        isOpen={modal === "delete"}
+        onClose={() => setModal(null)}
+        onConfirm={handleDelete}
       />
+
+      {/* TOAST */}
+      {toast && (
+        <div className="fixed bottom-4 right-4 z-[60] flex items-center gap-2 rounded-md bg-[var(--dark)] px-3 py-2.5 text-[10px] text-[var(--dark-foreground)] shadow-[var(--shadow-card)]">
+          <Check size={13} className="text-[var(--success)]" />
+          {toast}
+
+          <button
+            onClick={() => setToast("")}
+            aria-label="Dismiss notification"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      )}
+    </main>
+  );
+}
+
+function InfoField({
+  label,
+  value,
+  bold = false,
+  orange = false,
+}: {
+  label: string;
+  value: string;
+  bold?: boolean;
+  orange?: boolean;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="mb-1 text-[8px] font-medium text-[var(--muted-foreground)]">
+        {label}
+      </p>
+
+      <p
+        className={`break-words text-[8px] leading-[1.5] ${
+          orange
+            ? "font-bold text-[var(--primary-orange)]"
+            : bold
+              ? "font-semibold text-[var(--foreground)]"
+              : "text-[var(--foreground)]"
+        }`}
+      >
+        {value}
+      </p>
     </div>
+  );
+}
+
+function ConfigItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex min-w-0 items-start justify-between gap-1 text-[8px]">
+      <span className="text-[var(--muted-foreground)]">{label}</span>
+
+      <span className="flex shrink-0 items-center gap-0.5 font-semibold text-[var(--success)]">
+        <Check size={9} />
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function ActionMenuItem({
+  icon,
+  label,
+  onClick,
+  danger = false,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex w-full items-center gap-2 rounded px-2 py-2 text-left text-[10px] hover:bg-[var(--muted)] ${
+        danger
+          ? "text-[var(--destructive)]"
+          : "text-[var(--popover-foreground)]"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }
