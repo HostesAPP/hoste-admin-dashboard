@@ -11,12 +11,28 @@ export type {
   VerificationSummaryInfo,
   UserProfile,
   GetMyProfilesResponse,
+  ProfileFilterParams,
+  ProfilesListResponse,
+  ReviewActivationPayload,
+  ReviewActivationResponse,
 } from "./types/profiles.types";
 
-export { PROFILES } from "./data/profiles.data";
-export { useProfiles } from "./hooks/use-profiles";
+export {
+  useProfiles,
+  useAdminProfileDetail,
+  useReviewActivation,
+  PROFILES_QUERY_KEYS,
+} from "./hooks/use-profiles";
 export { useMyProfiles, MY_PROFILES_QUERY_KEY } from "./hooks/use-my-profiles";
-export { getMyProfiles } from "./api/profile.api";
+export {
+  getMyProfiles,
+  fetchProfiles,
+  fetchProfileCounts,
+  fetchPendingProfiles,
+  fetchAdminProfileDetail,
+  reviewProfileActivation,
+  exportProfilesCsv,
+} from "./api/profile.api";
 export { ProfilesView } from "./components/ProfilesView";
 export { ProfileDetailsView } from "./components/ProfileDetailsView";
 export { ProfileDocumentsView } from "./components/ProfileDocumentsView";
@@ -36,5 +52,6 @@ export { ProfilesTable } from "./components/ProfilesTable";
 export { ProfileRowItem } from "./components/ProfileRowItem";
 export { ProfileActionModal } from "./components/ProfileActionModal";
 export { ProfilesPagination } from "./components/ProfilesPagination";
+export type { ProfilesPaginationProps } from "./components/ProfilesPagination";
 export { CurrentUserProfiles } from "./components/CurrentUserProfiles";
 export { CurrentUserTopNav } from "./components/CurrentUserTopNav";
