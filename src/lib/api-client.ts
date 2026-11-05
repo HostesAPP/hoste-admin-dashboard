@@ -45,7 +45,7 @@ async function executeTokenRefresh(): Promise<string | null> {
 
     const data: RefreshTokenResponse = await response.json().catch(() => null);
 
-    console.log("refresh-token response:", data);
+    // console.log("refresh-token response:", data);
 
     if (!response.ok || !data?.data?.accessToken || !data?.data?.refreshToken) {
       clearAuth();

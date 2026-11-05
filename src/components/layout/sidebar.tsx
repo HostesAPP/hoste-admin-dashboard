@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -16,14 +17,13 @@ import {
   Headphones,
   Newspaper,
   Image as ImageIcon,
-  ShieldAlert,
   Settings,
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore, useLogout } from "@/features/auth";
-import { Loader2 } from "lucide-react";
+import { LogoutModal } from "@/features/auth/components/LogoutModal";
 
 interface NavItem {
   label: string;
@@ -53,8 +53,13 @@ export function Sidebar() {
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
   const logoutMutation = useLogout();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  const handleLogout = () => {
+  const handleOpenLogout = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const handleConfirmLogout = () => {
     logoutMutation.mutate();
   };
 
@@ -85,7 +90,7 @@ export function Sidebar() {
               item.href === "/"
                 ? pathname === "/"
                 : pathname.startsWith(item.href) ||
-                  (item.href === "/settings" && pathname === "/audit-logs");
+                (item.href === "/settings" && pathname === "/audit-logs");
 
             return (
               <Link
@@ -138,20 +143,20 @@ export function Sidebar() {
 
         <button
           type="button"
-          onClick={handleLogout}
-          disabled={logoutMutation.isPending}
-          className="text-xs text-primary font-medium hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
+          onClick={handleOpenLogout}
+          className="text-xs text-primary font-medium hover:underline flex items-center gap-1 cursor-pointer"
         >
-          {logoutMutation.isPending ? (
-            <>
-              <Loader2 className="w-3 h-3 animate-spin" />
-              <span>Logging out...</span>
-            </>
-          ) : (
-            <span>Log Out</span>
-          )}
+          <span>Log Out</span>
         </button>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <LogoutModal
+        open={isLogoutModalOpen}
+        onOpenChange={setIsLogoutModalOpen}
+        onConfirm={handleConfirmLogout}
+        isPending={logoutMutation.isPending}
+      />
     </aside>
   );
 }

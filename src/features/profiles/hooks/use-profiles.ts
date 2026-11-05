@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useTransition } from "react";
 import { PROFILES } from "../data/profiles.data";
-import type { Profile, ProfileTab } from "../types/profiles.types";
+import type { Profile, ProfileTab, ProfileCounts } from "../types/profiles.types";
 
 export function useProfiles() {
   const [profiles, setProfiles] = useState<Profile[]>(PROFILES);
@@ -13,24 +13,13 @@ export function useProfiles() {
   const [isPending, startTransition] = useTransition();
 
   // Tab counts
-  const tabCounts = useMemo(() => {
-    const pending = profiles.filter((p) => p.status === "Pending").length;
-    const approved = profiles.filter((p) => p.status === "Active").length;
-    const rejected = profiles.filter((p) => p.status === "Rejected").length;
-    const suspended = profiles.filter((p) => p.status === "Suspended").length;
-    const deactivated = profiles.filter((p) => p.status === "Deleted").length;
-
+  const tabCounts: ProfileCounts = useMemo(() => {
     return {
-      pending: pending < 10 ? `0${pending}` : `${pending}`,
-      approved: approved > 0 ? "128" : "0", // Fallback display for presentation alignment
-      rejected: rejected > 0 ? "12" : "0",
-      suspended: suspended > 0 ? "05" : "0",
-      deactivated: deactivated > 0 ? "03" : "0",
-      actualPending: pending,
-      actualApproved: approved,
-      actualRejected: rejected,
-      actualSuspended: suspended,
-      actualDeactivated: deactivated,
+      pending: profiles.filter((p) => p.status === "Pending").length,
+      approved: profiles.filter((p) => p.status === "Active").length,
+      rejected: profiles.filter((p) => p.status === "Rejected").length,
+      suspended: profiles.filter((p) => p.status === "Suspended").length,
+      deactivated: profiles.filter((p) => p.status === "Deleted").length,
     };
   }, [profiles]);
 
