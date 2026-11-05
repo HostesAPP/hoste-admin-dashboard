@@ -22,10 +22,10 @@ export function useProfiles() {
 
     return {
       pending: pending < 10 ? `0${pending}` : `${pending}`,
-      approved: approved > 0 ? "128" : "0", // Fallback display for presentation alignment
-      rejected: rejected > 0 ? "12" : "0",
-      suspended: suspended > 0 ? "05" : "0",
-      deactivated: deactivated > 0 ? "03" : "0",
+      approved: approved > 0 ? approved : "0", // Fallback display for presentation alignment
+      rejected: rejected > 0 ? rejected : "0",
+      suspended: suspended > 0 ? suspended : "0",
+      deactivated: deactivated > 0 ? deactivated : "0",
       actualPending: pending,
       actualApproved: approved,
       actualRejected: rejected,

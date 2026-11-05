@@ -7,11 +7,11 @@ interface ProfilesTabsProps {
   activeTab: ProfileTab;
   onTabChange: (tab: ProfileTab) => void;
   tabCounts: {
-    pending: string;
-    approved: string;
-    rejected: string;
-    suspended: string;
-    deactivated: string;
+    pending: number;
+    approved: number;
+    rejected: number;
+    suspended: number;
+    deactivated: number;
   };
 }
 
@@ -20,7 +20,7 @@ export function ProfilesTabs({
   onTabChange,
   tabCounts,
 }: ProfilesTabsProps) {
-  const tabs: { key: ProfileTab; label: string; count: string }[] = [
+  const tabs: { key: ProfileTab; label: string; count: number }[] = [
     {
       key: "pending",
       label: "Pending Approval",

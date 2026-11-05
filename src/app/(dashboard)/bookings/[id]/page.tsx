@@ -15,10 +15,10 @@ import {
 
 import { BOOKINGS_DATA } from "@/features/bookings/data/bookings.data";
 
-import ReassignHosteModal from "@/components/modals/ReassignHosteModal";
-import CancelBookingModal from "@/components/modals/CancelBookingModal";
-import ConfirmBookingModal from "@/components/modals/ConfirmBookingModal";
-import MarkCompletedModal from "@/components/modals/MarkCompletedModal";
+import ReassignHosteModal from "@/features/bookings/components/modals/ReassignHosteModal";
+import CancelBookingModal from "@/features/bookings/components/modals/CancelBookingModal";
+import ConfirmBookingModal from "@/features/bookings/components/modals/ConfirmBookingModal";
+import MarkCompletedModal from "@/features/bookings/components/modals/MarkCompletedModal";
 
 interface PageProps {
   params: Promise<{ id: string }>;
