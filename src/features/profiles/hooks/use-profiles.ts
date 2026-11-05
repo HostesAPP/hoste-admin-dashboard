@@ -1,64 +1,125 @@
 "use client";
 
-import { useState, useMemo, useTransition } from "react";
-import { PROFILES } from "../data/profiles.data";
-import type { Profile, ProfileTab, ProfileCounts } from "../types/profiles.types";
+import { useState, useTransition } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  fetchProfiles,
+  fetchProfileCounts,
+  fetchPendingProfiles,
+  fetchAdminProfileDetail,
+  reviewProfileActivation,
+  exportProfilesCsv,
+} from "../api/profile.api";
+import type {
+  Profile,
+  ProfileTab,
+  ProfileCounts,
+  ProfileFilterParams,
+  ReviewActivationPayload,
+} from "../types/profiles.types";
+
+export const PROFILES_QUERY_KEYS = {
+  all: ["profiles"] as const,
+  list: (filters: ProfileFilterParams) => ["profiles", "list", filters] as const,
+  counts: (filters?: Partial<ProfileFilterParams>) => ["profiles", "counts", filters] as const,
+  pending: (skip: number, take: number) => ["profiles", "pending", skip, take] as const,
+  adminDetail: (id: string) => ["profiles", "admin-detail", id] as const,
+};
+
+function mapTabToStatus(tab: ProfileTab): string {
+  switch (tab) {
+    case "pending":
+      return "PENDING";
+    case "approved":
+      return "ACTIVE";
+    case "rejected":
+      return "REJECTED";
+    case "suspended":
+      return "SUSPENDED";
+    case "deactivated":
+      return "DELETED";
+    default:
+      return "PENDING";
+  }
+}
 
 export function useProfiles() {
-  const [profiles, setProfiles] = useState<Profile[]>(PROFILES);
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<ProfileTab>("pending");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [isPending, startTransition] = useTransition();
 
-  // Tab counts
-  const tabCounts: ProfileCounts = useMemo(() => {
-    return {
-      pending: profiles.filter((p) => p.status === "Pending").length,
-      approved: profiles.filter((p) => p.status === "Active").length,
-      rejected: profiles.filter((p) => p.status === "Rejected").length,
-      suspended: profiles.filter((p) => p.status === "Suspended").length,
-      deactivated: profiles.filter((p) => p.status === "Deleted").length,
-    };
-  }, [profiles]);
+  const skip = (currentPage - 1) * rowsPerPage;
+  const take = rowsPerPage;
 
-  // Filter profiles based on active tab and search query
-  const filteredProfiles = useMemo(() => {
-    return profiles.filter((profile) => {
-      // Tab matching
-      let matchesTab = false;
-      if (activeTab === "pending") matchesTab = profile.status === "Pending";
-      else if (activeTab === "approved") matchesTab = profile.status === "Active";
-      else if (activeTab === "rejected") matchesTab = profile.status === "Rejected";
-      else if (activeTab === "suspended") matchesTab = profile.status === "Suspended";
-      else if (activeTab === "deactivated") matchesTab = profile.status === "Deleted";
+  // 1. Fetch real-time tab counts from GET /api/v1/profiles/counts
+  const { data: countsData } = useQuery<ProfileCounts>({
+    queryKey: PROFILES_QUERY_KEYS.counts({ search: searchQuery }),
+    queryFn: () => fetchProfileCounts({ search: searchQuery }),
+  });
 
-      if (!matchesTab) return false;
+  const tabCounts: ProfileCounts = countsData || {
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    suspended: 0,
+    deactivated: 0,
+  };
 
-      // Search matching
-      if (!searchQuery.trim()) return true;
-      const query = searchQuery.toLowerCase();
-      return (
-        profile.displayName.toLowerCase().includes(query) ||
-        profile.email.toLowerCase().includes(query) ||
-        profile.hosteId.toLowerCase().includes(query) ||
-        (profile.categoryRole && profile.categoryRole.toLowerCase().includes(query)) ||
-        (profile.subLocation && profile.subLocation.toLowerCase().includes(query)) ||
-        profile.city.toLowerCase().includes(query) ||
-        profile.country.toLowerCase().includes(query)
-      );
-    });
-  }, [profiles, activeTab, searchQuery]);
+  // 2. Fetch profiles list from real backend API:
+  // - Pending tab with no search uses GET /api/v1/profiles/pending-activation (FIFO review queue)
+  // - Other tabs or active search uses GET /api/v1/profiles?status=...&skip=...&take=...
+  const filterParams: ProfileFilterParams = {
+    skip,
+    take,
+    status: mapTabToStatus(activeTab),
+    search: searchQuery.trim() || undefined,
+  };
 
-  // Pagination calculation
-  const totalResults = filteredProfiles.length;
+  const isPendingQueue = activeTab === "pending" && !searchQuery.trim();
+
+  const {
+    data: listData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
+    queryKey: isPendingQueue
+      ? PROFILES_QUERY_KEYS.pending(skip, take)
+      : PROFILES_QUERY_KEYS.list(filterParams),
+    queryFn: () =>
+      isPendingQueue
+        ? fetchPendingProfiles(skip, take)
+        : fetchProfiles(filterParams),
+  });
+
+  const profiles: Profile[] = listData?.items || [];
+  const currentTabCount = tabCounts[activeTab] ?? 0;
+  const totalResults =
+    !searchQuery.trim() && currentTabCount > 0
+      ? currentTabCount
+      : typeof listData?.total === "number" && listData.total > 0
+      ? listData.total
+      : (currentTabCount || profiles.length);
   const totalPages = Math.max(1, Math.ceil(totalResults / rowsPerPage));
 
-  const paginatedProfiles = useMemo(() => {
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    return filteredProfiles.slice(startIndex, startIndex + rowsPerPage);
-  }, [filteredProfiles, currentPage, rowsPerPage]);
+  // 3. Activation Review Mutation (Approve / Reject)
+  const reviewMutation = useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: ReviewActivationPayload;
+    }) => reviewProfileActivation(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROFILES_QUERY_KEYS.all });
+    },
+  });
 
   const handleTabChange = (tab: ProfileTab) => {
     startTransition(() => {
@@ -83,93 +144,115 @@ export function useProfiles() {
     setCurrentPage(1);
   };
 
-  const approveProfile = (id: string) => {
-    setProfiles((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, status: "Active", verificationStatus: "Active" } : p
-      )
-    );
+  const handleSkipChange = (newSkip: number) => {
+    const newPage = Math.floor(newSkip / rowsPerPage) + 1;
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
   };
 
-  const rejectProfile = (id: string, reason?: string) => {
-    setProfiles((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              status: "Rejected",
-              verificationStatus: "Rejected",
-              activationData: { ...p.activationData, rejectionReason: reason },
-            }
-          : p
-      )
-    );
+  const handleTakeChange = (newTake: number) => {
+    setRowsPerPage(newTake);
+    setCurrentPage(1);
   };
 
-  const suspendProfile = (id: string, reason?: string, durationDays?: number) => {
-    const suspendedUntil = durationDays
-      ? new Date(Date.now() + durationDays * 86400000).toISOString()
-      : null;
-    setProfiles((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              status: "Suspended",
-              suspendedUntil,
-              activationData: { ...p.activationData, suspensionReason: reason },
-            }
-          : p
-      )
-    );
+  const approveProfile = async (id: string) => {
+    await reviewMutation.mutateAsync({
+      id,
+      payload: { action: "APPROVE" },
+    });
   };
 
-  const banProfile = (id: string, reason?: string) => {
-    setProfiles((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              status: "Deleted",
-              activationData: { ...p.activationData, banReason: reason },
-            }
-          : p
-      )
-    );
+  const rejectProfile = async (id: string, reason?: string) => {
+    await reviewMutation.mutateAsync({
+      id,
+      payload: {
+        action: "REJECT",
+        rejectionReason: reason || "Profile does not meet activation criteria.",
+      },
+    });
   };
 
-  const restoreProfile = (id: string) => {
-    setProfiles((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              status: "Active",
-              suspendedUntil: null,
-            }
-          : p
-      )
-    );
+  // Suspend, Restore, and Ban are skipped for now per instructions
+  const suspendProfile = (_id: string, _reason?: string, _durationDays?: number) => {
+    console.warn("Suspend endpoint pending backend specification.");
+  };
+
+  const restoreProfile = (_id: string) => {
+    console.warn("Restore endpoint pending backend specification.");
+  };
+
+  const banProfile = (_id: string, _reason?: string) => {
+    console.warn("Ban endpoint pending backend specification.");
   };
 
   return {
-    profiles: paginatedProfiles,
+    profiles,
     totalResults,
     totalPages,
     currentPage,
     rowsPerPage,
+    skip,
+    take,
     activeTab,
     tabCounts,
     searchQuery,
     isPending,
+    isLoading: isLoading || isFetching,
+    isError,
+    error,
+    refetch,
     handleTabChange,
     handleSearch,
     handlePageChange,
     handleRowsPerPageChange,
+    handleSkipChange,
+    handleTakeChange,
     approveProfile,
     rejectProfile,
     suspendProfile,
     restoreProfile,
     banProfile,
+    isReviewing: reviewMutation.isPending,
   };
 }
+
+/**
+ * Fetch a single profile's admin detail including KYC activationData
+ * Method: GET /api/v1/profiles/:id/admin-detail
+ */
+export function useAdminProfileDetail(profileId: string) {
+  return useQuery<Profile>({
+    queryKey: PROFILES_QUERY_KEYS.adminDetail(profileId),
+    queryFn: () => fetchAdminProfileDetail(profileId),
+    enabled: Boolean(profileId),
+  });
+}
+
+/**
+ * Review profile activation mutation hook
+ */
+export function useReviewActivation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      action,
+      rejectionReason,
+    }: {
+      id: string;
+      action: "APPROVE" | "REJECT";
+      rejectionReason?: string;
+    }) =>
+      reviewProfileActivation(id, {
+        action,
+        rejectionReason,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROFILES_QUERY_KEYS.all });
+    },
+  });
+}
+
+export { exportProfilesCsv };

@@ -3,7 +3,7 @@
 import { ProfileRowItem } from "./ProfileRowItem";
 import { ProfilesPagination } from "./ProfilesPagination";
 import { Users } from "lucide-react";
-import type { Profile } from "../types/profiles.types";
+import type { Profile, ProfileTab } from "../types/profiles.types";
 import type { ActionType } from "./ProfileActionModal";
 
 interface ProfilesTableProps {
@@ -12,8 +12,14 @@ interface ProfilesTableProps {
   totalPages: number;
   currentPage: number;
   rowsPerPage: number;
+  skip?: number;
+  take?: number;
+  status?: ProfileTab;
+  isLoading?: boolean;
   onPageChange: (page: number) => void;
   onRowsPerPageChange: (rows: number) => void;
+  onSkipChange?: (skip: number) => void;
+  onTakeChange?: (take: number) => void;
   onOpenActionModal: (type: ActionType, profile: Profile) => void;
 }
 
@@ -23,8 +29,14 @@ export function ProfilesTable({
   totalPages,
   currentPage,
   rowsPerPage,
+  skip,
+  take,
+  status,
+  isLoading,
   onPageChange,
   onRowsPerPageChange,
+  onSkipChange,
+  onTakeChange,
   onOpenActionModal,
 }: ProfilesTableProps) {
   return (
@@ -39,8 +51,40 @@ export function ProfilesTable({
         <div className="w-36 text-right pr-2"></div>
       </div>
 
-      {/* Profiles Rows with Stagger Animation */}
-      {profiles.length > 0 ? (
+      {/* Profiles Rows with Loading Skeleton or Empty State */}
+      {isLoading ? (
+        <div className="divide-y divide-border/30">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className="flex items-center justify-between gap-4 py-4 px-3 animate-pulse"
+            >
+              <div className="min-w-70 pl-6 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-muted shrink-0" />
+                <div className="space-y-1.5">
+                  <div className="h-4 w-32 bg-muted rounded" />
+                  <div className="h-3 w-40 bg-muted/60 rounded" />
+                </div>
+              </div>
+              <div className="w-28">
+                <div className="h-3.5 w-16 bg-muted rounded" />
+              </div>
+              <div className="w-40">
+                <div className="h-3.5 w-24 bg-muted rounded" />
+              </div>
+              <div className="w-32">
+                <div className="h-3.5 w-20 bg-muted rounded" />
+              </div>
+              <div className="w-28">
+                <div className="h-3.5 w-16 bg-muted rounded" />
+              </div>
+              <div className="w-36 flex justify-end gap-2 pr-2">
+                <div className="h-8 w-20 bg-muted rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : profiles.length > 0 ? (
         <div className="stagger-fade-in divide-y divide-border/30 items-start">
           {profiles.map((profile) => (
             <ProfileRowItem
@@ -71,8 +115,14 @@ export function ProfilesTable({
         totalPages={totalPages}
         totalResults={totalResults}
         rowsPerPage={rowsPerPage}
+        skip={skip}
+        take={take}
+        status={status}
+        isLoading={isLoading}
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
+        onSkipChange={onSkipChange}
+        onTakeChange={onTakeChange}
       />
     </div>
   );

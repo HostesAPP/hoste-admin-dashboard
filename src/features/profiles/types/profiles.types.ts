@@ -143,3 +143,62 @@ export interface GetMyProfilesResponse {
   success: boolean;
   data: UserProfile[];
 }
+
+export interface ProfileFilterParams {
+  skip?: number;
+  take?: number;
+  status?: string;
+  profileType?: string;
+  verificationStatus?: string;
+  search?: string;
+}
+
+export interface ProfilesListResponse {
+  items: Profile[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+export interface ProfilesListApiResponse {
+  success?: boolean;
+  data: {
+    items: Record<string, unknown>[];
+    total: number;
+    skip: number;
+    take: number;
+  };
+}
+
+export interface ProfileCountsApiResponse {
+  success?: boolean;
+  data: {
+    total: number;
+    byStatus: {
+      PENDING?: number;
+      ACTIVE?: number;
+      REJECTED?: number;
+      SUSPENDED?: number;
+      DELETED?: number;
+    };
+    byProfileType: {
+      HOST?: number;
+      BRAND?: number;
+      EVENT_PLANNER?: number;
+    };
+  };
+}
+
+export interface ReviewActivationPayload {
+  action: "APPROVE" | "REJECT";
+  rejectionReason?: string;
+}
+
+export interface ReviewActivationResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    status: string;
+  };
+}

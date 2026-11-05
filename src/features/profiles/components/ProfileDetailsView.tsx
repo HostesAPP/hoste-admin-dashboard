@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { PROFILES } from "../data/profiles.data";
 import type { Profile } from "../types/profiles.types";
+import { useAdminProfileDetail, useReviewActivation } from "../hooks/use-profiles";
 import { ProfileDetailsHeader } from "./ProfileDetailsHeader";
 import { ProfileSummaryCard } from "./ProfileSummaryCard";
 import { ProfilePersonalInfoCard } from "./ProfilePersonalInfoCard";
@@ -19,7 +19,7 @@ import {
   type ActionType,
 } from "./ProfileActionModal";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ProfileDetailsViewProps {
@@ -27,9 +27,8 @@ interface ProfileDetailsViewProps {
 }
 
 export function ProfileDetailsView({ profileId }: ProfileDetailsViewProps) {
-  const [profile, setProfile] = useState<Profile | undefined>(() =>
-    PROFILES.find((p) => p.id === profileId || p.hosteId === profileId)
-  );
+  const { data: profile, isLoading, isError, refetch } = useAdminProfileDetail(profileId);
+  const reviewMutation = useReviewActivation();
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -41,7 +40,26 @@ export function ProfileDetailsView({ profileId }: ProfileDetailsViewProps) {
     selectedProfile: null,
   });
 
-  if (!profile) {
+  if (isLoading) {
+    return (
+      <div className="p-8 space-y-6 mx-auto">
+        <div className="h-8 w-48 bg-muted animate-pulse rounded-lg" />
+        <div className="h-44 w-full bg-muted animate-pulse rounded-2xl" />
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <div className="h-64 bg-muted animate-pulse rounded-2xl" />
+            <div className="h-48 bg-muted animate-pulse rounded-2xl" />
+          </div>
+          <div className="space-y-6">
+            <div className="h-64 bg-muted animate-pulse rounded-2xl" />
+            <div className="h-48 bg-muted animate-pulse rounded-2xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !profile) {
     return (
       <div className="p-8 space-y-4">
         <Link href="/profiles">
@@ -50,11 +68,17 @@ export function ProfileDetailsView({ profileId }: ProfileDetailsViewProps) {
             Back to Profiles
           </Button>
         </Link>
-        <div className="bg-card rounded-2xl border border-border/80 p-12 text-center">
+        <div className="bg-card rounded-2xl border border-border/80 p-12 text-center space-y-3">
           <h2 className="text-base font-bold text-foreground">Profile Not Found</h2>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground">
             No profile was found matching ID: {profileId}
           </p>
+          <div className="pt-2">
+            <Button size="sm" onClick={() => refetch()} className="gap-1.5 text-xs cursor-pointer">
+              <RotateCcw className="w-3.5 h-3.5" />
+              Retry
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -76,49 +100,33 @@ export function ProfileDetailsView({ profileId }: ProfileDetailsViewProps) {
     });
   };
 
-  const handleConfirmAction = (
+  const handleConfirmAction = async (
     _id: string,
     reason?: string,
-    durationDays?: number
+    _durationDays?: number
   ) => {
-    if (!modalState.actionType) return;
+    if (!modalState.actionType || !profile) return;
 
-    if (modalState.actionType === "approve") {
-      setProfile((prev) =>
-        prev ? { ...prev, status: "Active", verificationStatus: "Active" } : prev
-      );
-      toast.success(`Profile for ${profile.displayName} approved.`);
-    } else if (modalState.actionType === "reject") {
-      setProfile((prev) =>
-        prev
-          ? {
-            ...prev,
-            status: "Rejected",
-            verificationStatus: "Rejected",
-            activationData: { ...prev.activationData, rejectionReason: reason },
-          }
-          : prev
-      );
-      toast.error(`Profile application rejected.`);
-    } else if (modalState.actionType === "suspend") {
-      setProfile((prev) =>
-        prev
-          ? {
-            ...prev,
-            status: "Suspended",
-            suspendedUntil: durationDays
-              ? new Date(Date.now() + durationDays * 86400000).toISOString()
-              : null,
-          }
-          : prev
-      );
-      toast.warning(`Profile suspended.`);
-    } else if (modalState.actionType === "restore") {
-      setProfile((prev) => (prev ? { ...prev, status: "Active" } : prev));
-      toast.success(`Profile for ${profile.displayName} restored to active status.`);
-    } else if (modalState.actionType === "ban") {
-      setProfile((prev) => (prev ? { ...prev, status: "Deleted" } : prev));
-      toast.error(`Profile deactivated.`);
+    try {
+      if (modalState.actionType === "approve") {
+        await reviewMutation.mutateAsync({
+          id: profile.id,
+          action: "APPROVE",
+        });
+        toast.success(`Profile for ${profile.displayName} approved.`);
+      } else if (modalState.actionType === "reject") {
+        await reviewMutation.mutateAsync({
+          id: profile.id,
+          action: "REJECT",
+          rejectionReason: reason || "Profile does not meet activation criteria.",
+        });
+        toast.error(`Profile application rejected.`);
+      } else {
+        toast.info(`${modalState.actionType} is not available at this time.`);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Action failed. Please try again.";
+      toast.error(message);
     }
   };
 
@@ -143,7 +151,7 @@ export function ProfileDetailsView({ profileId }: ProfileDetailsViewProps) {
 
       {/* 2-Column Grid Layout */}
       <div className="grid grid-cols-2 gap-6 items-start">
-        {/* Left Column (7 cols) */}
+        {/* Left Column */}
         <div className="space-y-6">
           <ProfilePersonalInfoCard profile={profile} />
           <ProfileAboutCard profile={profile} />
@@ -151,7 +159,7 @@ export function ProfileDetailsView({ profileId }: ProfileDetailsViewProps) {
           <ProfileExperienceCard profile={profile} />
         </div>
 
-        {/* Right Column (5 cols) */}
+        {/* Right Column */}
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-6">
             <ProfileAvailabilityCard profile={profile} />

@@ -10,12 +10,7 @@ import {
   RotateCw,
   Download,
   User,
-  ShieldCheck,
-  CheckCircle2,
-  FileCheck2,
-  Clock,
   Send,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -27,19 +22,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PROFILES } from "../data/profiles.data";
 import type { Profile, ActionType } from "../types/profiles.types";
+import { useAdminProfileDetail, useReviewActivation } from "../hooks/use-profiles";
 import { ProfileActionModal } from "./ProfileActionModal";
 import Image from "next/image";
+import { RotateCcw } from "lucide-react";
 
 interface ProfileDocumentsViewProps {
   profileId: string;
 }
 
 export function ProfileDocumentsView({ profileId }: ProfileDocumentsViewProps) {
-  const [profile, setProfile] = useState<Profile | undefined>(() =>
-    PROFILES.find((p) => p.id === profileId || p.hosteId === profileId)
-  );
+  const { data: profile, isLoading, isError, refetch } = useAdminProfileDetail(profileId);
+  const reviewMutation = useReviewActivation();
 
   const [activeTab, setActiveTab] = useState<
     "government_id" | "certificates" | "background_check"
@@ -58,7 +53,7 @@ export function ProfileDocumentsView({ profileId }: ProfileDocumentsViewProps) {
   const [newNote, setNewNote] = useState("");
   const [adminNotes, setAdminNotes] = useState<string[]>([
     "Admin: Photo comparison looks good. Waiting on secondary reference",
-    `User: ${profile?.displayName || "Amaka Okafor"} uploaded updated ID.`,
+    `User: ${profile?.displayName || "Staff"} uploaded updated ID.`,
   ]);
 
   // Activity trail state
@@ -66,7 +61,7 @@ export function ProfileDocumentsView({ profileId }: ProfileDocumentsViewProps) {
     {
       id: "act-1",
       date: "Aug 19, 2026",
-      user: profile?.displayName || "Amaka Okafor",
+      user: profile?.displayName || "Staff",
       action: "Uploaded Government ID",
       note: "ID Updated",
     },
@@ -90,7 +85,19 @@ export function ProfileDocumentsView({ profileId }: ProfileDocumentsViewProps) {
     selectedProfile: null,
   });
 
-  if (!profile) {
+  if (isLoading) {
+    return (
+      <div className="p-8 space-y-6 mx-auto">
+        <div className="h-16 w-full bg-muted animate-pulse rounded-2xl" />
+        <div className="grid grid-cols-12 gap-6">
+          <div className="col-span-8 h-96 bg-muted animate-pulse rounded-2xl" />
+          <div className="col-span-4 h-96 bg-muted animate-pulse rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !profile) {
     return (
       <div className="p-8 space-y-4">
         <Link href="/profiles">
@@ -99,11 +106,17 @@ export function ProfileDocumentsView({ profileId }: ProfileDocumentsViewProps) {
             Back to Profiles
           </Button>
         </Link>
-        <div className="bg-card rounded-2xl border border-border/80 p-12 text-center">
+        <div className="bg-card rounded-2xl border border-border/80 p-12 text-center space-y-3">
           <h2 className="text-base font-bold text-foreground">Profile Not Found</h2>
           <p className="text-xs text-muted-foreground mt-1">
             No profile was found matching ID: {profileId}
           </p>
+          <div className="pt-2">
+            <Button size="sm" onClick={() => refetch()} className="gap-1.5 text-xs cursor-pointer">
+              <RotateCcw className="w-3.5 h-3.5" />
+              Retry
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -170,51 +183,41 @@ export function ProfileDocumentsView({ profileId }: ProfileDocumentsViewProps) {
     });
   };
 
-  const handleConfirmAction = (
+  const handleConfirmAction = async (
     _id: string,
     reason?: string,
-    durationDays?: number
+    _durationDays?: number
   ) => {
-    if (!modalState.actionType) return;
+    if (!modalState.actionType || !profile) return;
 
-    if (modalState.actionType === "approve") {
-      setProfile((prev) =>
-        prev ? { ...prev, status: "Active", verificationStatus: "Active" } : prev
-      );
-      toast.success(`Profile for ${profile.displayName} approved.`);
-    } else if (modalState.actionType === "reject") {
-      setProfile((prev) =>
-        prev
-          ? {
-            ...prev,
-            status: "Rejected",
-            verificationStatus: "Rejected",
-            activationData: { ...prev.activationData, rejectionReason: reason },
-          }
-          : prev
-      );
-      toast.error(`Profile application rejected.`);
-    } else if (modalState.actionType === "suspend") {
-      setProfile((prev) =>
-        prev
-          ? {
-            ...prev,
-            status: "Suspended",
-            suspendedUntil: durationDays
-              ? new Date(Date.now() + durationDays * 86400000).toISOString()
-              : null,
-          }
-          : prev
-      );
-      toast.warning(`Profile suspended.`);
-    } else if (modalState.actionType === "restore") {
-      setProfile((prev) => (prev ? { ...prev, status: "Active" } : prev));
-      toast.success(`Profile for ${profile.displayName} restored to active status.`);
-    } else if (modalState.actionType === "ban") {
-      setProfile((prev) => (prev ? { ...prev, status: "Deleted" } : prev));
-      toast.error(`Profile deactivated.`);
+    try {
+      if (modalState.actionType === "approve") {
+        await reviewMutation.mutateAsync({
+          id: profile.id,
+          action: "APPROVE",
+        });
+        toast.success(`Profile for ${profile.displayName} approved.`);
+      } else if (modalState.actionType === "reject") {
+        await reviewMutation.mutateAsync({
+          id: profile.id,
+          action: "REJECT",
+          rejectionReason: reason || "Profile does not meet activation criteria.",
+        });
+        toast.error(`Profile application rejected.`);
+      } else {
+        toast.info(`${modalState.actionType} is not available at this time.`);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Action failed. Please try again.";
+      toast.error(message);
     }
   };
+
+  const activation = (profile.activationData as Record<string, unknown>) || {};
+  const idType = String(activation.idType || "NIN");
+  const idNumber = String(activation.idNumber || activation.nin || "—");
+  const nameOnId = String(activation.nameOnId || profile.displayName);
+  const expiryDate = String(activation.expiryDate || "—");
 
   return (
     <div className="p-8 space-y-6 mx-auto">
@@ -477,27 +480,27 @@ export function ProfileDocumentsView({ profileId }: ProfileDocumentsViewProps) {
                     <span className="text-[10px] text-muted-foreground uppercase block">
                       ID Type
                     </span>
-                    <span className="font-bold text-foreground">NIN</span>
+                    <span className="font-bold text-foreground">{idType}</span>
                   </div>
                   <div>
                     <span className="text-[10px] text-muted-foreground uppercase block">
                       ID Number
                     </span>
-                    <span className="font-bold text-foreground">23456789012</span>
+                    <span className="font-bold text-foreground">{idNumber}</span>
                   </div>
                   <div>
                     <span className="text-[10px] text-muted-foreground uppercase block">
                       Name on ID
                     </span>
                     <span className="font-semibold text-foreground">
-                      {profile.displayName} Elizabeth
+                      {nameOnId}
                     </span>
                   </div>
                   <div>
                     <span className="text-[10px] text-muted-foreground uppercase block">
                       Expiry Date
                     </span>
-                    <span className="text-muted-foreground">Oct 10, 2030</span>
+                    <span className="text-muted-foreground">{expiryDate}</span>
                   </div>
                 </div>
 
@@ -509,7 +512,7 @@ export function ProfileDocumentsView({ profileId }: ProfileDocumentsViewProps) {
 
               {/* Bottom MRZ code */}
               <div className="pt-2 border-t border-emerald-500/20 text-[11px] font-mono tracking-widest text-muted-foreground">
-                NIN 2345 3134 &lt;&lt;&lt;&lt;&lt;&lt;
+                {idType} {idNumber} &lt;&lt;&lt;&lt;&lt;&lt;
               </div>
             </div>
           </div>
@@ -520,21 +523,21 @@ export function ProfileDocumentsView({ profileId }: ProfileDocumentsViewProps) {
             <div className="space-y-3 text-xs">
               <div>
                 <span className="text-muted-foreground block text-[11px]">ID Type</span>
-                <span className="font-bold text-foreground">NIN</span>
+                <span className="font-bold text-foreground">{idType}</span>
               </div>
               <div>
                 <span className="text-muted-foreground block text-[11px]">ID Number</span>
-                <span className="text-foreground">23456789012</span>
+                <span className="text-foreground">{idNumber}</span>
               </div>
               <div>
                 <span className="text-muted-foreground block text-[11px]">Name on ID</span>
                 <span className="font-bold text-foreground">
-                  {profile.displayName} Elizabeth
+                  {nameOnId}
                 </span>
               </div>
               <div>
                 <span className="text-muted-foreground block text-[11px]">Expiry Date</span>
-                <span className="text-muted-foreground">Oct 10, 2030</span>
+                <span className="text-muted-foreground">{expiryDate}</span>
               </div>
             </div>
 
