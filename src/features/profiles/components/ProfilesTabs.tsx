@@ -1,17 +1,17 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { ProfileTab } from "../types/profiles.types";
+import type { ProfileTab, ProfileCounts } from "../types/profiles.types";
 
 interface ProfilesTabsProps {
   activeTab: ProfileTab;
   onTabChange: (tab: ProfileTab) => void;
-  tabCounts: {
-    pending: number;
-    approved: number;
-    rejected: number;
-    suspended: number;
-    deactivated: number;
+  tabCounts: ProfileCounts | {
+    pending: number | string;
+    approved: number | string;
+    rejected: number | string;
+    suspended: number | string;
+    deactivated: number | string;
   };
 }
 
@@ -20,31 +20,38 @@ export function ProfilesTabs({
   onTabChange,
   tabCounts,
 }: ProfilesTabsProps) {
-  const tabs: { key: ProfileTab; label: string; count: number }[] = [
+  const formatCount = (count: number | string) => {
+    if (typeof count === "number") {
+      return count < 10 && count >= 0 ? `0${count}` : `${count}`;
+    }
+    return count;
+  };
+
+  const tabs: { key: ProfileTab; label: string; count: number | string }[] = [
     {
       key: "pending",
       label: "Pending Approval",
-      count: tabCounts.pending,
+      count: formatCount(tabCounts.pending),
     },
     {
       key: "approved",
       label: "Approved",
-      count: tabCounts.approved,
+      count: formatCount(tabCounts.approved),
     },
     {
       key: "rejected",
       label: "Rejected",
-      count: tabCounts.rejected,
+      count: formatCount(tabCounts.rejected),
     },
     {
       key: "suspended",
       label: "Suspended",
-      count: tabCounts.suspended,
+      count: formatCount(tabCounts.suspended),
     },
     {
       key: "deactivated",
       label: "Deactivated",
-      count: tabCounts.deactivated,
+      count: formatCount(tabCounts.deactivated),
     },
   ];
 
