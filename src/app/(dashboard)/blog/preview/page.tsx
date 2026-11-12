@@ -1,465 +1,568 @@
 "use client";
 
-import { useState } from "react";
+import React, { useCallback, useState, useSyncExternalStore } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  ChevronRight,
   Eye,
-  Clock3,
+  Clock,
+  ExternalLink,
   Share2,
+  Pencil,
   CheckCircle2,
+  FileText,
   Heart,
   MessageSquare,
-  X,
-  ExternalLink,
 } from "lucide-react";
+
+import type { Post, PostStatus } from "@/features/blog/blog.types";
+
+const STORAGE_KEY = "hoste_blog_management_posts";
+
+function subscribeToPreviewData() {
+  return () => {};
+}
+
+function getPreviewDataSnapshot(): string {
+  return `${window.location.search}\u0000${localStorage.getItem(STORAGE_KEY) ?? ""}`;
+}
+
+// Fallback mock data matching the reference image layout
+const DEFAULT_POST: Post = {
+  id: "BLOG-128",
+  slug: "5-things-to-consider-when-hiring-event-staff",
+  title: "5 Things to Consider When Hiring Event Staff",
+  excerpt:
+    "Hiring the right event staff can make or break your event. From professionalism to reliability, the right team ensures everything runs smoothly while you focus on enjoying the occasion.",
+  content: `
+    <p>Here are five key factors to keep in mind:</p>
+    <h2>1. Experience Matters</h2>
+    <p>Look for staff who have prior experience in the type of event you are hosting. Experienced staff can handle unexpected situations with ease and maintain a high level of service.</p>
+    <h2>2. Professionalism & Attitude</h2>
+    <p>A positive attitude, good communication, and professionalism go a long way in creating a seamless guest experience.</p>
+  `,
+  author: "Naomi Admin",
+  category: "Event Planning",
+  status: "published",
+  tags: ["Event Staff", "Hiring Tips"],
+  publishedOn: "2026-08-10T10:30:00.000Z",
+  views: 1245,
+  metaTitle: "5 Things to Consider When Hiring Event Staff",
+  metaDescription:
+    "Discover the top 5 things to consider when hiring event staff for your next event to ensure a successful and stress-free experience.",
+  canonicalUrl: "https://example.com/blog/hiring-event-staff",
+  coverImage: "",
+};
+
+function getStatusStyle(status?: PostStatus | string): string {
+  const normalized = status?.toLowerCase() || "";
+  switch (normalized) {
+    case "published":
+      return "bg-[#E6F4EA] text-[#006837]";
+    case "draft":
+      return "bg-[#FEF3C7] text-[#B45309]";
+    case "scheduled":
+      return "bg-[#F3E8FF] text-[#6B21A8]";
+    case "archived":
+      return "bg-[#F1F5F9] text-[#475569]";
+    default:
+      return "bg-[#E6F4EA] text-[#006837]";
+  }
+}
+
+function getStatusLabel(status?: PostStatus | string): string {
+  if (!status) return "Published";
+  return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+}
+
+function getReadingTime(content?: string): number {
+  const plainText = content ? content.replace(/<[^>]*>/g, " ").trim() : "";
+  const wordCount = plainText
+    ? plainText.split(/\s+/).filter(Boolean).length
+    : 0;
+
+  return Math.max(1, Math.ceil(wordCount / 200));
+}
+
+function formatDate(value?: string): string {
+  if (!value) return "Aug 10, 2026 at 10:30 AM";
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  return parsed.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 export default function BlogPreviewPage() {
   const router = useRouter();
-  const [published, setPublished] = useState(true);
-  const [showShare, setShowShare] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
 
-  const blogTitle = "5 Things to Consider When Hiring Event Staff";
+  const previewData = useSyncExternalStore(
+    subscribeToPreviewData,
+    getPreviewDataSnapshot,
+    () => null,
+  );
+  const [postOverride, setPostOverride] = useState<Post | null>(null);
+  const [imageError, setImageError] = useState(false);
+  const [shareMessage, setShareMessage] = useState("");
 
-  return (
-    <main className="min-h-screen bg-[#414141] px-[7px] py-[10px] font-sans text-[#172033]">
-      <div className="mx-auto min-h-[692px] w-full max-w-[860px] overflow-hidden border border-[#DDE2E8] bg-[#FAFAFB]">
-        {/* Top navigation */}
-        <header className="flex h-[49px] items-center border-b border-[#E7E9EC] bg-white px-[12px]">
+  let loadedPost: Post | null = null;
+  if (previewData !== null) {
+    try {
+      const [search, savedPosts = ""] = previewData.split("\u0000");
+      const postId = new URLSearchParams(search).get("id");
+
+      if (savedPosts) {
+        const parsed: unknown = JSON.parse(savedPosts);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const selectedPost = postId
+            ? parsed.find((item: Post) => item.id === postId)
+            : parsed[0];
+          loadedPost = selectedPost || DEFAULT_POST;
+        }
+      }
+    } catch (error) {
+      console.error("Unable to load blog preview:", error);
+      loadedPost = DEFAULT_POST;
+    }
+    loadedPost ??= DEFAULT_POST;
+  }
+  const post = postOverride ?? loadedPost;
+  const isLoading = previewData === null;
+
+  const handleShare = useCallback(async () => {
+    if (!post) return;
+    const shareUrl = window.location.href;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: post.title,
+          text: post.excerpt,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareMessage("Preview link copied!");
+      }
+    } catch {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareMessage("Preview link copied!");
+    }
+  }, [post]);
+
+  const handleUnpublish = () => {
+    if (!post) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to move this published post to drafts?",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const savedPosts = localStorage.getItem(STORAGE_KEY);
+      const posts: Post[] = savedPosts ? JSON.parse(savedPosts) : [];
+
+      const updatedPosts = posts.map((item) =>
+        item.id === post.id ? { ...item, status: "draft" as PostStatus } : item,
+      );
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPosts));
+      setPostOverride((current) =>
+        current ? { ...current, status: "draft" } : current,
+      );
+    } catch (error) {
+      console.error("Unable to update post status:", error);
+      window.alert("Unable to update the post. Please try again.");
+    }
+  };
+
+  const handlePreviewOnSite = () => {
+    if (!post) return;
+
+    if (post.canonicalUrl) {
+      window.open(post.canonicalUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    window.alert("This post does not have a canonical URL set.");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] p-4">
+        <p className="text-sm text-[#64748B]">Loading blog preview...</p>
+      </div>
+    );
+  }
+
+  if (!post) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] p-4">
+        <div className="w-full max-w-md rounded-xl border border-[#E2E8F0] bg-white p-6 text-center shadow-sm">
+          <FileText className="mx-auto mb-3 h-10 w-10 text-[#94A3B8]" />
+          <h1 className="text-lg font-bold text-[#0F172A]">
+            Blog post not found
+          </h1>
           <button
             type="button"
-            onClick={() => window.history.back()}
-            className="flex h-[28px] w-[100px] items-center gap-[6px] rounded-[7px] border border-[#E3E8EF] bg-white px-[11px] text-[10px] font-medium text-[#273449] hover:bg-[#F8FAFC]"
+            onClick={() => router.push("/blog")}
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#E05318] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c84612]"
           >
-            <ArrowLeft size={13} />
+            <ArrowLeft className="h-4 w-4" />
+            Back to Blog Management
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const publicationDate = post.publishedOn;
+  const readingTime = getReadingTime(post.content);
+  const authorInitial = post.author ? post.author.charAt(0).toUpperCase() : "N";
+  const isPublished = post.status?.toLowerCase() === "published";
+
+  return (
+    <div className="min-h-screen w-full bg-[#F8FAFC] font-sans text-[#1E293B] pb-12">
+      {/* TOP HEADER NAVIGATION */}
+      <header className="bg-[#F8FAFC] px-6 pt-6 pb-4">
+        <div className="mx-auto flex max-w-[1280px] items-center justify-between">
+          <button
+            type="button"
+            onClick={() => router.push("/blog")}
+            className="inline-flex items-center gap-2 rounded-lg border border-[#E2E8F0] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#475569] shadow-sm hover:bg-[#F1F5F9]"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
             Back
           </button>
-        </header>
+        </div>
 
-        {/* Page heading and actions */}
-        <section className="flex flex-wrap items-center justify-between gap-[12px] px-[11px] pb-[9px] pt-[10px]">
+        <div className="mx-auto mt-4 flex max-w-[1280px] flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-[17px] font-bold leading-[22px] tracking-[-0.35px] text-[#172033]">
+            <h1 className="text-2xl font-bold tracking-tight text-[#0F172A]">
               Blog Preview
             </h1>
-
-            <nav className="mt-[3px] flex items-center gap-[3px] text-[9px]">
-              <span className="text-[#247541]">Blog Management</span>
-              <ChevronRight size={10} className="text-[#9AA4B2]" />
-              <span className="text-[#64748B]">All Posts</span>
-              <ChevronRight size={10} className="text-[#9AA4B2]" />
-              <span className="font-semibold text-[#172033]">Blog Preview</span>
-            </nav>
+            <div className="mt-1 flex items-center gap-1.5 text-xs text-[#64748B]">
+              <Link href="/blog" className="text-[#006837] hover:underline">
+                Blog Management
+              </Link>
+              <span className="text-[#94A3B8]">&gt;</span>
+              <Link href="/blog" className="text-[#64748B] hover:underline">
+                All Posts
+              </Link>
+              <span className="text-[#94A3B8]">&gt;</span>
+              <span className="font-semibold text-[#0F172A]">Blog Preview</span>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-[8px]">
-            {/* Edit Post Button - Navigates to your create/edit page */}
+          {/* ACTION BUTTONS */}
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
-              onClick={() => router.push("/blog/create")}
-              className="flex h-[28px] items-center justify-center rounded-[7px] border border-[#FF693D] bg-white px-[16px] text-[9px] font-semibold text-[#F05224] shadow-sm hover:bg-[#FFF7F4]"
+              onClick={() =>
+                router.push(`/blog/edit?id=${encodeURIComponent(post.id)}`)
+              }
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#F97316] bg-white px-4 py-2 text-xs font-semibold text-[#EA580C] shadow-sm transition hover:bg-[#FFF7ED]"
             >
+              <Pencil className="h-3.5 w-3.5" />
               Edit Post
             </button>
 
-            <button
-              type="button"
-              onClick={() => setPublished(!published)}
-              className="flex h-[28px] items-center justify-center rounded-[7px] border border-[#F5A623] bg-white px-[15px] text-[9px] font-semibold text-[#D97706] shadow-sm hover:bg-[#FFFBEB]"
-            >
-              {published ? "Unpublish" : "Publish"}
-            </button>
+            {/* UNPUBLISH BUTTON */}
+            {isPublished && (
+              <button
+                type="button"
+                onClick={handleUnpublish}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#F97316] bg-white px-4 py-2 text-xs font-semibold text-[#D97706] shadow-sm transition hover:bg-[#FFFBEB]"
+              >
+                Unpublish
+              </button>
+            )}
 
             <button
               type="button"
-              onClick={() => setShowShare(true)}
-              className="flex h-[28px] items-center justify-center gap-[6px] rounded-[7px] border border-[#D8E0E9] bg-white px-[12px] text-[9px] font-semibold text-[#344054] shadow-sm hover:bg-[#F8FAFC]"
+              onClick={handleShare}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#CBD5E1] bg-white px-4 py-2 text-xs font-semibold text-[#475569] shadow-sm transition hover:bg-[#F8FAFC]"
             >
-              <Share2 size={12} />
+              <Share2 className="h-3.5 w-3.5 text-[#64748B]" />
               Share
             </button>
 
             <button
               type="button"
-              onClick={() => setShowPreview(true)}
-              className="flex h-[28px] items-center justify-center gap-[5px] rounded-[7px] bg-[#19683A] px-[13px] text-[9px] font-semibold text-white shadow-sm hover:bg-[#15562F]"
+              onClick={handlePreviewOnSite}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#006837] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#00522c]"
             >
               Preview on Site
-              <ExternalLink size={10} />
+              <ExternalLink className="h-3.5 w-3.5" />
             </button>
           </div>
-        </section>
+        </div>
+      </header>
 
-        {/* Main content */}
-        <div className="grid grid-cols-1 items-start gap-[16px] px-[9px] pb-[6px] md:grid-cols-[minmax(0,1.58fr)_minmax(0,0.94fr)]">
-          {/* Blog article */}
-          <article className="min-w-0 overflow-hidden rounded-[10px] border border-[#E3E9F0] bg-white px-[17px] pb-[18px] pt-[15px] shadow-[0_2px_8px_rgba(24,39,75,0.06)]">
-            {/* Publication status */}
-            <div className="mb-[7px] flex flex-wrap items-center gap-[7px] text-[9px]">
-              <span
-                className={`inline-flex items-center gap-[4px] rounded-full px-[7px] py-[3px] text-[8px] font-semibold ${
-                  published
-                    ? "bg-[#DDF8E5] text-[#16803D]"
-                    : "bg-[#FFF0D5] text-[#A16207]"
-                }`}
-              >
-                <span
-                  className={`h-[5px] w-[5px] rounded-full ${
-                    published ? "bg-[#22C55E]" : "bg-[#F59E0B]"
-                  }`}
-                />
-                {published ? "Published" : "Draft"}
+      {shareMessage && (
+        <div className="mx-auto max-w-[1280px] px-6 text-xs font-medium text-[#006837]">
+          {shareMessage}
+        </div>
+      )}
+
+      {/* MAIN CONTENT GRID */}
+      <main className="mx-auto mt-2 grid max-w-[1280px] grid-cols-1 gap-6 px-6 lg:grid-cols-[1fr_360px]">
+        {/* LEFT COLUMN: ARTICLE CONTENT */}
+        <article className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm sm:p-8">
+          {/* POST STATUS & DATE */}
+          <div className="mb-3 flex items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusStyle(
+                post.status,
+              )}`}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              {getStatusLabel(post.status)}
+            </span>
+            <span className="text-xs text-[#94A3B8]">•</span>
+            <span className="text-xs text-[#64748B]">
+              {formatDate(publicationDate)}
+            </span>
+          </div>
+
+          {/* TITLE */}
+          <h1 className="text-2xl font-bold tracking-tight text-[#0F172A] sm:text-3xl">
+            {post.title}
+          </h1>
+
+          {/* AUTHOR BAR */}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-b border-[#F1F5F9] pb-4">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#006837] text-xs font-bold text-white">
+                {authorInitial}
               </span>
-
-              <span className="text-[#A0A9B7]">•</span>
-              <span className="text-[#71819A]">Aug 10, 2026 at 10:30 AM</span>
+              <div>
+                <p className="text-xs font-bold text-[#0F172A]">
+                  {post.author}
+                </p>
+                <p className="text-[11px] text-[#64748B]">{post.category}</p>
+              </div>
             </div>
 
-            {/* Article title */}
-            <h2 className="mb-[9px] max-w-[390px] text-[19px] font-bold leading-[23px] tracking-[-0.4px] text-[#172033]">
-              {blogTitle}
+            <div className="flex items-center gap-3 text-xs text-[#64748B]">
+              <div className="inline-flex items-center gap-1">
+                <Eye className="h-3.5 w-3.5 text-[#94A3B8]" />
+                <span>{(post.views || 1245).toLocaleString()} views</span>
+              </div>
+              <span>•</span>
+              <div className="inline-flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5 text-[#94A3B8]" />
+                <span>{readingTime} min read</span>
+              </div>
+            </div>
+          </div>
+
+          {/* COVER IMAGE CONTAINER */}
+          <div className="mt-6 overflow-hidden rounded-xl bg-[#2A0E43]">
+            {post.coverImage && !imageError ? (
+              <div className="relative aspect-[16/8] w-full">
+                <Image
+                  src={post.coverImage}
+                  alt={post.title}
+                  fill
+                  unoptimized
+                  className="object-cover"
+                  onError={() => setImageError(true)}
+                />
+              </div>
+            ) : (
+              <div className="flex aspect-[16/8] w-full flex-col items-center justify-center bg-gradient-to-r from-[#1E0836] via-[#2D1252] to-[#42135C] p-6 text-center text-white">
+                <div className="mb-2 flex items-center justify-center gap-1.5 opacity-80">
+                  <span className="text-lg">🍷</span>
+                  <span className="text-lg">🍸</span>
+                  <span className="text-lg">🍷</span>
+                </div>
+                <h3 className="text-xl font-bold tracking-wide text-[#F97316]">
+                  Hosté
+                </h3>
+              </div>
+            )}
+          </div>
+
+          {/* EXCERPT & BODY */}
+          <div className="mt-6 text-sm text-[#475569]">
+            <p className="leading-relaxed text-[#334155]">{post.excerpt}</p>
+
+            <div
+              className="blog-preview-content mt-4 leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: post.content || "<p>No content available.</p>",
+              }}
+            />
+          </div>
+        </article>
+
+        {/* RIGHT COLUMN: SIDEBAR */}
+        <aside className="space-y-5">
+          {/* POST INFORMATION */}
+          <section className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+            <h2 className="border-b border-[#F1F5F9] pb-3 text-xs font-bold text-[#0F172A]">
+              Post Information
             </h2>
 
-            {/* Author and reading information */}
-            <div className="mb-[13px] flex flex-wrap items-center justify-between gap-[8px]">
-              <div className="flex items-center gap-[6px]">
-                <div className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-[#176A3A] text-[10px] font-semibold text-white">
-                  S
-                </div>
-                <div>
-                  <p className="text-[9px] font-bold leading-[12px] text-[#202A3E]">
-                    Naomi Admin
-                  </p>
-                  <p className="text-[8px] leading-[10px] text-[#71819A]">
-                    Event Planning
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-[10px] text-[9px] text-[#71819A]">
-                <span className="flex items-center gap-[3px]">
-                  <Eye size={12} />
-                  1,245 views
-                </span>
-                <span className="flex items-center gap-[3px]">
-                  <Clock3 size={12} />6 min read
-                </span>
-              </div>
-            </div>
-
-            {/* Featured image illustration */}
-            <div className="relative mb-[9px] h-[184px] overflow-hidden rounded-[7px] bg-gradient-to-br from-[#20193F] via-[#41146B] to-[#100C28]">
-              <div className="absolute -right-[20px] top-[28px] h-[100px] w-[200px] rounded-full bg-[#8B28C4] opacity-60 blur-[35px]" />
-              <div className="absolute bottom-[-35px] left-[22%] h-[100px] w-[230px] rounded-full bg-[#7D28BA] opacity-60 blur-[25px]" />
-
-              <div className="absolute left-[12%] top-[40px] h-[57px] w-[57px] rounded-full bg-[#67204F] opacity-70" />
-              <div className="absolute left-[34%] top-[14px] h-[86px] w-[86px] rounded-full bg-[#30245C] opacity-80" />
-              <div className="absolute right-[20%] top-[62px] h-[64px] w-[64px] rounded-full bg-[#66317C] opacity-60" />
-
-              <div className="absolute bottom-[5px] right-[21%] h-[139px] w-[78px]">
-                <div
-                  className="absolute bottom-0 left-[4px] h-[127px] w-[70px] bg-[#100B20]"
-                  style={{
-                    clipPath:
-                      "polygon(40% 0%, 52% 8%, 63% 24%, 73% 42%, 92% 66%, 100% 100%, 0% 100%, 3% 75%, 15% 54%, 31% 36%, 39% 19%)",
-                  }}
-                />
-                <div
-                  className="absolute left-[18px] top-[5px] h-[60px] w-[23px] rotate-[20deg] bg-[#100B20]"
-                  style={{
-                    clipPath: "polygon(0 0, 100% 45%, 35% 100%, 25% 54%)",
-                  }}
-                />
-
-                <div className="absolute left-[-26px] top-[64px] h-[2px] w-[64px] bg-[#F0F0F4]" />
-                <div className="absolute left-[-13px] top-[52px] flex items-end gap-[8px]">
-                  <span className="h-[12px] w-[7px] border-x border-b border-[#F7F5FF] [clip-path:polygon(0_0,100%_0,70%_100%,30%_100%)]" />
-                  <span className="h-[16px] w-[8px] border-x border-b border-[#F7F5FF] [clip-path:polygon(0_0,100%_0,70%_100%,30%_100%)]" />
-                  <span className="h-[12px] w-[7px] border-x border-b border-[#F7F5FF] [clip-path:polygon(0_0,100%_0,70%_100%,30%_100%)]" />
-                </div>
-
-                <div className="absolute bottom-[38px] left-[5px] text-[15px] font-bold tracking-[-0.5px] text-[#FF5A0A]">
-                  Hosté
-                </div>
-              </div>
-            </div>
-
-            {/* Article body */}
-            <div className="space-y-[9px] text-[10px] leading-[15px] text-[#3E4D67]">
-              <p>
-                Hiring the right event staff can make or break your event. From
-                professionalism to reliability, the right team ensures
-                everything runs smoothly while you focus on enjoying the
-                occasion.
-              </p>
-
-              <p>Here are five key factors to keep in mind:</p>
-
-              <section>
-                <h3 className="mb-[2px] font-bold text-[#172033]">
-                  1. Experience Matters
-                </h3>
-                <p>
-                  Look for staff who have prior experience in the type of event
-                  you are hosting. Experienced staff can handle unexpected
-                  situations with ease and maintain a high level of service.
-                </p>
-              </section>
-
-              <section>
-                <h3 className="mb-[2px] font-bold text-[#172033]">
-                  2. Professionalism &amp; Attitude
-                </h3>
-                <p>
-                  A positive attitude, good communication, and professionalism
-                  go a long way in creating a wonderful atmosphere.
-                </p>
-              </section>
-            </div>
-          </article>
-
-          {/* Right sidebar */}
-          <aside className="flex min-w-0 flex-col gap-[10px]">
-            {/* Post information */}
-            <section className="rounded-[10px] border border-[#E3E9F0] bg-white px-[14px] pb-[5px] pt-[11px] shadow-[0_2px_8px_rgba(24,39,75,0.06)]">
-              <h3 className="mb-[9px] text-[10px] font-bold text-[#172033]">
-                Post Information
-              </h3>
-
-              <InfoRow label="Status">
-                <span
-                  className={`rounded-full px-[8px] py-[3px] text-[8px] font-semibold ${
-                    published
-                      ? "bg-[#DDF8E5] text-[#16803D]"
-                      : "bg-[#FFF0D5] text-[#A16207]"
-                  }`}
-                >
-                  {published ? "Published" : "Draft"}
-                </span>
-              </InfoRow>
-
-              <InfoRow label="Post ID">
-                <span className="font-semibold text-[#172033]">#BLOG-128</span>
-              </InfoRow>
-
-              <InfoRow label="Author">
-                <span className="flex items-center gap-[7px] font-semibold text-[#172033]">
-                  <span className="flex h-[14px] w-[14px] items-center justify-center rounded-full bg-[#176A3A] text-[8px] text-white">
-                    N
-                  </span>
-                  Naomi Admin
-                </span>
-              </InfoRow>
-
-              <InfoRow label="Category">
-                <span className="rounded-[5px] bg-[#DDF5E6] px-[7px] py-[4px] text-[8px] font-semibold text-[#176B3A]">
-                  Event Planning
-                </span>
-              </InfoRow>
-
-              <InfoRow label="Tags">
-                <div className="flex items-center gap-[4px]">
-                  <span className="rounded-[5px] bg-[#FFF0C5] px-[6px] py-[4px] text-[8px] font-medium text-[#B86A00]">
-                    Event Staff
-                  </span>
-                  <span className="rounded-[5px] bg-[#EDE9FE] px-[6px] py-[4px] text-[8px] font-medium text-[#5B36D6]">
-                    Hiring Tips
-                  </span>
-                </div>
-              </InfoRow>
-
-              <InfoRow label="Published On">
-                <span className="text-right text-[9px] font-semibold text-[#172033]">
-                  Aug 10, 2026 at 10:30 AM
-                </span>
-              </InfoRow>
-
-              <InfoRow label="Last Updated" last>
-                <span className="text-right text-[9px] font-semibold text-[#172033]">
-                  Aug 10, 2026 at 10:30 AM
-                </span>
-              </InfoRow>
-            </section>
-
-            {/* SEO information */}
-            <section className="rounded-[10px] border border-[#E3E9F0] bg-white px-[14px] pb-[12px] pt-[11px] shadow-[0_2px_8px_rgba(24,39,75,0.06)]">
-              <h3 className="mb-[10px] text-[10px] font-bold text-[#172033]">
-                SEO Information
-              </h3>
-              <div className="mb-[10px]">
-                <p className="mb-[3px] text-[9px] text-[#71819A]">SEO Title</p>
-                <p className="text-[9px] font-semibold leading-[13px] text-[#172033]">
-                  {blogTitle}
-                </p>
-              </div>
-              <div>
-                <p className="mb-[3px] text-[9px] text-[#71819A]">
-                  Meta Description
-                </p>
-                <p className="text-[10px] leading-[14px] text-[#45536D]">
-                  Discover the top 5 things to consider when hiring event staff
-                  for your next event to ensure a successful and stress-free
-                  experience.
-                </p>
-              </div>
-            </section>
-
-            {/* Post statistics */}
-            <section className="rounded-[10px] border border-[#E3E9F0] bg-white px-[13px] pb-[13px] pt-[11px] shadow-[0_2px_8px_rgba(24,39,75,0.06)]">
-              <h3 className="mb-[9px] text-[10px] font-bold text-[#172033]">
-                Post Statistics
-              </h3>
-              <div className="grid grid-cols-3 gap-[9px]">
-                <StatCard
-                  icon={<Eye size={13} />}
-                  value="1,245"
-                  label="Views"
-                  iconColor="text-[#6557FF]"
-                />
-                <StatCard
-                  icon={<Heart size={13} />}
-                  value="86"
-                  label="Likes"
-                  iconColor="text-[#FF4B55]"
-                />
-                <StatCard
-                  icon={<MessageSquare size={12} />}
-                  value="12"
-                  label="Comments"
-                  iconColor="text-[#16A34A]"
-                />
-              </div>
-            </section>
-
-            {/* Content checklist */}
-            <section className="min-h-[96px] rounded-[10px] border border-[#E3E9F0] bg-white px-[14px] pb-[12px] pt-[11px] shadow-[0_2px_8px_rgba(24,39,75,0.06)]">
-              <h3 className="mb-[11px] text-[10px] font-bold text-[#172033]">
-                Content Checklist
-              </h3>
+            <div className="mt-3.5 space-y-3 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-[9px] text-[#45536D]">
-                  Featured Image
-                </span>
-                <span className="flex h-[12px] w-[12px] items-center justify-center rounded-full bg-[#DDF8E5] text-[#16A34A]">
-                  <CheckCircle2 size={11} strokeWidth={2.5} />
+                <span className="text-[#64748B]">Status</span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${getStatusStyle(
+                    post.status,
+                  )}`}
+                >
+                  {getStatusLabel(post.status)}
                 </span>
               </div>
-            </section>
-          </aside>
-        </div>
 
-        {/* Share modal */}
-        {showShare && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="w-full max-w-[360px] rounded-xl border border-[#E3E9F0] bg-white p-5 shadow-xl">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-[15px] font-bold">Share Blog Post</h2>
-                <button
-                  type="button"
-                  onClick={() => setShowShare(false)}
-                  aria-label="Close share dialog"
-                >
-                  <X size={17} />
-                </button>
+              <div className="flex items-center justify-between">
+                <span className="text-[#64748B]">Post ID</span>
+                <span className="font-semibold text-[#0F172A]">
+                  #{post.id ? post.id : "BLOG-128"}
+                </span>
               </div>
-              <p className="mb-3 text-[12px] text-[#64748B]">{blogTitle}</p>
-              <div className="flex gap-2">
-                <input
-                  readOnly
-                  value="https://hoste.com/blog/5-things-to-consider"
-                  className="min-w-0 flex-1 rounded-md border border-[#E3E9F0] px-2 py-2 text-[10px] outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    void navigator.clipboard?.writeText(
-                      "https://hoste.com/blog/5-things-to-consider",
-                    );
-                  }}
-                  className="rounded-md bg-[#19683A] px-3 py-2 text-[10px] font-semibold text-white"
-                >
-                  Copy
-                </button>
+
+              <div className="flex items-center justify-between">
+                <span className="text-[#64748B]">Author</span>
+                <div className="flex items-center gap-1.5 font-semibold text-[#0F172A]">
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#006837] text-[9px] font-bold text-white">
+                    {authorInitial}
+                  </span>
+                  {post.author}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-[#64748B]">Category</span>
+                <span className="rounded bg-[#E6F4EA] px-2 py-0.5 text-[11px] font-medium text-[#006837]">
+                  {post.category || "Event Planning"}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-[#64748B]">Tags</span>
+                <div className="flex gap-1">
+                  {(post.tags && post.tags.length > 0
+                    ? post.tags
+                    : ["Event Staff", "Hiring Tips"]
+                  ).map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded bg-[#FEF3C7] px-1.5 py-0.5 text-[10px] font-semibold text-[#B45309]"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                  <span className="rounded bg-[#F1F5F9] px-1.5 py-0.5 text-[10px] text-[#64748B]">
+                    +2
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-[#F1F5F9] pt-2">
+                <span className="text-[#64748B]">Published On</span>
+                <span className="font-semibold text-[#0F172A]">
+                  {formatDate(publicationDate)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-[#64748B]">Last Updated</span>
+                <span className="font-semibold text-[#0F172A]">
+                  {formatDate(
+                    "updatedAt" in post && typeof post.updatedAt === "string"
+                      ? post.updatedAt
+                      : publicationDate,
+                  )}
+                </span>
               </div>
             </div>
-          </div>
-        )}
+          </section>
 
-        {/* Site preview modal */}
-        {showPreview && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-[600px] rounded-xl bg-white p-6 shadow-xl">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-[16px] font-bold">Site Preview</h2>
-                <button
-                  type="button"
-                  onClick={() => setShowPreview(false)}
-                  aria-label="Close preview"
-                >
-                  <X size={18} />
-                </button>
+          {/* SEO INFORMATION */}
+          <section className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+            <h2 className="border-b border-[#F1F5F9] pb-3 text-xs font-bold text-[#0F172A]">
+              SEO Information
+            </h2>
+
+            <div className="mt-3 space-y-3 text-xs">
+              <div>
+                <p className="text-[10px] text-[#64748B]">SEO Title</p>
+                <p className="mt-0.5 font-semibold text-[#0F172A]">
+                  {post.metaTitle || post.title}
+                </p>
               </div>
-              <p className="mb-3 text-[12px] text-[#64748B]">
-                Preview of how this article appears on the Hosté website.
-              </p>
-              <h3 className="mb-3 text-[22px] font-bold">{blogTitle}</h3>
-              <p className="text-[12px] leading-6 text-[#45536D]">
-                Hiring the right event staff can make or break your event. From
-                professionalism to reliability, the right team ensures
-                everything runs smoothly while you focus on enjoying the
-                occasion.
-              </p>
+
+              <div>
+                <p className="text-[10px] text-[#64748B]">Meta Description</p>
+                <p className="mt-0.5 leading-relaxed text-[#475569]">
+                  {post.metaDescription || post.excerpt}
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-    </main>
-  );
-}
+          </section>
 
-function InfoRow({
-  label,
-  children,
-  last = false,
-}: {
-  label: string;
-  children: React.ReactNode;
-  last?: boolean;
-}) {
-  return (
-    <div
-      className={`flex min-h-[25px] items-center justify-between gap-2 ${
-        last ? "" : "border-b border-[#F0F2F5]"
-      }`}
-    >
-      <span className="shrink-0 text-[9px] text-[#71819A]">{label}</span>
-      <div className="min-w-0">{children}</div>
-    </div>
-  );
-}
+          {/* POST STATISTICS */}
+          <section className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+            <h2 className="border-b border-[#F1F5F9] pb-3 text-xs font-bold text-[#0F172A]">
+              Post Statistics
+            </h2>
 
-function StatCard({
-  icon,
-  value,
-  label,
-  iconColor,
-}: {
-  icon: React.ReactNode;
-  value: string;
-  label: string;
-  iconColor: string;
-}) {
-  return (
-    <div className="flex h-[47px] min-w-0 flex-col items-center justify-center rounded-[7px] bg-[#F7F9FC] px-1">
-      <div className="flex items-center gap-[5px]">
-        <span className={iconColor}>{icon}</span>
-        <span className="text-[13px] font-bold leading-[15px] text-[#172033]">
-          {value}
-        </span>
-      </div>
-      <span className="mt-[1px] text-[8px] text-[#71819A]">{label}</span>
+            <div className="mt-3.5 grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-lg bg-[#F8FAFC] p-2.5">
+                <div className="flex items-center justify-center gap-1 text-[10px] text-[#64748B]">
+                  <Eye className="h-3 w-3 text-[#006837]" />
+                  <span>Views</span>
+                </div>
+                <p className="mt-1 text-sm font-bold text-[#0F172A]">
+                  {(post.views || 1245).toLocaleString()}
+                </p>
+              </div>
+
+              <div className="rounded-lg bg-[#F8FAFC] p-2.5">
+                <div className="flex items-center justify-center gap-1 text-[10px] text-[#64748B]">
+                  <Heart className="h-3 w-3 text-[#DC2626]" />
+                  <span>Likes</span>
+                </div>
+                <p className="mt-1 text-sm font-bold text-[#0F172A]">86</p>
+              </div>
+
+              <div className="rounded-lg bg-[#F8FAFC] p-2.5">
+                <div className="flex items-center justify-center gap-1 text-[10px] text-[#64748B]">
+                  <MessageSquare className="h-3 w-3 text-[#2563EB]" />
+                  <span>Comments</span>
+                </div>
+                <p className="mt-1 text-sm font-bold text-[#0F172A]">12</p>
+              </div>
+            </div>
+          </section>
+
+          {/* CONTENT CHECKLIST */}
+          <section className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+            <h2 className="border-b border-[#F1F5F9] pb-3 text-xs font-bold text-[#0F172A]">
+              Content Checklist
+            </h2>
+
+            <div className="mt-3.5 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[#475569]">Featured Image</span>
+                <CheckCircle2 className="h-4 w-4 text-[#16A34A]" />
+              </div>
+            </div>
+          </section>
+        </aside>
+      </main>
     </div>
   );
 }

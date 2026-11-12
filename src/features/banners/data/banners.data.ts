@@ -1,10 +1,9 @@
-import { Banner } from "../banners.types";
-
-export const MOCK_BANNERS: Banner[] = [
+export const MOCK_BANNERS = [
   {
     id: "banner-1",
     title: "Independence Day Promo 2026",
-    description: "Get 20% off platform booking fees for all Independence weekend corporate events.",
+    description:
+      "Get 20% off platform booking fees for all Independence weekend corporate events.",
     ctaText: "Claim Discount",
     destinationUrl: "https://hoste.ng/promo/independence-2026",
     placement: "Home Hero",
@@ -18,7 +17,8 @@ export const MOCK_BANNERS: Banner[] = [
   {
     id: "banner-2",
     title: "Verified Hosté Recruitment Drive",
-    description: "Are you a top event planner? Register to join Hosté Elite network.",
+    description:
+      "Are you a top event planner? Register to join Hosté Elite network.",
     ctaText: "Apply Now",
     destinationUrl: "https://hoste.ng/join-elite",
     placement: "Bookings Header",

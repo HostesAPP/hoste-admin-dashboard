@@ -1,17 +1,20 @@
-export type BlogPostStatus = "Draft" | "Scheduled" | "Published" | "Archived";
+export type PostStatus = "published" | "draft" | "scheduled" | "archived";
 
-export interface BlogPost {
+export interface Post {
   id: string;
   title: string;
-  slug: string;
   excerpt: string;
   content: string;
+  coverImage: string;
   author: string;
   category: string;
   tags: string[];
-  coverImageUrl?: string;
-  status: BlogPostStatus;
-  publishedAt?: string;
-  scheduledAt?: string;
-  createdAt: string;
+  status: PostStatus;
+  publishedOn?: string;
+  scheduledFor?: string;
+  views: number;
+  slug: string;
+  metaTitle: string;
+  metaDescription: string;
+  canonicalUrl?: string;
 }
