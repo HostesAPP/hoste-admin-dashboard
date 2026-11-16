@@ -28,11 +28,13 @@ import type { ActionType } from "./ProfileActionModal";
 interface ProfileRowItemProps {
   profile: Profile;
   onOpenActionModal: (type: ActionType, profile: Profile) => void;
+  canManage?: boolean;
 }
 
 export function ProfileRowItem({
   profile,
   onOpenActionModal,
+  canManage = true,
 }: ProfileRowItemProps) {
   const formattedJoinedDate = new Date(profile.createdAt).toLocaleDateString(
     "en-US",
@@ -133,76 +135,88 @@ export function ProfileRowItem({
             </Button>
           </Link>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger className="w-8 h-8 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer">
-              <MoreVertical className="w-4 h-4" />
-              <span className="sr-only">More actions</span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 rounded-xl">
-              {profile.status === "Pending" && (
-                <>
-                  <DropdownMenuItem
-                    onClick={() => onOpenActionModal("approve", profile)}
-                    className="text-xs cursor-pointer text-secondary focus:text-secondary font-medium"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5 mr-2" />
-                    Approve Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => onOpenActionModal("reject", profile)}
-                    className="text-xs cursor-pointer text-destructive focus:text-destructive font-medium"
-                  >
-                    <XCircle className="w-3.5 h-3.5 mr-2" />
-                    Reject Application
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
+          {canManage ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="w-8 h-8 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer">
+                <MoreVertical className="w-4 h-4" />
+                <span className="sr-only">More actions</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 rounded-xl">
+                {profile.status === "Pending" && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => onOpenActionModal("approve", profile)}
+                      className="text-xs cursor-pointer text-secondary focus:text-secondary font-medium"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5 mr-2" />
+                      Approve Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => onOpenActionModal("reject", profile)}
+                      className="text-xs cursor-pointer text-destructive focus:text-destructive font-medium"
+                    >
+                      <XCircle className="w-3.5 h-3.5 mr-2" />
+                      Reject Application
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
 
-              {profile.status === "Active" && (
-                <>
-                  <DropdownMenuItem
-                    onClick={() => onOpenActionModal("suspend", profile)}
-                    className="text-xs cursor-pointer text-warning focus:text-warning font-medium"
-                  >
-                    <Clock className="w-3.5 h-3.5 mr-2" />
-                    Suspend Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => onOpenActionModal("ban", profile)}
-                    className="text-xs cursor-pointer text-destructive focus:text-destructive font-medium"
-                  >
-                    <ShieldBan className="w-3.5 h-3.5 mr-2" />
-                    Deactivate / Ban
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
+                {profile.status === "Active" && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => onOpenActionModal("suspend", profile)}
+                      className="text-xs cursor-pointer text-warning focus:text-warning font-medium"
+                    >
+                      <Clock className="w-3.5 h-3.5 mr-2" />
+                      Suspend Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => onOpenActionModal("ban", profile)}
+                      className="text-xs cursor-pointer text-destructive focus:text-destructive font-medium"
+                    >
+                      <ShieldBan className="w-3.5 h-3.5 mr-2" />
+                      Deactivate / Ban
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
 
-              {(profile.status === "Suspended" ||
-                profile.status === "Deleted" ||
-                profile.status === "Rejected") && (
-                <>
-                  <DropdownMenuItem
-                    onClick={() => onOpenActionModal("restore", profile)}
-                    className="text-xs cursor-pointer text-secondary focus:text-secondary font-medium"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5 mr-2" />
-                    Restore Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
+                {(profile.status === "Suspended" ||
+                  profile.status === "Deleted" ||
+                  profile.status === "Rejected") && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => onOpenActionModal("restore", profile)}
+                      className="text-xs cursor-pointer text-secondary focus:text-secondary font-medium"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5 mr-2" />
+                      Restore Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
 
-              <DropdownMenuItem
-                onClick={copyProfileId}
-                className="text-xs cursor-pointer"
-              >
-                <Copy className="w-3.5 h-3.5 mr-2" />
-                Copy Profile ID
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem
+                  onClick={copyProfileId}
+                  className="text-xs cursor-pointer"
+                >
+                  <Copy className="w-3.5 h-3.5 mr-2" />
+                  Copy Profile ID
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={copyProfileId}
+              title="Copy Profile ID"
+              className="w-8 h-8 p-0 text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </Button>
+          )}
         </div>
       </div>
 

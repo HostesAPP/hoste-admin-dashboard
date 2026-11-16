@@ -4,6 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import type { Profile } from "../types/profiles.types";
 import { useAdminProfileDetail, useReviewActivation } from "../hooks/use-profiles";
+import { usePermission } from "@/lib/permissions";
+import { AccessRestricted } from "@/components/shared";
 import { ProfileDetailsHeader } from "./ProfileDetailsHeader";
 import { ProfileSummaryCard } from "./ProfileSummaryCard";
 import { ProfilePersonalInfoCard } from "./ProfilePersonalInfoCard";
@@ -27,6 +29,7 @@ interface ProfileDetailsViewProps {
 }
 
 export function ProfileDetailsView({ profileId }: ProfileDetailsViewProps) {
+  const { isNone, canManage } = usePermission("profiles");
   const { data: profile, isLoading, isError, refetch } = useAdminProfileDetail(profileId);
   const reviewMutation = useReviewActivation();
 
@@ -39,6 +42,10 @@ export function ProfileDetailsView({ profileId }: ProfileDetailsViewProps) {
     actionType: null,
     selectedProfile: null,
   });
+
+  if (isNone) {
+    return <AccessRestricted areaName="Profiles" />;
+  }
 
   if (isLoading) {
     return (
@@ -147,6 +154,7 @@ export function ProfileDetailsView({ profileId }: ProfileDetailsViewProps) {
       <ProfileSummaryCard
         profile={profile}
         onOpenActionModal={handleOpenActionModal}
+        canManage={canManage}
       />
 
       {/* 2-Column Grid Layout */}

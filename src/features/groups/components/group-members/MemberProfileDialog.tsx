@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   Dialog,
   DialogContent,
@@ -112,6 +113,14 @@ export const MemberProfileDialog: React.FC<MemberProfileDialogProps> = ({
           >
             Close
           </Button>
+          {member.profileId && (
+            <Link
+              href={`/profiles/${member.profileId}`}
+              className="inline-flex items-center justify-center h-9 px-3 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              <span>View Profile</span>
+            </Link>
+          )}
           {onOpenChangeRole && (
             <Button
               type="button"

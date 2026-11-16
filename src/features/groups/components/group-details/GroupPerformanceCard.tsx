@@ -17,12 +17,12 @@ interface PerformanceDataPoint {
 }
 
 const DEFAULT_PERFORMANCE_DATA: PerformanceDataPoint[] = [
-  { month: "Mar", bookings: 12 },
-  { month: "Apr", bookings: 18 },
-  { month: "May", bookings: 26 },
-  { month: "Jun", bookings: 22 },
-  { month: "Jul", bookings: 38 },
-  { month: "Aug", bookings: 54 },
+  { month: "Jan", bookings: 0 },
+  { month: "Feb", bookings: 0 },
+  { month: "Mar", bookings: 0 },
+  { month: "Apr", bookings: 0 },
+  { month: "May", bookings: 0 },
+  { month: "Jun", bookings: 0 },
 ];
 
 interface CustomTooltipProps {
@@ -46,6 +46,22 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 };
 
 export const GroupPerformanceCard = ({ group }: { group?: Group }) => {
+  const completedBookings =
+    group?.bookingCount ??
+    group?.bookingsCount ??
+    group?.engagementsCount ??
+    0;
+
+  const totalMembers =
+    group?.memberCount ??
+    group?.membersCount ??
+    0;
+
+  const performanceData =
+    Array.isArray(group?.performanceTrend) && group.performanceTrend.length > 0
+      ? (group.performanceTrend as PerformanceDataPoint[])
+      : DEFAULT_PERFORMANCE_DATA;
+
   return (
     <section className="p-6 rounded-xl border border-border bg-card shadow-xs flex-1 flex flex-col justify-between">
       {/* Header */}
@@ -59,14 +75,14 @@ export const GroupPerformanceCard = ({ group }: { group?: Group }) => {
       {/* Chart Section */}
       <div className="py-4 space-y-2">
         <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
-          Bookings Over Last 6 Months
+          Bookings Trend
         </span>
 
         {/* Recharts Area Chart */}
         <div className="w-full h-36 pt-2">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
-              data={DEFAULT_PERFORMANCE_DATA}
+              data={performanceData}
               margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
             >
               <defs>
@@ -87,7 +103,7 @@ export const GroupPerformanceCard = ({ group }: { group?: Group }) => {
                 tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
                 dy={4}
               />
-              <YAxis hide domain={["dataMin - 10", "dataMax + 10"]} />
+              <YAxis hide domain={["dataMin - 5", "dataMax + 5"]} />
               <Tooltip content={<CustomTooltip />} cursor={{ stroke: "var(--border)", strokeDasharray: "3 3" }} />
               <Area
                 type="monotone"
@@ -116,25 +132,25 @@ export const GroupPerformanceCard = ({ group }: { group?: Group }) => {
             Completed Bookings
           </span>
           <span className="font-bold text-base text-foreground mt-0.5 block">
-            328
+            {completedBookings}
           </span>
         </div>
 
         <div>
           <span className="text-muted-foreground block text-[11px]">
-            Canceled Bookings
+            Total Engagements
           </span>
-          <span className="font-bold text-base text-destructive mt-0.5 block">
-            14 (4.0%)
+          <span className="font-bold text-base text-foreground mt-0.5 block">
+            {completedBookings}
           </span>
         </div>
 
         <div>
           <span className="text-muted-foreground block text-[11px]">
-            Joined This Month
+            Total Members
           </span>
           <span className="font-bold text-base text-success mt-0.5 block">
-            +18 members
+            {totalMembers}
           </span>
         </div>
       </div>

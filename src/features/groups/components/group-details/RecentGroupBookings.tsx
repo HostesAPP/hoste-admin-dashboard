@@ -15,27 +15,8 @@ import { StatusBadge } from "@/components/shared";
 import { formatDate } from "@/lib/utils";
 import type { Group } from "../../types/groups.types";
 
-const DEFAULT_BOOKINGS = [
-  {
-    id: "bkg-1",
-    referenceId: "BK-10482",
-    brandCustomer: "Accra Events Ltd",
-    date: "2026-08-25",
-    amount: 250000,
-    status: "Confirmed",
-  },
-  {
-    id: "bkg-2",
-    referenceId: "BK-10450",
-    brandCustomer: "GoldCoast Hospitality",
-    date: "2026-08-22",
-    amount: 180000,
-    status: "Completed",
-  },
-];
-
 export const RecentGroupBookings = ({ group }: { group?: Group }) => {
-  const backendBookings = Array.isArray(group?.engagements)
+  const bookings = Array.isArray(group?.engagements)
     ? (group.engagements as Array<{
         id: string;
         referenceId?: string;
@@ -47,8 +28,6 @@ export const RecentGroupBookings = ({ group }: { group?: Group }) => {
         status?: string;
       }>)
     : [];
-
-  const bookings = backendBookings.length > 0 ? backendBookings : DEFAULT_BOOKINGS;
 
   return (
     <section className="rounded-xl border border-border bg-card shadow-xs overflow-hidden">
@@ -90,48 +69,58 @@ export const RecentGroupBookings = ({ group }: { group?: Group }) => {
           </TableHeader>
 
           <TableBody>
-            {bookings.map((booking) => {
-              const bookingRef =
-                ("referenceId" in booking && booking.referenceId) ||
-                booking.id ||
-                "BK-10482";
-              const brandCustomer =
-                ("brandCustomer" in booking && booking.brandCustomer) ||
-                ("brandName" in booking && booking.brandName) ||
-                ("customerName" in booking && booking.customerName) ||
-                ("title" in booking && booking.title) ||
-                "Accra Events Ltd";
-              const dateVal =
-                ("date" in booking && booking.date) ||
-                ("startDate" in booking && booking.startDate);
-              const amountVal =
-                ("amount" in booking && booking.amount) ??
-                ("totalAmount" in booking && booking.totalAmount) ??
-                250000;
-
-              return (
-                <TableRow
-                  key={booking.id}
-                  className="hover:bg-muted/30 border-b border-border/70"
+            {bookings.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="py-8 text-center text-muted-foreground"
                 >
-                  <TableCell className="py-3.5 px-5 font-bold text-xs text-primary">
-                    {bookingRef}
-                  </TableCell>
-                  <TableCell className="py-3.5 text-xs font-medium text-foreground">
-                    {brandCustomer}
-                  </TableCell>
-                  <TableCell className="py-3.5 text-xs text-muted-foreground">
-                    {dateVal ? formatDate(dateVal) : "—"}
-                  </TableCell>
-                  <TableCell className="py-3.5 text-xs font-bold text-foreground">
-                    ₦{amountVal.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="py-3.5 text-right pr-6">
-                    <StatusBadge status={booking.status || "Completed"} />
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                  <p className="text-xs font-medium">
+                    No group bookings recorded yet
+                  </p>
+                </TableCell>
+              </TableRow>
+            ) : (
+              bookings.map((booking) => {
+                const bookingRef =
+                  booking.referenceId || booking.id || "BK-0000";
+                const brandCustomer =
+                  booking.brandName ||
+                  booking.customerName ||
+                  booking.title ||
+                  "Client";
+                const dateStr = booking.startDate
+                  ? formatDate(booking.startDate)
+                  : "—";
+                const amountFormatted =
+                  typeof booking.totalAmount === "number"
+                    ? `₦${booking.totalAmount.toLocaleString()}`
+                    : "—";
+
+                return (
+                  <TableRow
+                    key={booking.id}
+                    className="hover:bg-muted/30 transition-colors border-b border-border/70"
+                  >
+                    <TableCell className="py-3 px-5 text-xs font-semibold text-foreground font-mono">
+                      {bookingRef}
+                    </TableCell>
+                    <TableCell className="py-3 text-xs text-foreground font-medium">
+                      {brandCustomer}
+                    </TableCell>
+                    <TableCell className="py-3 text-xs text-muted-foreground">
+                      {dateStr}
+                    </TableCell>
+                    <TableCell className="py-3 text-xs font-semibold text-foreground">
+                      {amountFormatted}
+                    </TableCell>
+                    <TableCell className="py-3 text-right pr-6">
+                      <StatusBadge status={booking.status || "Pending"} />
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </div>

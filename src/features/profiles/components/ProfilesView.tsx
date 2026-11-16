@@ -4,6 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useProfiles } from "../hooks/use-profiles";
 import { exportProfilesCsv } from "../api/profile.api";
+import { usePermission } from "@/lib/permissions";
+import { AccessRestricted } from "@/components/shared";
 import { ProfilesHeader } from "./ProfilesHeader";
 import { ProfilesTabs } from "./ProfilesTabs";
 import { ProfilesTable } from "./ProfilesTable";
@@ -35,6 +37,8 @@ export function ProfilesView() {
     restoreProfile,
     banProfile,
   } = useProfiles();
+
+  const { isNone, canManage } = usePermission("profiles");
 
   const [isExporting, setIsExporting] = useState(false);
   const [modalState, setModalState] = useState<{
@@ -139,6 +143,10 @@ export function ProfilesView() {
     }
   };
 
+  if (isNone) {
+    return <AccessRestricted areaName="Profiles" />;
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Top Header */}
@@ -174,6 +182,7 @@ export function ProfilesView() {
           onSkipChange={handleSkipChange}
           onTakeChange={handleTakeChange}
           onOpenActionModal={handleOpenActionModal}
+          canManage={canManage}
         />
       </div>
 

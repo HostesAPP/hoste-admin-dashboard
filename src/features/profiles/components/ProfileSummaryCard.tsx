@@ -8,11 +8,13 @@ import Image from "next/image";
 interface ProfileSummaryCardProps {
   profile: Profile;
   onOpenActionModal: (type: ActionType, profile: Profile) => void;
+  canManage?: boolean;
 }
 
 export function ProfileSummaryCard({
   profile,
   onOpenActionModal,
+  canManage = true,
 }: ProfileSummaryCardProps) {
   const isPending = profile.status === "Pending";
 

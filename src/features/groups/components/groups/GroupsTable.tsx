@@ -37,6 +37,41 @@ import { StatusBadge } from "@/components/shared/StatusBadge";
 import { cn, formatDate } from "@/lib/utils";
 import type { Group } from "../../types/groups.types";
 
+function getPageNumbers(
+  currentPage: number,
+  totalPages: number
+): (number | "ellipsis")[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, "ellipsis", totalPages];
+  }
+
+  if (currentPage >= totalPages - 3) {
+    return [
+      1,
+      "ellipsis",
+      totalPages - 4,
+      totalPages - 3,
+      totalPages - 2,
+      totalPages - 1,
+      totalPages,
+    ];
+  }
+
+  return [
+    1,
+    "ellipsis",
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    "ellipsis",
+    totalPages,
+  ];
+}
+
 interface GroupsTableProps {
   groups?: Group[];
   isLoading?: boolean;
@@ -164,8 +199,9 @@ export const GroupsTable = ({
     );
   }
 
-  const startRecord = (currentPage - 1) * pageSize + 1;
+  const startRecord = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endRecord = Math.min(currentPage * pageSize, totalCount);
+  const pageNumbers = getPageNumbers(currentPage, totalPages);
 
   return (
     <section className="p-4 border border-border/80 bg-card rounded-xl shadow-xs space-y-4">
@@ -264,9 +300,18 @@ export const GroupsTable = ({
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="font-semibold text-xs text-foreground">
-                          {groupLeaderName}
-                        </span>
+                        {group.leaderProfileId ? (
+                          <Link
+                            href={`/profiles/${group.leaderProfileId}`}
+                            className="font-semibold text-xs text-foreground hover:text-primary transition-colors hover:underline"
+                          >
+                            {groupLeaderName}
+                          </Link>
+                        ) : (
+                          <span className="font-semibold text-xs text-foreground">
+                            {groupLeaderName}
+                          </span>
+                        )}
                         <span className="text-[11px] text-muted-foreground">
                           {group.leaderProfileId ? "Group Leader" : "Pending"}
                         </span>
@@ -367,26 +412,38 @@ export const GroupsTable = ({
                 />
               </PaginationItem>
 
-              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
-                <PaginationItem key={pageNum}>
-                  <PaginationLink
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onPageChange?.(pageNum);
-                    }}
-                    isActive={pageNum === currentPage}
-                    className={cn(
-                      "h-8 w-8 text-xs rounded-lg cursor-pointer",
-                      pageNum === currentPage
-                        ? "bg-primary text-primary-foreground font-bold shadow-2xs"
-                        : "hover:bg-muted"
-                    )}
-                  >
-                    {pageNum}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
+              {pageNumbers.map((pageNum, idx) => {
+                if (pageNum === "ellipsis") {
+                  return (
+                    <PaginationItem key={`ellipsis-${idx}`}>
+                      <span className="h-8 w-8 text-xs flex items-center justify-center text-muted-foreground">
+                        ...
+                      </span>
+                    </PaginationItem>
+                  );
+                }
+
+                return (
+                  <PaginationItem key={pageNum}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onPageChange?.(pageNum);
+                      }}
+                      isActive={pageNum === currentPage}
+                      className={cn(
+                        "h-8 w-8 text-xs rounded-lg cursor-pointer",
+                        pageNum === currentPage
+                          ? "bg-primary text-primary-foreground font-bold shadow-2xs"
+                          : "hover:bg-muted"
+                      )}
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
 
               <PaginationItem>
                 <PaginationNext
