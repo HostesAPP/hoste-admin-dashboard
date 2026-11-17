@@ -91,4 +91,73 @@ export type UserFilterParams = {
   role?: string;
   page?: number;
   pageSize?: number;
+  skip?: number;
+  take?: number;
+  dateFrom?: string;
+  dateTo?: string;
 };
+
+export interface UserProfileSummary {
+  id: string;
+  profileType: "HOST" | "BRAND" | "EVENT_PLANNER";
+  displayName: string;
+  status: string;
+  verificationStatus: string;
+}
+
+export interface UserStaffSummary {
+  firstName?: string;
+  lastName?: string;
+  staffRole?: string;
+}
+
+export interface UserResponseDto {
+  id: string;
+  email: string;
+  phoneNumber?: string;
+  role: "USER" | "STAFF";
+  category: "STAFF" | "HOST" | "CUSTOMER";
+  accountStatus: "ACTIVE" | "SUSPENDED" | "DELETED";
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  lastLoginAt?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+  profiles?: UserProfileSummary[];
+  staff?: UserStaffSummary | null;
+}
+
+export interface BackendUserFilterParams {
+  skip?: number;
+  take?: number;
+  search?: string;
+  category?: "STAFF" | "HOST" | "CUSTOMER";
+  accountStatus?: "ACTIVE" | "SUSPENDED" | "DELETED";
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface UsersStatsResponse {
+  total: number;
+  byCategory: {
+    STAFF: number;
+    HOST: number;
+    CUSTOMER: number;
+  };
+  byAccountStatus: {
+    ACTIVE: number;
+    SUSPENDED: number;
+    DELETED: number;
+  };
+}
+
+export interface UsersQueryResponse {
+  users: User[];
+  totalCount: number;
+  stats: UserStats;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  skip: number;
+  take: number;
+}

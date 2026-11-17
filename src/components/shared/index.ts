@@ -3,4 +3,5 @@ export { MobileRestrictionPage } from "./MobileRestriction";
 export { GoBackLink } from "./GoBackLink";
 export { PageHeaderLayout } from "./PageHeaderLayout";
 export { StatusBadge } from "./StatusBadge";
+export { AccessRestricted } from "./AccessRestricted";
 export { LogoutModal } from "../../features/auth/components/LogoutModal";

@@ -24,36 +24,44 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore, useLogout } from "@/features/auth";
 import { LogoutModal } from "@/features/auth/components/LogoutModal";
+import { canView, type ModuleArea } from "@/lib/permissions";
 
 interface NavItem {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   hasSubmenu?: boolean;
+  area?: ModuleArea;
 }
 
 const navItems: NavItem[] = [
-  { label: "Overview", href: "/", icon: LayoutDashboard },
-  { label: "Profiles", href: "/profiles", icon: Sparkles },
-  { label: "Bookings", href: "/bookings", icon: CalendarCheck },
-  { label: "Payments & Payouts", href: "/payments", icon: CreditCard, hasSubmenu: true },
-  { label: "Referrals", href: "/referrals", icon: Gift },
-  { label: "Groups", href: "/groups", icon: Users2 },
-  { label: "Users", href: "/users", icon: Users },
-  { label: "Reports", href: "/reports", icon: FileBarChart2 },
-  { label: "Notifications", href: "/notifications", icon: Bell },
+  { label: "Overview", href: "/", icon: LayoutDashboard, area: "overview" },
+  { label: "Profiles", href: "/profiles", icon: Sparkles, area: "profiles" },
+  { label: "Bookings", href: "/bookings", icon: CalendarCheck, area: "bookings" },
+  { label: "Payments & Payouts", href: "/payments", icon: CreditCard, hasSubmenu: true, area: "payouts" },
+  { label: "Referrals", href: "/referrals", icon: Gift, area: "referrals" },
+  { label: "Groups", href: "/groups", icon: Users2, area: "circle" },
+  { label: "Users", href: "/users", icon: Users, area: "users" },
+  { label: "Reports", href: "/reports", icon: FileBarChart2, area: "reports" },
+  { label: "Notifications", href: "/notifications", icon: Bell, area: "notifications" },
   { label: "Support Tickets", href: "/support-tickets", icon: LifeBuoy },
   { label: "Customer Support", href: "/customer-support", icon: Headphones },
   { label: "Blog", href: "/blog", icon: Newspaper },
   { label: "Banners", href: "/banners", icon: ImageIcon, hasSubmenu: true },
-  { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Settings", href: "/settings", icon: Settings, area: "settings" },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
+  const staffRole = user?.staffRole || user?.role;
   const logoutMutation = useLogout();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const visibleNavItems = navItems.filter((item) => {
+    if (!item.area) return true;
+    return canView(staffRole, item.area);
+  });
 
   const handleOpenLogout = () => {
     setIsLogoutModalOpen(true);
@@ -84,7 +92,7 @@ export function Sidebar() {
 
         {/* Navigation Links */}
         <nav className="py-4 flex flex-col gap-0.5 overflow-y-auto max-h-[calc(100vh-140px)]">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const isActive =
               item.href === "/"

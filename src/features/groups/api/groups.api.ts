@@ -11,57 +11,101 @@ import type {
   GroupStatsData,
   GroupMemberRole,
   GroupMemberStatus,
+  GroupLeaderInfo,
+  GroupStatus,
 } from "../types/groups.types";
 
-export interface GetGroupsApiResponse {
-  success?: boolean;
-  data?:
-    | Group[]
-    | {
-        groups?: Group[];
-        total?: number;
-        totalCount?: number;
-        totalPages?: number;
-        page?: number;
-        pageSize?: number;
-        limit?: number;
-        stats?: GroupStatsData;
-      };
-  meta?: {
-    total?: number;
-    totalCount?: number;
-    page?: number;
-    limit?: number;
-    pageSize?: number;
-    totalPages?: number;
-  };
-  groups?: Group[];
-  totalCount?: number;
-  totalPages?: number;
-  page?: number;
-  pageSize?: number;
-  stats?: GroupStatsData;
-}
+/**
+ * Normalizes backend group data into the UI Group model
+ */
+export function normalizeGroup(raw: Record<string, unknown>): Group {
+  const id = String(raw.id || raw._id || "");
+  const name = String(raw.name || raw.title || "Unnamed Group");
 
-interface GenericApiResponse<T> {
-  success?: boolean;
-  data?: T;
-  group?: T;
-  groups?: T extends (infer U)[] ? U[] : never;
-  meta?: {
-    total?: number;
-    totalCount?: number;
-    page?: number;
-    limit?: number;
-    pageSize?: number;
-    totalPages?: number;
+  const leaderProfileId = raw.leaderProfileId
+    ? String(raw.leaderProfileId)
+    : raw.leaderId
+    ? String(raw.leaderId)
+    : (raw.leader as Record<string, unknown>)?.profileId
+    ? String((raw.leader as Record<string, unknown>).profileId)
+    : (raw.leader as Record<string, unknown>)?.id
+    ? String((raw.leader as Record<string, unknown>).id)
+    : undefined;
+
+  const rawLeader =
+    (raw.leader as Record<string, unknown>) ||
+    (raw.leaderProfile as Record<string, unknown>);
+
+  let leader: GroupLeaderInfo | undefined = undefined;
+  if (rawLeader && typeof rawLeader === "object") {
+    leader = {
+      id: String(rawLeader.id || rawLeader.profileId || leaderProfileId || ""),
+      profileId: leaderProfileId,
+      displayName: String(rawLeader.displayName || rawLeader.name || ""),
+      name: String(rawLeader.displayName || rawLeader.name || ""),
+      avatarUrl: rawLeader.avatarUrl ? String(rawLeader.avatarUrl) : undefined,
+      email: rawLeader.email ? String(rawLeader.email) : undefined,
+    };
+  }
+
+  const rawStatus = String(raw.status || "ACTIVE").toUpperCase();
+  const status: GroupStatus =
+    rawStatus === "ACTIVE"
+      ? "Active"
+      : rawStatus === "PAUSED"
+      ? "Paused"
+      : rawStatus === "INACTIVE" || rawStatus === "SUSPENDED"
+      ? "Inactive"
+      : (raw.status as GroupStatus) || "Active";
+
+  const memberCount =
+    typeof raw.memberCount === "number"
+      ? raw.memberCount
+      : typeof raw.membersCount === "number"
+      ? raw.membersCount
+      : Array.isArray(raw.members)
+      ? raw.members.length
+      : 0;
+
+  const bookingCount =
+    typeof raw.bookingCount === "number"
+      ? raw.bookingCount
+      : typeof raw.bookingsCount === "number"
+      ? raw.bookingsCount
+      : typeof raw.engagementsCount === "number"
+      ? raw.engagementsCount
+      : Array.isArray(raw.engagements)
+      ? raw.engagements.length
+      : 0;
+
+  return {
+    id,
+    name,
+    leaderProfileId,
+    leader,
+    category: raw.category ? String(raw.category) : "General",
+    status,
+    color: raw.color ? String(raw.color) : undefined,
+    description: raw.description ? String(raw.description) : undefined,
+    createdAt: raw.createdAt ? String(raw.createdAt) : undefined,
+    updatedAt: raw.updatedAt ? String(raw.updatedAt) : undefined,
+    memberCount,
+    membersCount: memberCount,
+    bookingCount,
+    bookingsCount: bookingCount,
+    engagementsCount: bookingCount,
+    rating: (raw.rating as number | string) || undefined,
+    leaderEarnings: (raw.leaderEarnings as number | string) || undefined,
   };
 }
 
 /**
  * Normalizes backend member responses into the frontend GroupMember contract
  */
-function normalizeMember(m: Record<string, unknown>, groupId: string): GroupMember {
+export function normalizeMember(
+  m: Record<string, unknown>,
+  groupId: string
+): GroupMember {
   const profile = (m.profile as Record<string, unknown>) || {};
   const isLeader =
     m.isLeader === true ||
@@ -85,18 +129,28 @@ function normalizeMember(m: Record<string, unknown>, groupId: string): GroupMemb
       ? "Suspended"
       : "Removed";
 
+  const profileId = (m.profileId || profile.id) as string | undefined;
+
   return {
     id: String(m.id || m._id || profile.id || ""),
     groupId: String(m.groupId || groupId),
-    profileId: (m.profileId || profile.id) as string | undefined,
-    userId: String(m.userId || profile.userId || m.profileId || m.id || ""),
-    name: String(m.name || profile.name || profile.displayName || profile.fullName || "Member"),
+    profileId,
+    userId: String(m.userId || profile.userId || profileId || m.id || ""),
+    name: String(
+      m.name ||
+        profile.displayName ||
+        profile.name ||
+        profile.fullName ||
+        "Member"
+    ),
     email: String(m.email || profile.email || ""),
-    avatarColor: (m.avatarColor as string) || "#EF5A22",
+    avatarColor: (m.avatarColor as string) || undefined,
     avatarUrl: (m.avatarUrl || profile.avatarUrl) as string | undefined,
     role: normalizedRole,
     status: normalizedStatus,
-    dateJoined: String(m.dateJoined || m.joinedAt || m.createdAt || new Date().toISOString()),
+    dateJoined: String(
+      m.dateJoined || m.joinedAt || m.createdAt || new Date().toISOString()
+    ),
     lastActivity: String(m.lastActivity || m.updatedAt || "Recent"),
     isLeader,
   };
@@ -104,58 +158,79 @@ function normalizeMember(m: Record<string, unknown>, groupId: string): GroupMemb
 
 /**
  * 1. List all groups for Admin / Staff Dashboard
- * GET /api/v1/groups (Staff)
+ * GET /api/v1/groups
  */
-export async function fetchGroups(params: GroupFilterParams = {}): Promise<GroupsListResponse> {
-  const queryParams = new URLSearchParams();
+export async function fetchGroups(
+  params: GroupFilterParams = {}
+): Promise<GroupsListResponse> {
+  const page = params.page || 1;
+  const pageSize = params.pageSize || 10;
+  const skip = (page - 1) * pageSize;
+  const take = pageSize;
 
-  if (params.page) queryParams.set("page", String(params.page));
-  if (params.pageSize) queryParams.set("limit", String(params.pageSize));
+  const queryParams = new URLSearchParams();
+  queryParams.set("skip", String(skip));
+  queryParams.set("take", String(take));
+  queryParams.set("page", String(page));
+  queryParams.set("limit", String(pageSize));
+
   if (params.search?.trim()) queryParams.set("search", params.search.trim());
-  if (params.status && params.status !== "All") queryParams.set("status", params.status);
-  if (params.category && params.category !== "All Categories") queryParams.set("category", params.category);
+  if (params.status && params.status !== "All") {
+    queryParams.set("status", params.status.toUpperCase());
+  }
+  if (params.category && params.category !== "All Categories") {
+    queryParams.set("category", params.category);
+  }
   if (params.sortBy) queryParams.set("sortBy", params.sortBy);
   if (params.sortOrder) queryParams.set("sortOrder", params.sortOrder);
 
   const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
-  const response = await apiClient<GetGroupsApiResponse>(`/groups${queryString}`, {
-    method: "GET",
-  });
+  const response = await apiClient<Record<string, unknown>>(
+    `/groups${queryString}`,
+    {
+      method: "GET",
+    }
+  );
 
-  // Extract groups array from various backend response formats
-  let rawGroups: Group[] = [];
-  if (Array.isArray(response)) {
-    rawGroups = response;
-  } else if (Array.isArray(response?.data)) {
-    rawGroups = response.data;
-  } else if (response?.data && typeof response.data === "object" && Array.isArray(response.data.groups)) {
-    rawGroups = response.data.groups;
-  } else if (Array.isArray(response?.groups)) {
-    rawGroups = response.groups;
-  }
+  // LOG RESPONSE per user instruction
+  console.log("[Groups API] GET /api/v1/groups response:", response);
 
-  // Calculate or extract pagination metadata
+  const dataObj =
+    response?.data && typeof response.data === "object" && !Array.isArray(response.data)
+      ? (response.data as Record<string, unknown>)
+      : response;
+
+  const rawItems = Array.isArray(dataObj?.items)
+    ? (dataObj.items as Record<string, unknown>[])
+    : Array.isArray(response?.items)
+    ? (response.items as Record<string, unknown>[])
+    : Array.isArray(dataObj?.groups)
+    ? (dataObj.groups as Record<string, unknown>[])
+    : Array.isArray(response?.data)
+    ? (response.data as Record<string, unknown>[])
+    : Array.isArray(response)
+    ? (response as Record<string, unknown>[])
+    : [];
+
   const totalCount =
-    (typeof response?.data === "object" && !Array.isArray(response.data) && response.data?.total) ||
-    (typeof response?.data === "object" && !Array.isArray(response.data) && response.data?.totalCount) ||
-    response?.meta?.total ||
-    response?.meta?.totalCount ||
-    response?.totalCount ||
-    rawGroups.length;
+    typeof dataObj?.total === "number"
+      ? dataObj.total
+      : typeof response?.total === "number"
+      ? response.total
+      : typeof dataObj?.totalCount === "number"
+      ? dataObj.totalCount
+      : typeof response?.totalCount === "number"
+      ? response.totalCount
+      : rawItems.length;
 
-  const pageSize = params.pageSize || response?.meta?.limit || response?.meta?.pageSize || 10;
-  const totalPages =
-    (typeof response?.data === "object" && !Array.isArray(response.data) && response.data?.totalPages) ||
-    response?.meta?.totalPages ||
-    response?.totalPages ||
-    Math.max(1, Math.ceil(totalCount / pageSize));
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const groups = rawItems.map((item) => normalizeGroup(item));
 
-  const page = params.page || response?.meta?.page || 1;
-
-  // Stats calculation: Only use backend-provided stats or derive verified aggregate from metadata
+  // Extract or compute stats
   const backendStats =
-    (typeof response?.data === "object" && !Array.isArray(response.data) && response.data?.stats) ||
-    response?.stats;
+    dataObj?.stats && typeof dataObj.stats === "object"
+      ? (dataObj.stats as GroupStatsData)
+      : undefined;
 
   const stats: GroupStatsData = backendStats || {
     totalGroups: {
@@ -166,26 +241,26 @@ export async function fetchGroups(params: GroupFilterParams = {}): Promise<Group
     },
     activeGroups: {
       title: "02 — Active Groups",
-      value: rawGroups.filter((g) => g.status?.toUpperCase() === "ACTIVE" || g.status === "Active").length,
-      footerText: "Currently active on page",
+      value: groups.filter((g) => g.status === "Active").length,
+      footerText: "Currently active on platform",
       rate: 0,
     },
     totalMembers: {
       title: "03 — Total Members",
-      value: rawGroups.reduce((acc, g) => acc + (Number(g.memberCount || g.membersCount) || 0), 0),
-      footerText: "Members on page",
+      value: groups.reduce((acc, g) => acc + (g.memberCount || 0), 0),
+      footerText: "Registered group members",
       rate: 0,
     },
     suspendedGroups: {
       title: "04 — Suspended / Inactive",
-      value: rawGroups.filter((g) => g.status?.toUpperCase() !== "ACTIVE" && g.status !== "Active").length,
-      footerText: "Groups requiring attention on page",
+      value: groups.filter((g) => g.status !== "Active").length,
+      footerText: "Paused or inactive groups",
       rate: 0,
     },
   };
 
   return {
-    groups: rawGroups,
+    groups,
     totalCount,
     totalPages,
     page,
@@ -196,95 +271,109 @@ export async function fetchGroups(params: GroupFilterParams = {}): Promise<Group
 
 /**
  * 2. Get one group by ID
- * GET /api/v1/groups/:groupId (Any authenticated user)
+ * GET /api/v1/groups/:groupId
  */
 export async function fetchGroupById(groupId: string): Promise<Group | null> {
-  const response = await apiClient<GenericApiResponse<Group>>(`/groups/${groupId}`, {
-    method: "GET",
-  });
+  const cleanId = groupId.trim();
+  if (!cleanId) return null;
 
-  if (!response) return null;
-  const group =
-    response.data && typeof response.data === "object" && !Array.isArray(response.data)
-      ? response.data
-      : response.group || response;
+  try {
+    const response = await apiClient<Record<string, unknown>>(
+      `/groups/${cleanId}`,
+      {
+        method: "GET",
+      }
+    );
 
-  return group as Group;
+    // LOG RESPONSE per user instruction
+    console.log("[Groups API] GET /api/v1/groups/:id response:", response);
+
+    if (!response) return null;
+
+    const dataObj =
+      response.data && typeof response.data === "object" && !Array.isArray(response.data)
+        ? (response.data as Record<string, unknown>)
+        : response.group && typeof response.group === "object" && !Array.isArray(response.group)
+        ? (response.group as Record<string, unknown>)
+        : response;
+
+    return normalizeGroup(dataObj);
+  } catch (err) {
+    console.warn(`[Groups API] GET /groups/${cleanId} failed:`, err);
+    return null;
+  }
 }
 
 /**
- * 3. List members with server-side pagination, searching, and filtering
- * GET /api/v1/groups/:groupId/members (Any authenticated user)
+ * 3. List members of a group with pagination & search
+ * GET /api/v1/groups/:groupId/members
  */
 export async function fetchGroupMembers(
   groupId: string,
   params: GroupMemberFilterParams = {}
 ): Promise<GroupMembersResponse> {
-  const queryParams = new URLSearchParams();
+  const cleanId = groupId.trim();
+  if (!cleanId) {
+    return { members: [], totalCount: 0, totalPages: 1, page: 1, pageSize: 10 };
+  }
 
-  if (params.page) queryParams.set("page", String(params.page));
-  if (params.pageSize) queryParams.set("limit", String(params.pageSize));
+  const page = params.page || 1;
+  const pageSize = params.pageSize || 10;
+  const skip = (page - 1) * pageSize;
+  const take = pageSize;
+
+  const queryParams = new URLSearchParams();
+  queryParams.set("skip", String(skip));
+  queryParams.set("take", String(take));
+  queryParams.set("page", String(page));
+  queryParams.set("limit", String(pageSize));
+
   if (params.search?.trim()) queryParams.set("search", params.search.trim());
   if (params.role && params.role !== "All") queryParams.set("role", params.role);
   if (params.status && params.status !== "All") queryParams.set("status", params.status);
   if (params.joined && params.joined !== "Any Date") queryParams.set("joined", params.joined);
 
   const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
-  const response = await apiClient<Record<string, unknown>>(`/groups/${groupId}/members${queryString}`, {
-    method: "GET",
-  });
+  const response = await apiClient<Record<string, unknown>>(
+    `/groups/${cleanId}/members${queryString}`,
+    {
+      method: "GET",
+    }
+  );
 
-  let rawMembers: Record<string, unknown>[] = [];
-  if (Array.isArray(response)) {
-    rawMembers = response as Record<string, unknown>[];
-  } else if (Array.isArray(response?.data)) {
-    rawMembers = response.data as Record<string, unknown>[];
-  } else if (
-    response?.data &&
-    typeof response.data === "object" &&
-    Array.isArray((response.data as Record<string, unknown>).members)
-  ) {
-    rawMembers = (response.data as { members: Record<string, unknown>[] }).members;
-  } else if (Array.isArray(response?.members)) {
-    rawMembers = response.members as Record<string, unknown>[];
-  }
+  // LOG RESPONSE per user instruction
+  console.log("[Groups API] GET /api/v1/groups/:id/members response:", response);
 
-  const responseDataObj =
-    typeof response?.data === "object" && !Array.isArray(response.data)
+  const dataObj =
+    response?.data && typeof response.data === "object" && !Array.isArray(response.data)
       ? (response.data as Record<string, unknown>)
-      : undefined;
+      : response;
 
-  const responseMetaObj =
-    typeof response?.meta === "object" && !Array.isArray(response.meta)
-      ? (response.meta as Record<string, unknown>)
-      : undefined;
+  const rawMembers = Array.isArray(dataObj?.items)
+    ? (dataObj.items as Record<string, unknown>[])
+    : Array.isArray(dataObj?.members)
+    ? (dataObj.members as Record<string, unknown>[])
+    : Array.isArray(response?.members)
+    ? (response.members as Record<string, unknown>[])
+    : Array.isArray(response?.data)
+    ? (response.data as Record<string, unknown>[])
+    : Array.isArray(response)
+    ? (response as Record<string, unknown>[])
+    : [];
 
   const totalCount =
-    (typeof responseDataObj?.total === "number" && responseDataObj.total) ||
-    (typeof responseDataObj?.totalCount === "number" && responseDataObj.totalCount) ||
-    (typeof responseMetaObj?.total === "number" && responseMetaObj.total) ||
-    (typeof responseMetaObj?.totalCount === "number" && responseMetaObj.totalCount) ||
-    (typeof response?.totalCount === "number" && response.totalCount) ||
-    rawMembers.length;
+    typeof dataObj?.total === "number"
+      ? dataObj.total
+      : typeof response?.total === "number"
+      ? response.total
+      : typeof dataObj?.totalCount === "number"
+      ? dataObj.totalCount
+      : typeof response?.totalCount === "number"
+      ? response.totalCount
+      : rawMembers.length;
 
-  const pageSize =
-    params.pageSize ||
-    (typeof responseMetaObj?.limit === "number" && responseMetaObj.limit) ||
-    (typeof responseMetaObj?.pageSize === "number" && responseMetaObj.pageSize) ||
-    10;
-
-  const totalPages =
-    (typeof responseDataObj?.totalPages === "number" && responseDataObj.totalPages) ||
-    (typeof responseMetaObj?.totalPages === "number" && responseMetaObj.totalPages) ||
-    (typeof response?.totalPages === "number" && response.totalPages) ||
-    Math.max(1, Math.ceil(totalCount / pageSize));
-
-  const page =
-    params.page ||
-    (typeof responseMetaObj?.page === "number" && responseMetaObj.page) ||
-    1;
-
-  const members = rawMembers.map((m) => normalizeMember(m, groupId));
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const members = rawMembers.map((m) => normalizeMember(m, cleanId));
 
   return {
     members,
@@ -296,9 +385,28 @@ export async function fetchGroupMembers(
 }
 
 /**
- * Overview group statistics
+ * 4. Overview group statistics
  */
 export async function fetchGroupStats(): Promise<GroupStatsData> {
+  try {
+    const response = await apiClient<Record<string, unknown>>(`/groups/stats`, {
+      method: "GET",
+    });
+
+    console.log("[Groups API] GET /api/v1/groups/stats response:", response);
+
+    const dataObj =
+      response?.data && typeof response.data === "object" && !Array.isArray(response.data)
+        ? (response.data as Record<string, unknown>)
+        : response;
+
+    if (dataObj?.totalGroups) {
+      return dataObj as unknown as GroupStatsData;
+    }
+  } catch {
+    // If /groups/stats is not an independent route, fallback to summary list
+  }
+
   const list = await fetchGroups({ pageSize: 100 });
   return list.stats;
 }
@@ -306,22 +414,29 @@ export async function fetchGroupStats(): Promise<GroupStatsData> {
 /**
  * 5. Update group status
  * PATCH /api/v1/groups/:groupId/status
- * Access: Group leader (Active profile)
- * Body: { status: "ACTIVE" | "PAUSED" | "INACTIVE" }
  */
 export async function updateGroupStatus(
   groupId: string,
   status: "ACTIVE" | "PAUSED" | "INACTIVE"
 ): Promise<Group> {
-  const response = await apiClient<GenericApiResponse<Group>>(`/groups/${groupId}/status`, {
-    method: "PATCH",
-    body: JSON.stringify({ status }),
-  });
+  const cleanId = groupId.trim();
+  const response = await apiClient<Record<string, unknown>>(
+    `/groups/${cleanId}/status`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }
+  );
 
-  const updatedGroup =
+  // LOG RESPONSE per user instruction
+  console.log("[Groups API] PATCH /api/v1/groups/:id/status response:", response);
+
+  const dataObj =
     response?.data && typeof response.data === "object" && !Array.isArray(response.data)
-      ? response.data
-      : response?.group || (response as unknown as Group);
+      ? (response.data as Record<string, unknown>)
+      : response?.group && typeof response.group === "object" && !Array.isArray(response.group)
+      ? (response.group as Record<string, unknown>)
+      : (response as Record<string, unknown>);
 
-  return updatedGroup;
+  return normalizeGroup(dataObj);
 }

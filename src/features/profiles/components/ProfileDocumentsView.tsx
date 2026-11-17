@@ -27,12 +27,15 @@ import { useAdminProfileDetail, useReviewActivation } from "../hooks/use-profile
 import { ProfileActionModal } from "./ProfileActionModal";
 import Image from "next/image";
 import { RotateCcw } from "lucide-react";
+import { usePermission } from "@/lib/permissions";
+import { AccessRestricted } from "@/components/shared";
 
 interface ProfileDocumentsViewProps {
   profileId: string;
 }
 
 export function ProfileDocumentsView({ profileId }: ProfileDocumentsViewProps) {
+  const { isNone, canManage } = usePermission("profiles");
   const { data: profile, isLoading, isError, refetch } = useAdminProfileDetail(profileId);
   const reviewMutation = useReviewActivation();
 
@@ -84,6 +87,10 @@ export function ProfileDocumentsView({ profileId }: ProfileDocumentsViewProps) {
     actionType: null,
     selectedProfile: null,
   });
+
+  if (isNone) {
+    return <AccessRestricted areaName="Profiles" />;
+  }
 
   if (isLoading) {
     return (
@@ -274,7 +281,11 @@ export function ProfileDocumentsView({ profileId }: ProfileDocumentsViewProps) {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3 pl-4 border-l border-border/40">
-            {profile.status === "Pending" ? (
+            {!canManage ? (
+              <span className="text-xs font-medium text-muted-foreground bg-muted/60 px-3 py-1.5 rounded-lg border border-border/60">
+                View Only
+              </span>
+            ) : profile.status === "Pending" ? (
               <>
                 <Button
                   type="button"

@@ -1,7 +1,6 @@
 "use client";
 
 import { formatDate } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import type { Group } from "../../types/groups.types";
 
@@ -11,7 +10,7 @@ export const GroupInformation = ({ group }: { group: Group }) => {
   const totalMembers =
     group.memberCount ??
     group.membersCount ??
-    (Array.isArray(group.members) ? group.members.length : 124);
+    (Array.isArray(group.members) ? group.members.length : 0);
 
   return (
     <section className="col-span-2 p-6 rounded-xl border border-border bg-card flex-1 flex flex-col justify-between">
@@ -20,13 +19,6 @@ export const GroupInformation = ({ group }: { group: Group }) => {
         <h3 className="text-base font-bold text-foreground">
           Group Information
         </h3>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 px-3 text-xs font-medium text-foreground hover:bg-muted cursor-pointer"
-        >
-          Edit Information
-        </Button>
       </div>
 
       {/* 2-Column Fields Grid */}
@@ -43,14 +35,14 @@ export const GroupInformation = ({ group }: { group: Group }) => {
           <div>
             <span className="text-muted-foreground block mb-1">Category</span>
             <span className="font-semibold text-sm text-foreground">
-              {group.category || "Event Hospitality"}
+              {group.category || "General"}
             </span>
           </div>
 
           <div>
             <span className="text-muted-foreground block mb-1">Date Created</span>
             <span className="font-semibold text-sm text-foreground">
-              {group.createdAt ? formatDate(group.createdAt) : "August 18, 2025"}
+              {group.createdAt ? formatDate(group.createdAt) : "—"}
             </span>
           </div>
 
@@ -67,7 +59,7 @@ export const GroupInformation = ({ group }: { group: Group }) => {
         <div className="space-y-4">
           <div>
             <span className="text-muted-foreground block mb-1">Group ID</span>
-            <span className="font-semibold text-sm text-foreground">
+            <span className="font-semibold text-sm text-foreground font-mono">
               {group.id}
             </span>
           </div>
@@ -83,14 +75,14 @@ export const GroupInformation = ({ group }: { group: Group }) => {
           <div>
             <span className="text-muted-foreground block mb-1">Total Members</span>
             <span className="font-semibold text-sm text-foreground">
-              {totalMembers} Active Members
+              {totalMembers} Active {totalMembers === 1 ? "Member" : "Members"}
             </span>
           </div>
 
           <div>
             <span className="text-muted-foreground block mb-1">Description</span>
             <p className="font-normal text-xs text-muted-foreground line-clamp-2">
-              {group.description || "A professional event hospitality team providing trained staff for corporate events, private functions and nightlife experiences."}
+              {group.description || "No description provided."}
             </p>
           </div>
         </div>

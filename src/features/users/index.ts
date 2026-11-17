@@ -22,7 +22,15 @@ export {
 
 export { initialUsers, initialUserStats } from "./data/users.data";
 export {
+  fetchUsers,
+  fetchUserStats,
+  fetchUserById,
+  exportUsersCsv,
+  normalizeUserFromBackend,
+} from "./api/users.api";
+export {
   useUsers,
+  useUserStats,
   useUserDetail,
   useUpdateUserStatus,
   useChangeUserRole,

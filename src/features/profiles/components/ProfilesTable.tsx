@@ -21,6 +21,7 @@ interface ProfilesTableProps {
   onSkipChange?: (skip: number) => void;
   onTakeChange?: (take: number) => void;
   onOpenActionModal: (type: ActionType, profile: Profile) => void;
+  canManage?: boolean;
 }
 
 export function ProfilesTable({
@@ -38,6 +39,7 @@ export function ProfilesTable({
   onSkipChange,
   onTakeChange,
   onOpenActionModal,
+  canManage = true,
 }: ProfilesTableProps) {
   return (
     <div className="bg-card rounded-2xl border border-border/80 shadow-soft p-6 transition-all">
@@ -91,6 +93,7 @@ export function ProfilesTable({
               key={profile.id}
               profile={profile}
               onOpenActionModal={onOpenActionModal}
+              canManage={canManage}
             />
           ))}
         </div>

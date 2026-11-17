@@ -7,11 +7,29 @@ import type { Group } from "../../types/groups.types";
 
 export const GroupDetailsStat = ({ group }: { group: Group }) => {
   const membersCount =
-    group.memberCount ?? group.membersCount ?? (Array.isArray(group.members) ? group.members.length : 124);
+    group.memberCount ??
+    group.membersCount ??
+    (Array.isArray(group.members) ? group.members.length : 0);
+
   const bookingsCount =
-    group.bookingCount ?? group.bookingsCount ?? group.engagementsCount ?? 342;
-  const rating = (group.rating as number | string) || "4.9";
-  const leaderEarnings = (group.leaderEarnings as number | string) || "₦480,000";
+    group.bookingCount ??
+    group.bookingsCount ??
+    group.engagementsCount ??
+    (Array.isArray(group.engagements) ? group.engagements.length : 0);
+
+  const rating =
+    group.rating !== undefined && group.rating !== null
+      ? typeof group.rating === "number"
+        ? group.rating.toFixed(1)
+        : String(group.rating)
+      : "—";
+
+  const leaderEarnings =
+    group.leaderEarnings !== undefined && group.leaderEarnings !== null
+      ? typeof group.leaderEarnings === "number"
+        ? `₦${group.leaderEarnings.toLocaleString()}`
+        : String(group.leaderEarnings)
+      : "₦0";
 
   const stats = [
     {
@@ -30,11 +48,11 @@ export const GroupDetailsStat = ({ group }: { group: Group }) => {
       title: "Group Rating",
       value: rating,
       subtitle: "Average customer rating",
-      isRating: true,
+      isRating: rating !== "—",
     },
     {
       title: "Leader Earnings",
-      value: typeof leaderEarnings === "number" ? `₦${leaderEarnings.toLocaleString()}` : leaderEarnings,
+      value: leaderEarnings,
       subtitle: "Attributed to group leader",
       isRating: false,
     },
@@ -59,9 +77,7 @@ export const GroupDetailsStat = ({ group }: { group: Group }) => {
                 <Star className="w-5 h-5 fill-amber-400 text-amber-400 shrink-0" />
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
-              {stat.subtitle}
-            </p>
+            <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
           </CardContent>
         </Card>
       ))}

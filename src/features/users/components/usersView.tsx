@@ -10,10 +10,12 @@ import { UserDetailDialog } from "./userDetailDialog";
 import { ExportUsersModal } from "./exportUsersModal";
 import { InviteAdminModal } from "./inviteAdminModal";
 import { InviteSuccessModal } from "./inviteSuccessModal";
-import { useUsers, useUpdateUserStatus } from "../hooks/useUsers";
-import type { User, UserFilterParams, UserTab } from "../types/users.types";
+import { useUsers, useUserStats } from "../hooks/useUsers";
+import { exportUsersCsv } from "../api/users.api";
+import type { User, UserFilterParams, UserTab, UserStats } from "../types/users.types";
 import { Button } from "@/components/ui/button";
 import { Download, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 
 export function UsersView() {
   const [activeTab, setActiveTab] = useState<UserTab>("ALL");
@@ -25,7 +27,7 @@ export function UsersView() {
     status: "",
     role: "",
     page: 1,
-    pageSize: 6,
+    pageSize: 10,
   });
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -35,9 +37,14 @@ export function UsersView() {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [invitedEmail, setInvitedEmail] = useState("admin@email.com");
 
-  // React Query hook
+  // React Query hooks connected to real backend
   const { data, isLoading } = useUsers(filters);
-  const updateStatusMutation = useUpdateUserStatus();
+  const { data: statsData, isLoading: isStatsLoading } = useUserStats({
+    search: filters.search,
+    dateFrom: filters.dateFrom,
+    dateTo: filters.dateTo,
+    dateJoined: filters.dateJoined,
+  });
 
   const handleTabChange = (tab: UserTab) => {
     setActiveTab(tab);
@@ -57,7 +64,7 @@ export function UsersView() {
       status: "",
       role: "",
       page: 1,
-      pageSize: 6,
+      pageSize: 10,
     });
   };
 
@@ -65,38 +72,45 @@ export function UsersView() {
     setFilters((prev) => ({ ...prev, page }));
   };
 
+  const handlePageSizeChange = (pageSize: number) => {
+    setFilters((prev) => ({ ...prev, pageSize, page: 1 }));
+  };
+
   const handleViewUser = (user: User) => {
     setSelectedUser(user);
     setIsDetailOpen(true);
   };
 
-  const handleToggleStatus = (user: User) => {
-    const nextStatus = user.status === "Active" ? "Suspended" : "Active";
-    updateStatusMutation.mutate({ userId: user.id, newStatus: nextStatus });
-    if (selectedUser?.id === user.id) {
-      setSelectedUser({ ...user, status: nextStatus, accountStatus: nextStatus });
-    }
+  const handleToggleStatus = () => {
+    // Skipping suspend, restore and ban mutations per user instruction
+    toast.info("User status modification is not available at this time.");
   };
 
-  const handleConfirmExport = (scope: "all" | "filtered", format: "csv" | "xlsx" | "pdf" | "json") => {
-    const targetUsers = scope === "all" ? data?.users || [] : users;
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      ["User ID,Name,Type,Role,Email,Date Joined,Last Active,Status"]
-        .concat(
-          targetUsers.map(
-            (u) =>
-              `"${u.userCode}","${u.name}","${u.type}","${u.roleSubtitle || ""}","${u.email}","${u.dateJoined}","${u.lastActive}","${u.status}"`
-          )
-        )
-        .join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `users_export.${format === "xlsx" ? "xlsx" : format === "pdf" ? "pdf" : format === "json" ? "json" : "csv"}`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleConfirmExport = async (
+    scope: "all" | "filtered",
+    format: "csv" | "xlsx" | "pdf" | "json"
+  ) => {
+    if (format !== "csv") {
+      toast.info("Direct export is currently provided in CSV format.");
+    }
+
+    try {
+      toast.info("Preparing users export...");
+      const exportParams = scope === "all" ? {} : filters;
+      const result = await exportUsersCsv(exportParams);
+
+      if (result.truncated) {
+        toast.warning(
+          `Export completed: ${result.filename} downloaded (capped at 10,000 records).`
+        );
+      } else {
+        toast.success(`Export completed: ${result.filename} downloaded.`);
+      }
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to export users.";
+      toast.error(errorMsg);
+    }
   };
 
   const handleSuccessInvite = (email: string) => {
@@ -105,12 +119,34 @@ export function UsersView() {
   };
 
   const users = data?.users || [];
-  const stats = data?.stats || {
-    totalUsers: { count: 12482, growthPercent: 8.4, growthPeriod: "this month" },
-    hostes: { count: 4286, subtitle: "Active event pros" },
-    customers: { count: 8182, subtitle: "Registered clients" },
-    adminsAndStaff: { count: 14, subtitle: "Platform admins" },
+
+  // Compute live KPI stats from backend GET /api/v1/users/stats
+  const stats: UserStats = {
+    totalUsers: {
+      count: statsData?.total ?? data?.totalCount ?? 0,
+      growthPercent: 0,
+      growthPeriod: "total",
+    },
+    hostes: {
+      count: statsData?.byCategory?.HOST ?? 0,
+      subtitle: "Active event pros",
+    },
+    customers: {
+      count: statsData?.byCategory?.CUSTOMER ?? 0,
+      subtitle: "Registered clients",
+    },
+    adminsAndStaff: {
+      count: statsData?.byCategory?.STAFF ?? 0,
+      subtitle: "Platform staff",
+    },
   };
+
+  const totalUsers = data?.totalCount ?? 0;
+  const currentPage = filters.page || 1;
+  const pageSize = filters.pageSize || 10;
+  const totalPages = data?.totalPages || 1;
+  const startRange = totalUsers === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endRange = Math.min(currentPage * pageSize, totalUsers);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -143,7 +179,7 @@ export function UsersView() {
         </div>
 
         {/* KPI Stats Cards */}
-        <UsersStats stats={stats} isLoading={isLoading} />
+        <UsersStats stats={stats} isLoading={isLoading || isStatsLoading} />
 
         {/* Main Table Container Card */}
         <div className="bg-card rounded-2xl border border-border/70 shadow-soft p-5 space-y-4">
@@ -166,12 +202,17 @@ export function UsersView() {
 
           {/* Pagination Footer */}
           <UsersPagination
-            currentPage={filters.page || 1}
-            totalUsers={data?.totalCount || 12482}
-            startRange={1}
-            endRange={users.length}
-            totalPages={data?.totalPages || 1249}
+            currentPage={currentPage}
+            totalUsers={totalUsers}
+            startRange={startRange}
+            endRange={endRange}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            skip={data?.skip}
+            take={data?.take}
+            isLoading={isLoading}
             onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
           />
         </div>
 
@@ -187,7 +228,7 @@ export function UsersView() {
         <ExportUsersModal
           open={exportModalOpen}
           onOpenChange={setExportModalOpen}
-          totalUsersCount={data?.totalCount || 12482}
+          totalUsersCount={totalUsers}
           filteredUsersCount={users.length}
           onConfirmExport={handleConfirmExport}
         />

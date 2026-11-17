@@ -241,7 +241,7 @@ export function UsersTable({
                 <TableCell className="py-3.5 pr-4 text-right">
                   <div className="flex items-center justify-end gap-1.5">
                     <Link
-                      href={`/users/${user.userCode}`}
+                      href={`/users/${user.id}`}
                       className="h-7 text-xs font-semibold px-2.5 border border-border hover:bg-muted text-foreground rounded-md inline-flex items-center justify-center transition-colors"
                     >
                       View User
@@ -253,7 +253,7 @@ export function UsersTable({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="text-xs w-44">
                         <DropdownMenuItem className="gap-2 p-0">
-                          <Link href={`/users/${user.userCode}`} className="flex items-center gap-2 w-full px-2 py-1.5">
+                          <Link href={`/users/${user.id}`} className="flex items-center gap-2 w-full px-2 py-1.5">
                             <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
                             <span>View Details</span>
                           </Link>
