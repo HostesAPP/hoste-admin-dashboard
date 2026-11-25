@@ -12,16 +12,17 @@ import { DashboardRecentBookingsTable } from "./DashboardRecentBookingsTable";
 import { DashboardQuickActionsCard } from "./DashboardQuickActionsCard";
 import { DashboardRecentActivityCard } from "./DashboardRecentActivityCard";
 import { useDashboardOverview } from "../hooks/dashboard.hooks";
-import { MOCK_DASHBOARD_OVERVIEW_DATA } from "../data/dashboard.data";
+import type { DashboardTimeframe } from "../dashboard.types";
 
 export function DashboardOverviewView() {
   const [dateRange, setDateRange] = useState("This Month");
+  const [timeframe, setTimeframe] = useState<DashboardTimeframe>("Daily");
   const {
-    data: dashboardData = MOCK_DASHBOARD_OVERVIEW_DATA,
+    data: dashboardData,
     isLoading,
     isError,
     refetch,
-  } = useDashboardOverview();
+  } = useDashboardOverview(timeframe);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -37,12 +38,12 @@ export function DashboardOverviewView() {
         {isError && (
           <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-4 flex items-center justify-between gap-4 text-xs">
             <span className="text-destructive font-medium">
-              Failed to load live dashboard metrics. Showing cached preview.
+              Failed to load live dashboard metrics. Please try again.
             </span>
             <button
               type="button"
               onClick={() => refetch()}
-              className="px-3 py-1 bg-destructive text-destructive-foreground rounded-lg font-semibold hover:bg-destructive/90 transition-colors"
+              className="px-3 py-1 bg-destructive text-destructive-foreground rounded-lg font-semibold hover:bg-destructive/90 transition-colors cursor-pointer"
             >
               Retry
             </button>
@@ -51,23 +52,23 @@ export function DashboardOverviewView() {
 
         {/* 1. KPI Metric Cards */}
         <section>
-          <DashboardKpiCards kpis={dashboardData.kpis} isLoading={isLoading} />
+          <DashboardKpiCards kpis={dashboardData?.kpis} isLoading={isLoading} />
         </section>
 
         {/* 2. Charts & Pipeline Row (2 Columns: ~66% Revenue Chart, ~33% Booking Overview) */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           <div className="lg:col-span-8">
             <DashboardRevenueChartCard
-              totalRevenue={dashboardData.revenueOverview.totalRevenue}
-              growthText={dashboardData.revenueOverview.growthText}
-              chartData={dashboardData.revenueOverview.chartData}
+              revenueOverview={dashboardData?.revenueOverview}
+              timeframe={timeframe}
+              onTimeframeChange={setTimeframe}
               isLoading={isLoading}
             />
           </div>
 
           <div className="lg:col-span-4">
             <DashboardBookingOverviewCard
-              pipeline={dashboardData.bookingPipeline}
+              pipeline={dashboardData?.bookingPipeline}
               isLoading={isLoading}
             />
           </div>
@@ -75,7 +76,7 @@ export function DashboardOverviewView() {
 
         {/* 3. Action Required 3-Card Banner */}
         <DashboardActionRequiredSection
-          items={dashboardData.actionsRequired}
+          items={dashboardData?.actionsRequired ?? []}
           isLoading={isLoading}
         />
 
@@ -84,7 +85,7 @@ export function DashboardOverviewView() {
           {/* Left Table (~66%) */}
           <div className="lg:col-span-8">
             <DashboardRecentBookingsTable
-              bookings={dashboardData.recentBookings}
+              bookings={dashboardData?.recentBookings ?? []}
               isLoading={isLoading}
             />
           </div>
@@ -93,7 +94,7 @@ export function DashboardOverviewView() {
           <div className="lg:col-span-4 space-y-5">
             <DashboardQuickActionsCard />
             <DashboardRecentActivityCard
-              activities={dashboardData.recentActivities}
+              activities={dashboardData?.recentActivities ?? []}
               isLoading={isLoading}
             />
           </div>

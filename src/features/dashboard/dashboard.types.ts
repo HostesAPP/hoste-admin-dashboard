@@ -2,6 +2,8 @@
 
 export type DashboardTimeframe = "Daily" | "Weekly" | "Monthly";
 
+export type BackendDashboardTimeframe = "DAILY" | "WEEKLY" | "MONTHLY";
+
 export interface DashboardMetricCard {
   label: string;
   value: string;
@@ -11,16 +13,22 @@ export interface DashboardMetricCard {
 }
 
 export interface DashboardKpiData {
-  totalUsers: DashboardMetricCard;
-  totalHostes: DashboardMetricCard;
-  totalBookings: DashboardMetricCard;
-  platformRevenue: DashboardMetricCard;
+  totalUsers: DashboardMetricCard | null;
+  totalHostes: DashboardMetricCard | null;
+  totalBookings: DashboardMetricCard | null;
+  platformRevenue: DashboardMetricCard | null;
 }
 
 export interface RevenueChartPoint {
   date: string;
   revenue: number;
   formattedRev: string;
+}
+
+export interface RevenueOverviewData {
+  totalRevenue: string;
+  growthText: string;
+  chartData: RevenueChartPoint[];
 }
 
 export interface BookingPipelineBreakdown {
@@ -63,13 +71,10 @@ export interface DashboardRecentActivityItem {
 }
 
 export interface DashboardOverviewData {
+  timeframe: DashboardTimeframe;
   kpis: DashboardKpiData;
-  revenueOverview: {
-    totalRevenue: string;
-    growthText: string;
-    chartData: Record<DashboardTimeframe, RevenueChartPoint[]>;
-  };
-  bookingPipeline: BookingPipelineBreakdown;
+  revenueOverview: RevenueOverviewData | null;
+  bookingPipeline: BookingPipelineBreakdown | null;
   actionsRequired: ActionRequiredItem[];
   recentBookings: DashboardRecentBooking[];
   recentActivities: DashboardRecentActivityItem[];

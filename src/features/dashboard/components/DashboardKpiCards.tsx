@@ -6,12 +6,12 @@ import React from "react";
 import { DashboardKpiData } from "../dashboard.types";
 
 interface DashboardKpiCardsProps {
-  kpis: DashboardKpiData;
+  kpis?: DashboardKpiData;
   isLoading?: boolean;
 }
 
 export function DashboardKpiCards({ kpis, isLoading = false }: DashboardKpiCardsProps) {
-  if (isLoading) {
+  if (isLoading || !kpis) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
@@ -32,14 +32,20 @@ export function DashboardKpiCards({ kpis, isLoading = false }: DashboardKpiCards
   }
 
   const items = [
-    { ...kpis.totalUsers, href: "/users" },
-    { ...kpis.totalHostes, href: "/profiles" },
-    { ...kpis.totalBookings, href: "/bookings" },
-    { ...kpis.platformRevenue, href: "/revenue" },
-  ];
+    kpis.totalUsers ? { ...kpis.totalUsers, href: "/users" } : null,
+    kpis.totalHostes ? { ...kpis.totalHostes, href: "/profiles" } : null,
+    kpis.totalBookings ? { ...kpis.totalBookings, href: "/bookings" } : null,
+    kpis.platformRevenue ? { ...kpis.platformRevenue, href: "/revenue" } : null,
+  ].filter((item): item is NonNullable<typeof item> => item !== null);
+
+  if (items.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div
+      className={`grid grid-cols-1 sm:grid-cols-2 ${
+        items.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4"
+      } gap-4`}
+    >
       {items.map((item) => (
         <a
           key={item.label}
@@ -56,7 +62,13 @@ export function DashboardKpiCards({ kpis, isLoading = false }: DashboardKpiCards
                 {item.value}
               </span>
 
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-secondary/10 text-secondary border border-secondary/20">
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold border ${
+                  item.changePositive
+                    ? "bg-secondary/10 text-secondary border-secondary/20"
+                    : "bg-destructive/10 text-destructive border-destructive/20"
+                }`}
+              >
                 {item.changeText}
               </span>
             </div>
@@ -69,5 +81,4 @@ export function DashboardKpiCards({ kpis, isLoading = false }: DashboardKpiCards
       ))}
     </div>
   );
-
 }

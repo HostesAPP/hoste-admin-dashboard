@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -12,12 +12,17 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-import { DashboardTimeframe, RevenueChartPoint } from "../dashboard.types";
+import { Lock } from "lucide-react";
+import {
+  DashboardTimeframe,
+  RevenueChartPoint,
+  RevenueOverviewData,
+} from "../dashboard.types";
 
 interface DashboardRevenueChartCardProps {
-  totalRevenue: string;
-  growthText: string;
-  chartData: Record<DashboardTimeframe, RevenueChartPoint[]>;
+  revenueOverview?: RevenueOverviewData | null;
+  timeframe: DashboardTimeframe;
+  onTimeframeChange: (timeframe: DashboardTimeframe) => void;
   isLoading?: boolean;
 }
 
@@ -38,7 +43,7 @@ const CustomRevenueTooltip: React.FC<CustomTooltipProps> = ({
     const point = payload[0].payload;
     return (
       <div className="bg-card text-foreground px-3.5 py-2 rounded-xl shadow-lg border border-border text-xs space-y-1">
-        <p className="text-[11px] text-muted-foreground font-medium">{point.date}, 2026</p>
+        <p className="text-[11px] text-muted-foreground font-medium">{point.date}</p>
         <p className="font-bold text-primary">
           Revenue: <span className="font-extrabold">{point.formattedRev}</span>
         </p>
@@ -49,13 +54,11 @@ const CustomRevenueTooltip: React.FC<CustomTooltipProps> = ({
 };
 
 export function DashboardRevenueChartCard({
-  totalRevenue,
-  growthText,
-  chartData,
+  revenueOverview,
+  timeframe,
+  onTimeframeChange,
   isLoading = false,
 }: DashboardRevenueChartCardProps) {
-  const [timeframe, setTimeframe] = useState<DashboardTimeframe>("Monthly");
-
   if (isLoading) {
     return (
       <div className="bg-card rounded-2xl border border-border/80 shadow-xs p-6 flex flex-col justify-between h-full space-y-6 animate-pulse">
@@ -74,7 +77,24 @@ export function DashboardRevenueChartCard({
     );
   }
 
-  const currentData = chartData[timeframe] || chartData.Monthly;
+  // Non-Super Admin roles receive revenueOverview: null from backend
+  if (revenueOverview === null || revenueOverview === undefined) {
+    return (
+      <div className="bg-card rounded-2xl border border-border/80 shadow-xs p-6 flex flex-col items-center justify-center h-full min-h-[320px] text-center space-y-3">
+        <div className="w-11 h-11 rounded-full bg-muted/70 flex items-center justify-center text-muted-foreground">
+          <Lock className="w-5 h-5" />
+        </div>
+        <div className="space-y-1 max-w-xs">
+          <h2 className="text-sm font-bold text-foreground">Revenue Overview</h2>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Revenue analytics are restricted to Super Admin accounts.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const currentData = revenueOverview.chartData || [];
 
   const formatYAxis = (val: number) => {
     if (val === 0) return "₦0";
@@ -91,10 +111,10 @@ export function DashboardRevenueChartCard({
           <h2 className="text-xs font-bold text-foreground">Revenue Overview</h2>
           <div className="flex items-baseline gap-2.5 mt-1">
             <span className="text-2xl font-bold tracking-tight text-foreground">
-              {totalRevenue}
+              {revenueOverview.totalRevenue}
             </span>
             <span className="text-xs font-semibold text-secondary">
-              {growthText}
+              {revenueOverview.growthText}
             </span>
           </div>
         </div>
@@ -107,7 +127,7 @@ export function DashboardRevenueChartCard({
               <button
                 key={tab}
                 type="button"
-                onClick={() => setTimeframe(tab)}
+                onClick={() => onTimeframeChange(tab)}
                 className={`px-3.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   isActive
                     ? "bg-foreground text-background shadow-xs"
@@ -123,68 +143,73 @@ export function DashboardRevenueChartCard({
 
       {/* Chart Canvas */}
       <div className="w-full h-64 sm:h-72">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={currentData}
-            margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.18} />
-                <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.0} />
-              </linearGradient>
-            </defs>
+        {currentData.length === 0 ? (
+          <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground bg-muted/20 rounded-xl">
+            No revenue data recorded for this timeframe.
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={currentData}
+              margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.18} />
+                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.0} />
+                </linearGradient>
+              </defs>
 
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke="var(--border)"
-              opacity={0.6}
-            />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="var(--border)"
+                opacity={0.6}
+              />
 
-            <XAxis
-              dataKey="date"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-              dy={10}
-            />
+              <XAxis
+                dataKey="date"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                dy={10}
+              />
 
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              orientation="right"
-              tickFormatter={formatYAxis}
-              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-              domain={[0, 6000000]}
-              ticks={[1500000, 3000000, 4500000, 6000000]}
-              dx={5}
-            />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                orientation="right"
+                tickFormatter={formatYAxis}
+                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                domain={[0, "auto"]}
+                dx={5}
+              />
 
-            <Tooltip content={<CustomRevenueTooltip />} />
+              <Tooltip content={<CustomRevenueTooltip />} />
 
-            <Area
-              type="monotone"
-              dataKey="revenue"
-              stroke="var(--primary)"
-              strokeWidth={2.5}
-              fillOpacity={1}
-              fill="url(#revenueFill)"
-              dot={{
-                r: 3.5,
-                fill: "var(--primary)",
-                stroke: "var(--card)",
-                strokeWidth: 2,
-              }}
-              activeDot={{
-                r: 6,
-                fill: "var(--primary)",
-                stroke: "var(--card)",
-                strokeWidth: 2,
-              }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="var(--primary)"
+                strokeWidth={2.5}
+                fillOpacity={1}
+                fill="url(#revenueFill)"
+                dot={{
+                  r: 3.5,
+                  fill: "var(--primary)",
+                  stroke: "var(--card)",
+                  strokeWidth: 2,
+                }}
+                activeDot={{
+                  r: 6,
+                  fill: "var(--primary)",
+                  stroke: "var(--card)",
+                  strokeWidth: 2,
+                }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );
