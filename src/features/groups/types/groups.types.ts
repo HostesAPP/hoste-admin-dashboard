@@ -55,10 +55,28 @@ export interface GroupFilterParams {
   status?: string;
   category?: string;
   memberCount?: string;
+  minMembers?: number;
+  maxMembers?: number;
   page?: number;
   pageSize?: number;
-  sortBy?: string;
+  sortBy?: "createdAt" | "name" | string;
   sortOrder?: "asc" | "desc";
+}
+
+export interface GroupCountsResponse {
+  data: {
+    total: number;
+    byStatus: {
+      ACTIVE: number;
+      PAUSED: number;
+      INACTIVE: number;
+    };
+  };
+}
+
+export interface UpdateGroupAdminStatusPayload {
+  status: "ACTIVE" | "PAUSED" | "INACTIVE";
+  reason: string;
 }
 
 export interface GroupMemberFilterParams {
@@ -101,4 +119,4 @@ export interface GroupMembersResponse {
   totalPages: number;
   page: number;
   pageSize: number;
-}
+}

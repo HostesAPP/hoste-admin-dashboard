@@ -28,6 +28,7 @@ export const GroupManagementControls: React.FC<GroupManagementControlsProps> = (
       await updateStatus({
         groupId: group.id,
         status: "ACTIVE",
+        reason: "Group reactivated by staff administrator",
       });
       toast.success(`Group "${group.name}" operational status restored to Active.`);
     } catch (err: unknown) {

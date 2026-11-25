@@ -5,12 +5,16 @@ import {
   fetchUsers,
   fetchUserStats,
   fetchUserById,
+  suspendUserApi,
+  activateUserApi,
 } from "../api/users.api";
 import type {
   User,
   UserFilterParams,
   UsersStatsResponse,
   UsersQueryResponse,
+  SuspendUserPayload,
+  ActivateUserPayload,
 } from "../types/users.types";
 
 /**
@@ -53,8 +57,47 @@ export function useUserDetail(id: string) {
 }
 
 /**
- * Stub mutation for updating user account status.
- * Status mutation endpoint is skipped / not yet supported on backend.
+ * Mutation to suspend a user account
+ * Method: POST /api/v1/users/:id/suspend
+ */
+export function useSuspendUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, payload }: { userId: string; payload: SuspendUserPayload }) =>
+      suspendUserApi(userId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["users-stats"] });
+      queryClient.invalidateQueries({
+        queryKey: ["user-detail", variables.userId],
+      });
+    },
+  });
+}
+
+/**
+ * Mutation to activate a user account
+ * Method: POST /api/v1/users/:id/activate
+ */
+export function useActivateUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, payload }: { userId: string; payload?: ActivateUserPayload }) =>
+      activateUserApi(userId, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["users-stats"] });
+      queryClient.invalidateQueries({
+        queryKey: ["user-detail", variables.userId],
+      });
+    },
+  });
+}
+
+/**
+ * Mutation for updating user account status (suspending or activating).
  */
 export function useUpdateUserStatus() {
   const queryClient = useQueryClient();
@@ -63,16 +106,22 @@ export function useUpdateUserStatus() {
     mutationFn: async ({
       userId,
       newStatus,
+      reason,
     }: {
       userId: string;
       newStatus: "Active" | "Suspended" | "Deleted";
+      reason?: string;
     }) => {
-      console.warn(
-        `[Users API] Update user status for ${userId} to ${newStatus} is not supported on backend yet.`
-      );
-      throw new Error(
-        "User status modification is not yet available on the backend."
-      );
+      if (newStatus === "Suspended") {
+        return suspendUserApi(userId, {
+          reason: reason || "Administrative suspension by staff",
+        });
+      } else if (newStatus === "Active") {
+        return activateUserApi(userId, {
+          reason: reason?.trim() || "Account reactivated by staff administrator",
+        });
+      }
+      throw new Error(`Status ${newStatus} is not supported for user status update.`);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });

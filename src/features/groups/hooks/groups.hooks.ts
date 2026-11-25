@@ -57,13 +57,18 @@ export function useUpdateGroupStatus() {
     mutationFn: ({
       groupId,
       status,
+      reason,
     }: {
       groupId: string;
       status: "ACTIVE" | "PAUSED" | "INACTIVE";
-    }) => updateGroupStatus(groupId, status),
+      reason: string;
+    }) => updateGroupStatus(groupId, status, reason),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: GROUPS_QUERY_KEYS.detail(variables.groupId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: GROUPS_QUERY_KEYS.stats(),
       });
       queryClient.invalidateQueries({
         queryKey: GROUPS_QUERY_KEYS.all,

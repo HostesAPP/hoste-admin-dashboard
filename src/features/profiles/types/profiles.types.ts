@@ -84,6 +84,7 @@ export type Profile = {
   availability?: AvailabilityInfo;
   bookingHistory?: BookingHistoryItem[];
   verificationSummary?: VerificationSummaryInfo;
+  documents?: KycDocumentItem[];
   createdAt: string;
   updatedAt: string;
 };
@@ -202,3 +203,58 @@ export interface ReviewActivationResponse {
     status: string;
   };
 }
+
+export interface SuspendProfilePayload {
+  reason: string;
+  suspendedUntil?: string | null;
+}
+
+export interface RestoreProfilePayload {
+  reason: string;
+}
+
+export interface SuspendRestoreProfileResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    id: string;
+    status: string;
+    suspendedUntil?: string | null;
+    [key: string]: unknown;
+  };
+}
+
+export interface DeactivateProfilePayload {
+  reason: string;
+}
+
+export interface DeactivateProfileResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    id: string;
+    status: string;
+    [key: string]: unknown;
+  };
+}
+
+export interface KycDocumentItem {
+  key: "nin" | "idDocumentUrl" | "cacNumber" | "representativeIdDocumentUrl" | string;
+  label: string;
+  kind: "TEXT" | "FILE";
+  value: string | null;
+}
+
+export interface PrivateDocumentLinkPayload {
+  url: string;
+}
+
+export interface PrivateDocumentLinkResponse {
+  success: boolean;
+  data: {
+    url: string;
+    expiresAt: string;
+  };
+  message?: string;
+}
+

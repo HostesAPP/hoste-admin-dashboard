@@ -87,17 +87,17 @@ export function ProfilesView() {
           toast.error(`Profile application for ${profileName} rejected.`);
           break;
         case "suspend":
-          suspendProfile(profileId, reason, durationDays);
+          await suspendProfile(profileId, reason, durationDays);
           toast.warning(
             `Profile for ${profileName} suspended for ${durationDays || 30} days.`,
           );
           break;
         case "restore":
-          restoreProfile(profileId);
+          await restoreProfile(profileId, reason);
           toast.success(`Profile for ${profileName} restored to active status.`);
           break;
         case "ban":
-          banProfile(profileId, reason);
+          await banProfile(profileId, reason);
           toast.error(`Profile for ${profileName} deactivated.`);
           break;
       }

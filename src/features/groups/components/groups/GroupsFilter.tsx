@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select"
 
 
-const STATUS_OPTIONS = ["All", "Active", "Pending", "Paused"] as const;
+const STATUS_OPTIONS = ["All", "Active", "Paused", "Inactive"] as const;
 
 const CATEGORY_OPTIONS = [
   { label: "All Categories", value: "All Categories" },
@@ -120,11 +120,16 @@ export const GroupsFilter = ({
           </div>
 
           {/* Category Filter */}
-          <form className="space-y-2">
+          <div className="space-y-2">
             <label className="font-bold">
               Category
             </label>
-            <Select items={CATEGORY_OPTIONS}>
+            <Select
+              value={selectedCategory}
+              onValueChange={(val) => {
+                if (val) setSelectedCategory(val);
+              }}
+            >
               <SelectTrigger className="w-full mt-1.5 cursor-pointer py-5">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
@@ -133,10 +138,9 @@ export const GroupsFilter = ({
                   <SelectLabel>Categories</SelectLabel>
                   {CATEGORY_OPTIONS.map((item) => (
                     <SelectItem
-                      className={'cursor-pointer'}
+                      className="cursor-pointer"
                       key={item.value}
                       value={item.value}
-                      onClick={() => setSelectedCategory(item.value)}
                     >
                       {item.label}
                     </SelectItem>
@@ -144,7 +148,7 @@ export const GroupsFilter = ({
                 </SelectGroup>
               </SelectContent>
             </Select>
-          </form>
+          </div>
 
 
           {/* Member Count Filter */}

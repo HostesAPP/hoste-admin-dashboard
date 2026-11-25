@@ -15,12 +15,24 @@ export type {
   ProfilesListResponse,
   ReviewActivationPayload,
   ReviewActivationResponse,
+  SuspendProfilePayload,
+  RestoreProfilePayload,
+  SuspendRestoreProfileResponse,
+  DeactivateProfilePayload,
+  DeactivateProfileResponse,
+  KycDocumentItem,
+  PrivateDocumentLinkPayload,
+  PrivateDocumentLinkResponse,
 } from "./types/profiles.types";
 
 export {
   useProfiles,
   useAdminProfileDetail,
   useReviewActivation,
+  useSuspendProfile,
+  useRestoreProfile,
+  useDeactivateProfile,
+  usePrivateDocumentLink,
   PROFILES_QUERY_KEYS,
 } from "./hooks/use-profiles";
 export { useMyProfiles, MY_PROFILES_QUERY_KEY } from "./hooks/use-my-profiles";
@@ -31,6 +43,10 @@ export {
   fetchPendingProfiles,
   fetchAdminProfileDetail,
   reviewProfileActivation,
+  suspendProfileApi,
+  restoreProfileApi,
+  deactivateProfileApi,
+  getPrivateDocumentLink,
   exportProfilesCsv,
 } from "./api/profile.api";
 export { ProfilesView } from "./components/ProfilesView";

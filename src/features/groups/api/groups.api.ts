@@ -9,6 +9,7 @@ import type {
   GroupsListResponse,
   GroupMembersResponse,
   GroupStatsData,
+  GroupStatsMetric,
   GroupMemberRole,
   GroupMemberStatus,
   GroupLeaderInfo,
@@ -41,10 +42,17 @@ export function normalizeGroup(raw: Record<string, unknown>): Group {
     leader = {
       id: String(rawLeader.id || rawLeader.profileId || leaderProfileId || ""),
       profileId: leaderProfileId,
-      displayName: String(rawLeader.displayName || rawLeader.name || ""),
-      name: String(rawLeader.displayName || rawLeader.name || ""),
+      displayName: String(rawLeader.displayName || rawLeader.name || raw.leaderName || ""),
+      name: String(rawLeader.displayName || rawLeader.name || raw.leaderName || ""),
       avatarUrl: rawLeader.avatarUrl ? String(rawLeader.avatarUrl) : undefined,
       email: rawLeader.email ? String(rawLeader.email) : undefined,
+    };
+  } else if (raw.leaderName) {
+    leader = {
+      id: leaderProfileId || "",
+      profileId: leaderProfileId,
+      displayName: String(raw.leaderName),
+      name: String(raw.leaderName),
     };
   }
 
@@ -171,8 +179,6 @@ export async function fetchGroups(
   const queryParams = new URLSearchParams();
   queryParams.set("skip", String(skip));
   queryParams.set("take", String(take));
-  queryParams.set("page", String(page));
-  queryParams.set("limit", String(pageSize));
 
   if (params.search?.trim()) queryParams.set("search", params.search.trim());
   if (params.status && params.status !== "All") {
@@ -181,6 +187,28 @@ export async function fetchGroups(
   if (params.category && params.category !== "All Categories") {
     queryParams.set("category", params.category);
   }
+
+  // Map memberCount range to minMembers / maxMembers
+  if (params.minMembers !== undefined) {
+    queryParams.set("minMembers", String(params.minMembers));
+  }
+  if (params.maxMembers !== undefined) {
+    queryParams.set("maxMembers", String(params.maxMembers));
+  } else if (params.memberCount && params.memberCount !== "Any") {
+    if (params.memberCount === "1-20") {
+      queryParams.set("minMembers", "1");
+      queryParams.set("maxMembers", "20");
+    } else if (params.memberCount === "21-50") {
+      queryParams.set("minMembers", "21");
+      queryParams.set("maxMembers", "50");
+    } else if (params.memberCount === "51-100") {
+      queryParams.set("minMembers", "51");
+      queryParams.set("maxMembers", "100");
+    } else if (params.memberCount === "100+") {
+      queryParams.set("minMembers", "100");
+    }
+  }
+
   if (params.sortBy) queryParams.set("sortBy", params.sortBy);
   if (params.sortOrder) queryParams.set("sortOrder", params.sortOrder);
 
@@ -212,8 +240,15 @@ export async function fetchGroups(
     ? (response as Record<string, unknown>[])
     : [];
 
+  const metaObj =
+    response?.meta && typeof response.meta === "object" && !Array.isArray(response.meta)
+      ? (response.meta as Record<string, unknown>)
+      : undefined;
+
   const totalCount =
-    typeof dataObj?.total === "number"
+    typeof metaObj?.total === "number"
+      ? metaObj.total
+      : typeof dataObj?.total === "number"
       ? dataObj.total
       : typeof response?.total === "number"
       ? response.total
@@ -386,50 +421,79 @@ export async function fetchGroupMembers(
 
 /**
  * 4. Overview group statistics
+ * GET /api/v1/groups/counts
  */
-export async function fetchGroupStats(): Promise<GroupStatsData> {
-  try {
-    const response = await apiClient<Record<string, unknown>>(`/groups/stats`, {
-      method: "GET",
-    });
+export async function fetchGroupStats(): Promise<GroupStatsMetric[]> {
+  const response = await apiClient<Record<string, unknown>>(`/groups/counts`, {
+    method: "GET",
+  });
 
-    console.log("[Groups API] GET /api/v1/groups/stats response:", response);
+  console.log("[Groups API] GET /api/v1/groups/counts response:", response);
 
-    const dataObj =
-      response?.data && typeof response.data === "object" && !Array.isArray(response.data)
-        ? (response.data as Record<string, unknown>)
-        : response;
+  const dataObj =
+    response?.data && typeof response.data === "object" && !Array.isArray(response.data)
+      ? (response.data as Record<string, unknown>)
+      : response;
 
-    if (dataObj?.totalGroups) {
-      return dataObj as unknown as GroupStatsData;
-    }
-  } catch {
-    // If /groups/stats is not an independent route, fallback to summary list
-  }
+  const total = Number(dataObj?.total ?? 0);
+  const byStatus = (dataObj?.byStatus as Record<string, unknown>) || {};
+  const active = Number(byStatus.ACTIVE ?? 0);
+  const paused = Number(byStatus.PAUSED ?? 0);
+  const inactive = Number(byStatus.INACTIVE ?? 0);
 
-  const list = await fetchGroups({ pageSize: 100 });
-  return list.stats;
+  return [
+    {
+      title: "01 — Total Groups",
+      value: total,
+      footerText: "All groups on Hosté",
+      rate: 0,
+    },
+    {
+      title: "02 — Active Groups",
+      value: active,
+      footerText: "Currently active on platform",
+      rate: 0,
+    },
+    {
+      title: "03 — Paused Groups",
+      value: paused,
+      footerText: "Temporarily paused groups",
+      rate: 0,
+    },
+    {
+      title: "04 — Inactive Groups",
+      value: inactive,
+      footerText: "Deactivated or inactive groups",
+      rate: 0,
+    },
+  ];
 }
 
 /**
- * 5. Update group status
- * PATCH /api/v1/groups/:groupId/status
+ * 5. Update group status (staff)
+ * PATCH /api/v1/groups/:groupId/admin-status
  */
 export async function updateGroupStatus(
   groupId: string,
-  status: "ACTIVE" | "PAUSED" | "INACTIVE"
+  status: "ACTIVE" | "PAUSED" | "INACTIVE",
+  reason: string
 ): Promise<Group> {
   const cleanId = groupId.trim();
+  const safeReason =
+    reason?.trim().length >= 3
+      ? reason.trim()
+      : "Status updated by staff administrator";
+
   const response = await apiClient<Record<string, unknown>>(
-    `/groups/${cleanId}/status`,
+    `/groups/${cleanId}/admin-status`,
     {
       method: "PATCH",
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, reason: safeReason }),
     }
   );
 
   // LOG RESPONSE per user instruction
-  console.log("[Groups API] PATCH /api/v1/groups/:id/status response:", response);
+  console.log("[Groups API] PATCH /api/v1/groups/:id/admin-status response:", response);
 
   const dataObj =
     response?.data && typeof response.data === "object" && !Array.isArray(response.data)

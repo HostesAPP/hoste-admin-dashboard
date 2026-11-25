@@ -9,15 +9,20 @@ export type {
   UserSecurityInfo,
   UserAdminActivity,
   UserRecentActivityItem,
+  SuspendUserPayload,
+  ActivateUserPayload,
+  UpdateUserStatusResponse,
 } from "./types/users.types";
 
 export {
   userFilterSchema,
   exportUsersSchema,
   inviteAdminSchema,
+  suspendUserSchema,
   type UserFilterFormValues,
   type ExportUsersFormValues,
   type InviteAdminFormValues,
+  type SuspendUserFormValues,
 } from "./schemas/users.schema";
 
 export { initialUsers, initialUserStats } from "./data/users.data";
@@ -27,12 +32,16 @@ export {
   fetchUserById,
   exportUsersCsv,
   normalizeUserFromBackend,
+  suspendUserApi,
+  activateUserApi,
 } from "./api/users.api";
 export {
   useUsers,
   useUserStats,
   useUserDetail,
   useUpdateUserStatus,
+  useSuspendUser,
+  useActivateUser,
   useChangeUserRole,
 } from "./hooks/useUsers";
 

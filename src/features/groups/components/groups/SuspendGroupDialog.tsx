@@ -82,6 +82,7 @@ export const SuspendGroupDialog: React.FC<SuspendGroupDialogProps> = ({
       await updateStatus({
         groupId: group.id,
         status: "PAUSED",
+        reason: data.reason.trim(),
       });
       toast.success(`Group "${group.name}" has been suspended.`);
       reset();

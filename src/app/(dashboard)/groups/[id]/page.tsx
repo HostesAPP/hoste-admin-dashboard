@@ -134,6 +134,7 @@ export default function GroupDetailPage() {
                     await updateStatus({
                       groupId: currentGroup.id,
                       status: "ACTIVE",
+                      reason: "Group reactivated by staff administrator",
                     });
                     toast.success(`Group "${currentGroup.name}" operational status restored to Active.`);
                   } catch (err: unknown) {
@@ -219,6 +220,7 @@ export default function GroupDetailPage() {
                           await updateStatus({
                             groupId: currentGroup.id,
                             status: "ACTIVE",
+                            reason: "Group reactivated by staff administrator",
                           });
                           toast.success(`Group "${currentGroup.name}" operational status restored to Active.`);
                         } catch (err: unknown) {
