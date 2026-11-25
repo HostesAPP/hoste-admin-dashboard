@@ -8,7 +8,7 @@ import { ArrowRight } from "lucide-react";
 import { BookingPipelineBreakdown } from "../dashboard.types";
 
 interface DashboardBookingOverviewCardProps {
-  pipeline: BookingPipelineBreakdown;
+  pipeline?: BookingPipelineBreakdown | null;
   isLoading?: boolean;
 }
 
@@ -41,6 +41,17 @@ export function DashboardBookingOverviewCard({
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (!pipeline) {
+    return (
+      <div className="bg-card rounded-2xl border border-border/80 shadow-xs p-6 flex flex-col items-center justify-center h-full text-center space-y-2">
+        <h2 className="text-xs font-bold text-foreground">Booking Overview</h2>
+        <p className="text-xs text-muted-foreground">
+          Booking pipeline metrics are currently unavailable.
+        </p>
       </div>
     );
   }
@@ -79,7 +90,7 @@ export function DashboardBookingOverviewCard({
       percentage: pipeline.cancelled.percentage,
       dotColor: "bg-destructive",
       barColor: "bg-destructive",
-    },
+    }
   ];
 
   return (

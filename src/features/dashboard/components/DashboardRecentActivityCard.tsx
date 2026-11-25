@@ -53,7 +53,7 @@ export function DashboardRecentActivityCard({
             No recent activity recorded.
           </div>
         ) : (
-          activities.map((act, index) => (
+          activities.slice(0, 4).map((act, index) => (
             <div
               key={act.id}
               className={`flex items-start gap-3 ${index > 0 ? "pt-3" : ""}`}

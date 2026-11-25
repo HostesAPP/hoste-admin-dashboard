@@ -3,6 +3,7 @@
 import { DashboardOverviewData } from "../dashboard.types";
 
 export const MOCK_DASHBOARD_OVERVIEW_DATA: DashboardOverviewData = {
+  timeframe: "Monthly",
   kpis: {
     totalUsers: {
       label: "Total Users",
@@ -37,32 +38,15 @@ export const MOCK_DASHBOARD_OVERVIEW_DATA: DashboardOverviewData = {
   revenueOverview: {
     totalRevenue: "₦4,850,000",
     growthText: "+15.8% growth vs last month",
-    chartData: {
-      Monthly: [
-        { date: "Aug 1", revenue: 1900000, formattedRev: "₦1.90M" },
-        { date: "Aug 6", revenue: 2300000, formattedRev: "₦2.30M" },
-        { date: "Aug 11", revenue: 2100000, formattedRev: "₦2.10M" },
-        { date: "Aug 16", revenue: 3200000, formattedRev: "₦3.20M" },
-        { date: "Aug 21", revenue: 2900000, formattedRev: "₦2.90M" },
-        { date: "Aug 26", revenue: 4100000, formattedRev: "₦4.10M" },
-        { date: "Aug 31", revenue: 4850000, formattedRev: "₦4.85M" },
-      ],
-      Weekly: [
-        { date: "Week 1", revenue: 1100000, formattedRev: "₦1.10M" },
-        { date: "Week 2", revenue: 2400000, formattedRev: "₦2.40M" },
-        { date: "Week 3", revenue: 3600000, formattedRev: "₦3.60M" },
-        { date: "Week 4", revenue: 4850000, formattedRev: "₦4.85M" },
-      ],
-      Daily: [
-        { date: "Mon", revenue: 540000, formattedRev: "₦540K" },
-        { date: "Tue", revenue: 680000, formattedRev: "₦680K" },
-        { date: "Wed", revenue: 750000, formattedRev: "₦750K" },
-        { date: "Thu", revenue: 890000, formattedRev: "₦890K" },
-        { date: "Fri", revenue: 1050000, formattedRev: "₦1.05M" },
-        { date: "Sat", revenue: 1200000, formattedRev: "₦1.20M" },
-        { date: "Sun", revenue: 950000, formattedRev: "₦950K" },
-      ],
-    },
+    chartData: [
+      { date: "Aug 1", revenue: 1900000, formattedRev: "₦1.90M" },
+      { date: "Aug 6", revenue: 2300000, formattedRev: "₦2.30M" },
+      { date: "Aug 11", revenue: 2100000, formattedRev: "₦2.10M" },
+      { date: "Aug 16", revenue: 3200000, formattedRev: "₦3.20M" },
+      { date: "Aug 21", revenue: 2900000, formattedRev: "₦2.90M" },
+      { date: "Aug 26", revenue: 4100000, formattedRev: "₦4.10M" },
+      { date: "Aug 31", revenue: 4850000, formattedRev: "₦4.85M" },
+    ],
   },
 
   bookingPipeline: {

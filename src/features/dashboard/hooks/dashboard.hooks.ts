@@ -2,11 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { fetchDashboardOverview } from "../api/dashboard.api";
+import type { DashboardTimeframe } from "../dashboard.types";
 
-export function useDashboardOverview() {
+export function useDashboardOverview(timeframe: DashboardTimeframe = "Daily") {
   return useQuery({
-    queryKey: ["dashboard-overview"],
-    queryFn: () => fetchDashboardOverview(),
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    queryKey: ["dashboard-overview", timeframe],
+    queryFn: () => fetchDashboardOverview(timeframe),
+    placeholderData: (previousData) => previousData,
+    staleTime: 1000 * 60 * 2, // 2 minutes cache
   });
 }
