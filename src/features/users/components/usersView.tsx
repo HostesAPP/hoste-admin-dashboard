@@ -10,7 +10,8 @@ import { UserDetailDialog } from "./userDetailDialog";
 import { ExportUsersModal } from "./exportUsersModal";
 import { InviteAdminModal } from "./inviteAdminModal";
 import { InviteSuccessModal } from "./inviteSuccessModal";
-import { useUsers, useUserStats } from "../hooks/useUsers";
+import { SuspendUserModal } from "./suspendUserModal";
+import { useUsers, useUserStats, useSuspendUser, useActivateUser } from "../hooks/useUsers";
 import { exportUsersCsv } from "../api/users.api";
 import type { User, UserFilterParams, UserTab, UserStats } from "../types/users.types";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,9 @@ export function UsersView() {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [invitedEmail, setInvitedEmail] = useState("admin@email.com");
 
+  const [statusModalUser, setStatusModalUser] = useState<User | null>(null);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+
   // React Query hooks connected to real backend
   const { data, isLoading } = useUsers(filters);
   const { data: statsData, isLoading: isStatsLoading } = useUserStats({
@@ -45,6 +49,10 @@ export function UsersView() {
     dateTo: filters.dateTo,
     dateJoined: filters.dateJoined,
   });
+
+  const suspendMutation = useSuspendUser();
+  const activateMutation = useActivateUser();
+  const isStatusPending = suspendMutation.isPending || activateMutation.isPending;
 
   const handleTabChange = (tab: UserTab) => {
     setActiveTab(tab);
@@ -81,9 +89,40 @@ export function UsersView() {
     setIsDetailOpen(true);
   };
 
-  const handleToggleStatus = () => {
-    // Skipping suspend, restore and ban mutations per user instruction
-    toast.info("User status modification is not available at this time.");
+  const handleToggleStatus = (user?: User) => {
+    const target = user || selectedUser;
+    if (!target) return;
+    setStatusModalUser(target);
+    setIsStatusModalOpen(true);
+  };
+
+  const handleConfirmStatusChange = async (targetUser: User, reason: string) => {
+    try {
+      if (targetUser.status === "Active") {
+        await suspendMutation.mutateAsync({
+          userId: targetUser.id,
+          payload: { reason },
+        });
+        toast.success(`User ${targetUser.name} has been suspended.`);
+      } else {
+        await activateMutation.mutateAsync({
+          userId: targetUser.id,
+          payload: {
+            reason: reason?.trim() || "Account reactivated by staff administrator",
+          },
+        });
+        toast.success(`User ${targetUser.name} has been activated.`);
+      }
+      setIsStatusModalOpen(false);
+      setIsDetailOpen(false);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Failed to update user account status.";
+      toast.error(msg);
+      throw err;
+    }
   };
 
   const handleConfirmExport = async (
@@ -151,9 +190,7 @@ export function UsersView() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Top Header */}
-      <UsersHeader
-        onSearchChange={(search) => handleFiltersChange({ search })}
-      />
+      <UsersHeader />
 
       <main className="px-6 space-y-6">
         {/* Actions Row */}
@@ -245,6 +282,15 @@ export function UsersView() {
           open={successModalOpen}
           onOpenChange={setSuccessModalOpen}
           email={invitedEmail}
+        />
+
+        {/* Suspend / Activate User Modal */}
+        <SuspendUserModal
+          user={statusModalUser}
+          open={isStatusModalOpen}
+          onOpenChange={setIsStatusModalOpen}
+          onConfirm={handleConfirmStatusChange}
+          isLoading={isStatusPending}
         />
       </main>
     </div>

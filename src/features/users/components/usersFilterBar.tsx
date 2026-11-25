@@ -1,8 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, X } from "lucide-react";
 import { userFilterSchema, type UserFilterFormValues } from "../schemas/users.schema";
 import type { UserTab } from "../types/users.types";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+
+// NOTE: The backend GET /api/v1/users only accepts: search, category, accountStatus, dateFrom, dateTo.
+// The "Filter" (Verified/Unverified) and "Role" dropdowns have no backend mapping —
+// category filtering is handled by the Tab row (ALL / HOSTÉS / CUSTOMERS / ADMINS & STAFF).
 
 interface UsersFilterBarProps {
   activeTab: UserTab;
@@ -36,7 +41,27 @@ export function UsersFilterBar({
   onFiltersChange,
   onClearFilters,
 }: UsersFilterBarProps) {
-  const { control, register, setValue, reset } = useForm<UserFilterFormValues>({
+  const [searchTerm, setSearchTerm] = useState(filters.search || "");
+
+  // Sync internal search input state when external filters.search changes (e.g. on reset/clear)
+  useEffect(() => {
+    (() => {
+      setSearchTerm(filters.search || "");
+    })();
+  }, [filters.search]);
+
+  // Debounce search input (300ms) to avoid spamming the backend
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchTerm !== (filters.search || "")) {
+        onFiltersChange({ search: searchTerm });
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, filters.search, onFiltersChange]);
+
+  const { control, setValue, reset } = useForm<UserFilterFormValues>({
     resolver: zodResolver(userFilterSchema),
     defaultValues: {
       tab: activeTab,
@@ -51,6 +76,7 @@ export function UsersFilterBar({
   });
 
   const handleReset = () => {
+    setSearchTerm("");
     reset({
       tab: activeTab,
       search: "",
@@ -97,43 +123,29 @@ export function UsersFilterBar({
       {/* Filter Inputs & Dropdowns Row */}
       <div className="flex flex-wrap items-center gap-3 pt-1">
         {/* Search Input */}
-        <div className="relative flex-1 min-w-[280px]">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <div className="relative flex-1 min-w-70">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <Input
-            {...register("search")}
+            type="search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by name, email, phone number or User ID..."
-            className="pl-10 h-10 text-xs rounded-lg bg-card border-border/80 focus-visible:ring-primary focus-visible:ring-1"
-            onChange={(e) => {
-              setValue("search", e.target.value);
-              onFiltersChange({ search: e.target.value });
-            }}
+            className="pl-10 pr-9 h-10 text-xs rounded-lg bg-card border-border/80 focus-visible:ring-primary focus-visible:ring-1"
           />
-        </div>
-
-        {/* Filter Dropdown */}
-        <Controller
-          control={control}
-          name="filter"
-          render={({ field }) => (
-            <DropdownMenu>
-              <DropdownMenuTrigger className="h-10 text-xs font-normal border border-border/80 bg-card hover:bg-muted/50 px-3.5 gap-2 text-muted-foreground min-w-[85px] justify-between inline-flex items-center rounded-md cursor-pointer">
-                <span>{field.value ? field.value : "Filter"}</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="text-xs">
-                <DropdownMenuItem onClick={() => { field.onChange(""); onFiltersChange({ filter: "" }); }}>
-                  All
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { field.onChange("Verified"); onFiltersChange({ filter: "Verified" }); }}>
-                  Verified
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { field.onChange("Unverified"); onFiltersChange({ filter: "Unverified" }); }}>
-                  Unverified
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTerm("");
+                onFiltersChange({ search: "" });
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground rounded-md transition-colors cursor-pointer"
+              aria-label="Clear search"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           )}
-        />
+        </div>
 
         {/* Date Joined Dropdown */}
         <Controller
@@ -188,33 +200,7 @@ export function UsersFilterBar({
           )}
         />
 
-        {/* Role Dropdown */}
-        <Controller
-          control={control}
-          name="role"
-          render={({ field }) => (
-            <DropdownMenu>
-              <DropdownMenuTrigger className="h-10 text-xs font-normal border border-border/80 bg-card hover:bg-muted/50 px-3.5 gap-2 text-muted-foreground min-w-[85px] justify-between inline-flex items-center rounded-md cursor-pointer">
-                <span className="capitalize">{field.value ? field.value : "Role"}</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="text-xs">
-                <DropdownMenuItem onClick={() => { field.onChange(""); onFiltersChange({ role: "" }); }}>
-                  All Roles
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { field.onChange("Hosté"); onFiltersChange({ role: "Hosté" }); }}>
-                  Hosté
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { field.onChange("Customer"); onFiltersChange({ role: "Customer" }); }}>
-                  Customer
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { field.onChange("Admin"); onFiltersChange({ role: "Admin" }); }}>
-                  Admin
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        />
+
 
         {/* Clear Filters Link */}
         <button

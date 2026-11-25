@@ -8,6 +8,10 @@ import {
   fetchPendingProfiles,
   fetchAdminProfileDetail,
   reviewProfileActivation,
+  suspendProfileApi,
+  restoreProfileApi,
+  deactivateProfileApi,
+  getPrivateDocumentLink,
   exportProfilesCsv,
 } from "../api/profile.api";
 import type {
@@ -121,6 +125,15 @@ export function useProfiles() {
     },
   });
 
+  // 4. Suspend Mutation
+  const suspendMutation = useSuspendProfile();
+
+  // 5. Restore Mutation
+  const restoreMutation = useRestoreProfile();
+
+  // 6. Deactivate Mutation
+  const deactivateMutation = useDeactivateProfile();
+
   const handleTabChange = (tab: ProfileTab) => {
     startTransition(() => {
       setActiveTab(tab);
@@ -173,18 +186,32 @@ export function useProfiles() {
     });
   };
 
-  // Suspend, Restore, and Ban are skipped for now per instructions
-  const suspendProfile = (_id: string, _reason?: string, _durationDays?: number) => {
-    console.warn("Suspend endpoint pending backend specification.");
+  const suspendProfile = async (id: string, reason?: string, durationDays?: number) => {
+    const suspendedUntil = durationDays
+      ? new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000).toISOString()
+      : undefined;
+    await suspendMutation.mutateAsync({
+      id,
+      reason: reason || "Administrative suspension by staff",
+      suspendedUntil,
+    });
   };
 
-  const restoreProfile = (_id: string) => {
-    console.warn("Restore endpoint pending backend specification.");
+  const restoreProfile = async (id: string, reason?: string) => {
+    await restoreMutation.mutateAsync({
+      id,
+      reason: reason || "Restored to active status by staff administrator",
+    });
   };
 
-  const banProfile = (_id: string, _reason?: string) => {
-    console.warn("Ban endpoint pending backend specification.");
+  const deactivateProfile = async (id: string, reason?: string) => {
+    await deactivateMutation.mutateAsync({
+      id,
+      reason: reason || "Deactivated by staff administrator",
+    });
   };
+
+  const banProfile = deactivateProfile;
 
   return {
     profiles,
@@ -212,8 +239,12 @@ export function useProfiles() {
     rejectProfile,
     suspendProfile,
     restoreProfile,
+    deactivateProfile,
     banProfile,
     isReviewing: reviewMutation.isPending,
+    isSuspending: suspendMutation.isPending,
+    isRestoring: restoreMutation.isPending,
+    isDeactivating: deactivateMutation.isPending,
   };
 }
 
@@ -252,6 +283,105 @@ export function useReviewActivation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PROFILES_QUERY_KEYS.all });
     },
+  });
+}
+
+/**
+ * Suspend profile mutation hook
+ * POST /api/v1/admin/profiles/:id/suspend
+ */
+export function useSuspendProfile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      reason,
+      suspendedUntil,
+    }: {
+      id: string;
+      reason: string;
+      suspendedUntil?: string | null;
+    }) =>
+      suspendProfileApi(id, {
+        reason,
+        suspendedUntil,
+      }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: PROFILES_QUERY_KEYS.all });
+      queryClient.invalidateQueries({
+        queryKey: PROFILES_QUERY_KEYS.adminDetail(variables.id),
+      });
+    },
+  });
+}
+
+/**
+ * Restore profile mutation hook
+ * POST /api/v1/admin/profiles/:id/restore
+ */
+export function useRestoreProfile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      reason,
+    }: {
+      id: string;
+      reason: string;
+    }) =>
+      restoreProfileApi(id, {
+        reason,
+      }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: PROFILES_QUERY_KEYS.all });
+      queryClient.invalidateQueries({
+        queryKey: PROFILES_QUERY_KEYS.adminDetail(variables.id),
+      });
+    },
+  });
+}
+
+/**
+ * Deactivate profile mutation hook
+ * POST /api/v1/admin/profiles/:id/deactivate
+ */
+export function useDeactivateProfile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      reason,
+    }: {
+      id: string;
+      reason: string;
+    }) =>
+      deactivateProfileApi(id, {
+        reason,
+      }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: PROFILES_QUERY_KEYS.all });
+      queryClient.invalidateQueries({
+        queryKey: PROFILES_QUERY_KEYS.adminDetail(variables.id),
+      });
+    },
+  });
+}
+
+/**
+ * Query hook to fetch a short-lived signed link for a private ID document
+ * Method: POST /api/v1/media/private/document-link
+ * Access: Staff only (SUPER_ADMIN, VERIFICATION_OFFICER)
+ */
+export function usePrivateDocumentLink(url?: string | null) {
+  return useQuery({
+    queryKey: ["private-document-link", url],
+    queryFn: () => getPrivateDocumentLink(url!),
+    enabled: Boolean(url && url.trim().length > 0),
+    staleTime: 3 * 60 * 1000, // 3 minutes cache (signed links valid 5-10m)
+    retry: 1,
   });
 }
 

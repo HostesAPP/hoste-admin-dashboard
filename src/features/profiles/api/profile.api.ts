@@ -13,6 +13,13 @@ import type {
   GetMyProfilesResponse,
   ReviewActivationPayload,
   ReviewActivationResponse,
+  SuspendProfilePayload,
+  RestoreProfilePayload,
+  SuspendRestoreProfileResponse,
+  DeactivateProfilePayload,
+  DeactivateProfileResponse,
+  KycDocumentItem,
+  PrivateDocumentLinkResponse,
 } from "../types/profiles.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -126,6 +133,9 @@ export function normalizeProfileFromBackend(raw: Record<string, unknown>): Profi
       certificatesCount: 2,
       backgroundStatus: normalizedVerification === "Active" ? "Verified" : "Pending",
     },
+    documents: Array.isArray(raw.documents)
+      ? (raw.documents as KycDocumentItem[])
+      : undefined,
     createdAt: String(raw.createdAt || new Date().toISOString()),
     updatedAt: String(raw.updatedAt || new Date().toISOString()),
   };
@@ -310,6 +320,66 @@ export async function reviewProfileActivation(
 }
 
 /**
+ * 6. Suspend a Profile
+ * Method: POST /api/v1/admin/profiles/:id/suspend
+ * Access: Staff accounts only (SUPER_ADMIN, MODERATOR, OPERATIONS)
+ */
+export async function suspendProfileApi(
+  id: string,
+  payload: SuspendProfilePayload
+): Promise<SuspendRestoreProfileResponse> {
+  const cleanId = id.trim();
+  return apiClient<SuspendRestoreProfileResponse>(
+    `/admin/profiles/${cleanId}/suspend`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  );
+}
+
+/**
+ * 7. Restore a Suspended Profile
+ * Method: POST /api/v1/admin/profiles/:id/restore
+ * Access: Staff accounts only (SUPER_ADMIN, MODERATOR, OPERATIONS)
+ */
+export async function restoreProfileApi(
+  id: string,
+  payload: RestoreProfilePayload
+): Promise<SuspendRestoreProfileResponse> {
+  const cleanId = id.trim();
+  return apiClient<SuspendRestoreProfileResponse>(
+    `/admin/profiles/${cleanId}/restore`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  );
+}
+
+/**
+ * 8. Deactivate a Profile
+ * Method: POST /api/v1/admin/profiles/:id/deactivate
+ * Access: Staff accounts only (SUPER_ADMIN, MODERATOR, OPERATIONS)
+ */
+export async function deactivateProfileApi(
+  id: string,
+  payload: DeactivateProfilePayload
+): Promise<DeactivateProfileResponse> {
+  const cleanId = id.trim();
+  const response = await apiClient<DeactivateProfileResponse>(
+    `/admin/profiles/${cleanId}/deactivate`,
+    {
+      method: "POST",
+      body: JSON.stringify({ reason: payload.reason.trim() }),
+    }
+  );
+
+  console.log(`[Profiles API] POST /api/v1/admin/profiles/${cleanId}/deactivate response:`, response);
+  return response;
+}
+
+/**
  * 6. Export Profiles (CSV)
  * Method: GET /api/v1/profiles/export
  * Access: Staff Only
@@ -366,6 +436,27 @@ export async function exportProfilesCsv(
 }
 
 /**
+ * 9. Request a temporary signed link for a private ID document
+ * Method: POST /api/v1/media/private/document-link
+ * Access: Staff only (SUPER_ADMIN, VERIFICATION_OFFICER)
+ */
+export async function getPrivateDocumentLink(
+  url: string
+): Promise<PrivateDocumentLinkResponse> {
+  const cleanUrl = url.trim();
+  const response = await apiClient<PrivateDocumentLinkResponse>(
+    `/media/private/document-link`,
+    {
+      method: "POST",
+      body: JSON.stringify({ url: cleanUrl }),
+    }
+  );
+
+  console.log("[Media API] POST /api/v1/media/private/document-link response:", response);
+  return response;
+}
+
+/**
  * Returns all non-deleted profiles owned by the authenticated user.
  * Method: GET /api/v1/profiles/me
  * Access: Protected (Bearer <token>)
@@ -375,3 +466,4 @@ export async function getMyProfiles(): Promise<GetMyProfilesResponse> {
     method: "GET",
   });
 }
+

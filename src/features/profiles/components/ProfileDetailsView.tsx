@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import type { Profile } from "../types/profiles.types";
-import { useAdminProfileDetail, useReviewActivation } from "../hooks/use-profiles";
+import {
+  useAdminProfileDetail,
+  useReviewActivation,
+  useSuspendProfile,
+  useRestoreProfile,
+  useDeactivateProfile,
+} from "../hooks/use-profiles";
 import { usePermission } from "@/lib/permissions";
 import { AccessRestricted } from "@/components/shared";
 import { ProfileDetailsHeader } from "./ProfileDetailsHeader";
@@ -21,7 +27,7 @@ import {
   type ActionType,
 } from "./ProfileActionModal";
 import Link from "next/link";
-import { ChevronLeft, Loader2, RotateCcw } from "lucide-react";
+import { ChevronLeft, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ProfileDetailsViewProps {
@@ -32,6 +38,9 @@ export function ProfileDetailsView({ profileId }: ProfileDetailsViewProps) {
   const { isNone, canManage } = usePermission("profiles");
   const { data: profile, isLoading, isError, refetch } = useAdminProfileDetail(profileId);
   const reviewMutation = useReviewActivation();
+  const suspendMutation = useSuspendProfile();
+  const restoreMutation = useRestoreProfile();
+  const deactivateMutation = useDeactivateProfile();
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -128,6 +137,31 @@ export function ProfileDetailsView({ profileId }: ProfileDetailsViewProps) {
           rejectionReason: reason || "Profile does not meet activation criteria.",
         });
         toast.error(`Profile application rejected.`);
+      } else if (modalState.actionType === "suspend") {
+        const suspendedUntil = _durationDays
+          ? new Date(Date.now() + _durationDays * 24 * 60 * 60 * 1000).toISOString()
+          : undefined;
+        await suspendMutation.mutateAsync({
+          id: profile.id,
+          reason: reason || "Administrative suspension by staff",
+          suspendedUntil,
+        });
+        toast.warning(`Profile for ${profile.displayName} suspended.`);
+        refetch();
+      } else if (modalState.actionType === "restore") {
+        await restoreMutation.mutateAsync({
+          id: profile.id,
+          reason: reason || "Restored to active status by staff administrator",
+        });
+        toast.success(`Profile for ${profile.displayName} restored to active status.`);
+        refetch();
+      } else if (modalState.actionType === "ban") {
+        await deactivateMutation.mutateAsync({
+          id: profile.id,
+          reason: reason || "Deactivated by staff administrator",
+        });
+        toast.error(`Profile for ${profile.displayName} deactivated.`);
+        refetch();
       } else {
         toast.info(`${modalState.actionType} is not available at this time.`);
       }

@@ -12,6 +12,9 @@ import type {
   UsersQueryResponse,
   UserStatus,
   UserType,
+  SuspendUserPayload,
+  ActivateUserPayload,
+  UpdateUserStatusResponse,
 } from "../types/users.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -152,7 +155,11 @@ function buildUserQueryParams(params: UserFilterParams = {}): URLSearchParams {
 
   // Search
   if (params.search?.trim()) {
-    queryParams.set("search", params.search.trim());
+    const rawSearch = params.search.trim();
+    const searchVal = rawSearch.toUpperCase().startsWith("USR-")
+      ? rawSearch.slice(4).trim()
+      : rawSearch;
+    queryParams.set("search", searchVal);
   }
 
   // Category tab mapping
@@ -430,4 +437,51 @@ export async function fetchUserById(id: string): Promise<User | null> {
     }
   }
 }
+
+/**
+ * 5. Suspend User
+ * Method: POST /api/v1/users/:id/suspend
+ * Access: Staff Only
+ */
+export async function suspendUserApi(
+  id: string,
+  payload: SuspendUserPayload
+): Promise<UpdateUserStatusResponse> {
+  const cleanId = id.trim();
+  const response = await apiClient<Record<string, unknown>>(
+    `/users/${cleanId}/suspend`,
+    {
+      method: "POST",
+      body: JSON.stringify({ reason: payload.reason.trim() }),
+    }
+  );
+
+  console.log(`[Users API] POST /api/v1/users/${cleanId}/suspend response:`, response);
+  return response as UpdateUserStatusResponse;
+}
+
+/**
+ * 6. Activate User
+ * Method: POST /api/v1/users/:id/activate
+ * Access: Staff Only
+ */
+export async function activateUserApi(
+  id: string,
+  payload?: ActivateUserPayload
+): Promise<UpdateUserStatusResponse> {
+  const cleanId = id.trim();
+  const reason =
+    payload?.reason?.trim() || "Account reactivated by staff administrator";
+  const response = await apiClient<Record<string, unknown>>(
+    `/users/${cleanId}/activate`,
+    {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }
+  );
+
+  console.log(`[Users API] POST /api/v1/users/${cleanId}/activate response:`, response);
+  return response as UpdateUserStatusResponse;
+}
+
 

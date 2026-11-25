@@ -50,7 +50,7 @@ export function CurrentUserTopNav({ className }: CurrentUserTopNavProps) {
               <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
             </div>
             <span className="text-[10px] text-muted-foreground font-medium capitalize truncate max-w-[125px] leading-tight mt-0.5">
-              Admin
+              {user?.staffRole}
             </span>
           </div>
         </DropdownMenuTrigger>

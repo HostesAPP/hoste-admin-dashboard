@@ -30,3 +30,13 @@ export const inviteAdminSchema = z.object({
 });
 
 export type InviteAdminFormValues = z.infer<typeof inviteAdminSchema>;
+
+export const suspendUserSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(3, "Reason for suspension must be at least 3 characters")
+    .max(500, "Reason must not exceed 500 characters"),
+});
+
+export type SuspendUserFormValues = z.infer<typeof suspendUserSchema>;

@@ -17,8 +17,14 @@ import Link from "next/link";
 import { AlertCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserDetailsSkeleton } from "./userDetailsSkeleton";
-import { useUserDetail, useUpdateUserStatus, useChangeUserRole } from "../hooks/useUsers";
+import {
+  useUserDetail,
+  useSuspendUser,
+  useActivateUser,
+  useChangeUserRole,
+} from "../hooks/useUsers";
 import type { User, UserType } from "../types/users.types";
+import { toast } from "sonner";
 
 interface UserDetailsViewProps {
   userId: string;
@@ -26,8 +32,11 @@ interface UserDetailsViewProps {
 
 export function UserDetailsView({ userId }: UserDetailsViewProps) {
   const { data: user, isLoading, isError, refetch } = useUserDetail(userId);
-  const updateStatusMutation = useUpdateUserStatus();
+  const suspendMutation = useSuspendUser();
+  const activateMutation = useActivateUser();
   const changeRoleMutation = useChangeUserRole();
+
+  const isStatusPending = suspendMutation.isPending || activateMutation.isPending;
 
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
   const [changeRoleModalOpen, setChangeRoleModalOpen] = useState(false);
@@ -54,9 +63,32 @@ export function UserDetailsView({ userId }: UserDetailsViewProps) {
     document.body.removeChild(link);
   };
 
-  const handleConfirmSuspend = (targetUser: User) => {
-    const nextStatus = targetUser.status === "Active" ? "Suspended" : "Active";
-    updateStatusMutation.mutate({ userId: targetUser.id, newStatus: nextStatus });
+  const handleConfirmSuspend = async (targetUser: User, reason: string) => {
+    try {
+      if (targetUser.status === "Active") {
+        await suspendMutation.mutateAsync({
+          userId: targetUser.id,
+          payload: { reason },
+        });
+        toast.success(`User ${targetUser.name} has been suspended.`);
+      } else {
+        await activateMutation.mutateAsync({
+          userId: targetUser.id,
+          payload: {
+            reason: reason?.trim() || "Account reactivated by staff administrator",
+          },
+        });
+        toast.success(`User ${targetUser.name} has been activated.`);
+      }
+      refetch();
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Failed to update user account status.";
+      toast.error(msg);
+      throw err;
+    }
   };
 
   const handleConfirmChangeRole = (
@@ -155,6 +187,7 @@ export function UserDetailsView({ userId }: UserDetailsViewProps) {
           open={suspendModalOpen}
           onOpenChange={setSuspendModalOpen}
           onConfirm={handleConfirmSuspend}
+          isLoading={isStatusPending}
         />
 
         {/* Change Role Modal */}

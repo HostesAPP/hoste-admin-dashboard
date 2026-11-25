@@ -161,3 +161,17 @@ export interface UsersQueryResponse {
   skip: number;
   take: number;
 }
+
+export interface SuspendUserPayload {
+  reason: string;
+}
+
+export interface ActivateUserPayload {
+  reason?: string;
+}
+
+export interface UpdateUserStatusResponse {
+  success?: boolean;
+  message?: string;
+  data?: UserResponseDto | Record<string, unknown>;
+}
